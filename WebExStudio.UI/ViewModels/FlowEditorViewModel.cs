@@ -54,7 +54,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
         Nodes.Clear();
         Connections.Clear();
 
-        var projectDir = doc.FilePath is not null ? Path.GetDirectoryName(doc.FilePath) : null;
+        var projectDir = doc.FilePath is not null ? InferProjectDir(doc.FilePath) : null;
 
         foreach (var action in doc.Actions)
             Nodes.Add(await CreateNodeVmAsync(action, projectDir));
@@ -189,9 +189,18 @@ public sealed class FlowEditorViewModel : ViewModelBase
         return vm;
     }
 
+    private static string? InferProjectDir(string filePath)
+    {
+        var dir = Path.GetDirectoryName(filePath);
+        // Flows live in {projectRoot}/actions/*.json — step up one level
+        if (dir is not null && Path.GetFileName(dir).Equals("actions", StringComparison.OrdinalIgnoreCase))
+            return Path.GetDirectoryName(dir);
+        return dir;
+    }
+
     private static void EnsureSubActionLayout(List<ActionNode> nodes, ActionNode parent, int side)
     {
-        // side: -1=then(left), +1=else(right), 0=body(below)
+        // side: -1=then, +1=else, 0=body — all placed to the right of parent
         var px = parent.Ui?.X ?? 0;
         var py = parent.Ui?.Y ?? 0;
         var ph = parent.Ui?.Height ?? 60;
@@ -202,9 +211,8 @@ public sealed class FlowEditorViewModel : ViewModelBase
 
         double startX = side switch
         {
-            -1 => px - nodeWidth - hGap,
-            +1 => px + nodeWidth + hGap,
-            _ => px,
+            +1 => px + 2 * (nodeWidth + hGap),  // else: second right column
+            _ => px + nodeWidth + hGap,           // then/body: first right column
         };
 
         for (int i = 0; i < nodes.Count; i++)
