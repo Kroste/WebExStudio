@@ -10,6 +10,8 @@ public sealed class ClickHandler : IActionHandler
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
     {
         var selector = ctx.Fmt(node.GetString("selector"));
+        if (string.IsNullOrEmpty(selector))
+            selector = ctx.Fmt(node.GetString("xpath"));
         var text = ctx.Fmt(node.GetString("text"));
         var scroll = node.GetBool("scroll", true);
 
@@ -33,6 +35,11 @@ public sealed class SendKeysHandler : IActionHandler
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
     {
         var selector = ctx.Fmt(node.GetString("selector"));
+        if (string.IsNullOrEmpty(selector))
+        {
+            var name = ctx.Fmt(node.GetString("name"));
+            if (!string.IsNullOrEmpty(name)) selector = $"[name=\"{name}\"]";
+        }
         var value = ctx.Fmt(node.GetString("value"));
         var clear = node.GetBool("clear", true);
         var append = node.GetBool("append", false);
@@ -89,7 +96,12 @@ public sealed class MenuPathHandler : IActionHandler
     {
         var pathStr = ctx.Fmt(node.GetString("path"));
         var prefix = ctx.Fmt(node.GetString("selector_prefix", ""));
-        var parts = pathStr.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        string[] parts;
+        if (!string.IsNullOrEmpty(pathStr))
+            parts = pathStr.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        else
+            parts = node.GetStringArray("items").Select(ctx.Fmt).ToArray();
+        if (parts.Length == 0) return;
 
         for (int i = 0; i < parts.Length; i++)
         {

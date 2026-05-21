@@ -50,6 +50,18 @@ public sealed class ActionNode
         return v.Deserialize<List<ActionNode>>(FlowSerializerOptions.Default) ?? [];
     }
 
+    public List<string> GetStringArray(string key)
+    {
+        if (Properties == null || !Properties.TryGetValue(key, out var v)) return [];
+        if (v.ValueKind == JsonValueKind.Array)
+            return v.EnumerateArray()
+                    .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString() ?? "" : e.GetRawText())
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToList();
+        var raw = v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.GetRawText();
+        return raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+
     /// <summary>Ensures Ui is populated with a stable id and default position.</summary>
     public UiMetadata EnsureUi(double x = 0, double y = 0)
     {
