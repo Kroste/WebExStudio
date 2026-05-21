@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Microsoft.Playwright;
+using NLog;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.Engine;
@@ -9,6 +10,7 @@ namespace WebExStudio.Engine;
 /// </summary>
 public sealed class ExecutionContext
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly Dictionary<string, string> _ctx;
     private readonly IProgress<TraceEntry>? _progress;
 
@@ -86,7 +88,10 @@ public sealed class ExecutionContext
     public async Task RunSubActions(List<ActionNode> actions)
     {
         if (RunSubActionsCallback != null)
+        {
+            Log.Debug("RunSubActions: {0} Aktionen", actions.Count);
             await RunSubActionsCallback(this, actions);
+        }
     }
 
     private Dictionary<string, string> MergeWith(Dictionary<string, string>? extra)

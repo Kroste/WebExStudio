@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using NLog;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
 
@@ -7,6 +8,7 @@ namespace WebExStudio.Engine.Actions;
 
 public sealed class IfThenElseHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "if_then_else";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -19,6 +21,7 @@ public sealed class IfThenElseHandler : IActionHandler
 
         var result = await EvaluateCondition(ctx, condition, selector, value, regex);
         if (negate) result = !result;
+        Log.Debug("if_then_else: {0} selector='{1}' → {2}{3}", condition, selector, result, negate ? " (negiert)" : "");
 
         var branch = result ? node.GetSubActions("then") : node.GetSubActions("else");
 
@@ -32,11 +35,13 @@ public sealed class IfThenElseHandler : IActionHandler
                 var fullPath = Path.IsPathRooted(filePath)
                     ? filePath
                     : Path.Combine(ctx.ProjectDir, filePath);
+                Log.Debug("if_then_else lädt Branch-Datei: {0}", fullPath);
                 var flow = await FlowSerializer.LoadAsync(fullPath);
                 branch = flow.Actions;
             }
         }
 
+        Log.Debug("if_then_else führt {0}-Branch aus ({1} Aktionen)", result ? "then" : "else", branch.Count);
         if (branch.Count > 0)
             await ctx.RunSubActions(branch);
     }
@@ -91,6 +96,7 @@ public sealed class IfThenElseHandler : IActionHandler
 
 public sealed class ForRangeHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "for_range";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -108,6 +114,7 @@ public sealed class ForRangeHandler : IActionHandler
         var subActions = node.GetSubActions("actions");
         if (subActions.Count == 0) return;
 
+        Log.Debug("for_range: {0}..{1} step={2} key={3} ({4} Aktionen)", start, end, step, ctxKey, subActions.Count);
         for (var i = start; exclusive ? i < end : i <= end; i += step)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
@@ -119,6 +126,7 @@ public sealed class ForRangeHandler : IActionHandler
 
 public sealed class ForeachHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "foreach";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -128,8 +136,8 @@ public sealed class ForeachHandler : IActionHandler
         var subActions = node.GetSubActions("actions");
         if (subActions.Count == 0) return;
 
-        // Try to parse as JSON array or object; fallback to comma-separated
         var items = ParseItems(itemsRaw);
+        Log.Debug("foreach: {0} Items, key={1} ({2} Aktionen)", items.Count, ctxKey, subActions.Count);
 
         foreach (var (key, val) in items)
         {
@@ -173,11 +181,14 @@ public sealed class ForeachHandler : IActionHandler
 
 public sealed class CallHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "call";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
     {
         var filePath = ctx.Fmt(node.GetString("file"));
+        if (string.IsNullOrEmpty(filePath))
+            filePath = ctx.Fmt(node.GetString("actions_file"));
         var allowQuit = node.GetBool("allow_quit");
         var fullPath = Path.IsPathRooted(filePath)
             ? filePath
@@ -186,16 +197,18 @@ public sealed class CallHandler : IActionHandler
         if (ctx.CallStack.Contains(fullPath))
             throw new InvalidOperationException($"Rekursion erkannt: {fullPath}");
 
+        Log.Info("call: Rufe Flow auf: {0}", fullPath);
         var flow = await FlowSerializer.LoadAsync(fullPath);
         var child = ctx.CreateCallChild(fullPath);
 
         try
         {
             await child.RunSubActions(flow.Actions);
+            Log.Info("call: Flow abgeschlossen: {0}", Path.GetFileName(fullPath));
         }
         catch (QuitException) when (!allowQuit)
         {
-            // suppress quit from called flow
+            Log.Debug("call: QuitException unterdrückt (allow_quit=false)");
         }
     }
 }

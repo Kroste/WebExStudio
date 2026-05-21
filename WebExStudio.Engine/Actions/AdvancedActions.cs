@@ -1,11 +1,13 @@
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
+using NLog;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.Engine.Actions;
 
 public sealed class DownloadUrlHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "download_url";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -25,18 +27,21 @@ public sealed class DownloadUrlHandler : IActionHandler
         Directory.CreateDirectory(downloadDir);
         var destPath = Path.Combine(downloadDir, filename);
 
+        Log.Info("download_url: {0} → {1}", url, destPath);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.CancellationToken);
         cts.CancelAfter(timeoutMs);
 
         using var http = new System.Net.Http.HttpClient();
         var bytes = await http.GetByteArrayAsync(url, cts.Token);
         await File.WriteAllBytesAsync(destPath, bytes, ctx.CancellationToken);
+        Log.Debug("download_url: {0} bytes gespeichert: {1}", bytes.Length, destPath);
         ctx.Set("download_path", destPath);
     }
 }
 
 public sealed class CaptchaGuardHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "captcha_guard";
 
     // Known CAPTCHA selectors
@@ -65,7 +70,13 @@ public sealed class CaptchaGuardHandler : IActionHandler
             }
         }
 
-        if (!detected) return;
+        if (!detected)
+        {
+            Log.Debug("captcha_guard: kein CAPTCHA erkannt");
+            return;
+        }
+
+        Log.Warn("captcha_guard: CAPTCHA erkannt, warte auf Lösung (timeout={0}s)", timeoutSec);
 
         // Wait for CAPTCHA to be resolved (user solves manually or auto-solver handles it)
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.CancellationToken);
@@ -86,8 +97,14 @@ public sealed class CaptchaGuardHandler : IActionHandler
                     break;
                 }
             }
-            if (!stillPresent) return;
+            if (!stillPresent)
+            {
+                Log.Info("captcha_guard: CAPTCHA gelöst");
+                return;
+            }
             await Task.Delay(2000, cts.Token);
         }
+
+        Log.Warn("captcha_guard: Timeout abgelaufen, CAPTCHA möglicherweise nicht gelöst");
     }
 }

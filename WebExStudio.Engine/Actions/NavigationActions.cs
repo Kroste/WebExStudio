@@ -1,10 +1,12 @@
 using Microsoft.Playwright;
+using NLog;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.Engine.Actions;
 
 public sealed class GotoHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "goto";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -12,6 +14,7 @@ public sealed class GotoHandler : IActionHandler
         var url = ctx.Fmt(node.GetString("url"));
         if (string.IsNullOrEmpty(url)) url = ctx.Get("host");
 
+        Log.Info("Navigiere zu: {0}", url);
         await ctx.Page.GotoAsync(url, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
@@ -26,11 +29,13 @@ public sealed class GotoHandler : IActionHandler
 
 public sealed class OpenTabHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "open_tab";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
     {
         var url = ctx.Fmt(node.GetString("url"));
+        Log.Debug("Neuer Tab: {0}", url);
         var newPage = await ctx.Page.Context.NewPageAsync();
         if (!string.IsNullOrEmpty(url))
             await newPage.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
@@ -39,16 +44,19 @@ public sealed class OpenTabHandler : IActionHandler
 
 public sealed class CloseTabHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "close_tab";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
     {
+        Log.Debug("Schließe Tab");
         await ctx.Page.CloseAsync();
     }
 }
 
 public sealed class GetLinksHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "get_links";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -74,6 +82,7 @@ public sealed class GetLinksHandler : IActionHandler
             if (links.Count >= max) break;
         }
 
+        Log.Debug("get_links: {0} Links gefunden (selector='{1}', filter='{2}')", links.Count, selector, filter);
         foreach (var link in links)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();

@@ -1,10 +1,12 @@
 using System.Text.RegularExpressions;
+using NLog;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.Engine.Actions;
 
 public sealed class GetValueHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "get_value";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -16,7 +18,11 @@ public sealed class GetValueHandler : IActionHandler
         var filter = ctx.Fmt(node.GetString("filter"));
 
         var el = await ctx.Page.QuerySelectorAsync(selector);
-        if (el is null) return;
+        if (el is null)
+        {
+            Log.Warn("get_value: Element nicht gefunden: {0}", selector);
+            return;
+        }
 
         string raw = string.IsNullOrEmpty(attr)
             ? await el.TextContentAsync() ?? string.Empty
@@ -29,11 +35,12 @@ public sealed class GetValueHandler : IActionHandler
 
         if (!string.IsNullOrEmpty(regexPattern))
         {
-            var m = Regex.Match(raw, regexPattern);
-            if (m.Success)
-                raw = m.Groups.Count > 1 ? m.Groups[1].Value : m.Value;
+            var match = Regex.Match(raw, regexPattern);
+            if (match.Success)
+                raw = match.Groups.Count > 1 ? match.Groups[1].Value : match.Value;
         }
 
+        Log.Debug("get_value: {0} → ctx[{1}] = '{2}'", selector, ctxKey, raw);
         ctx.Set(ctxKey, raw);
     }
 
@@ -50,6 +57,7 @@ public sealed class GetValueHandler : IActionHandler
 
 public sealed class SetCtxHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "set_ctx";
 
     public Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -57,13 +65,17 @@ public sealed class SetCtxHandler : IActionHandler
         var key = node.GetString("key");
         var value = ctx.Fmt(node.GetString("value"));
         if (!string.IsNullOrEmpty(key))
+        {
+            Log.Debug("set_ctx: {0} = '{1}'", key, value);
             ctx.Set(key, value);
+        }
         return Task.CompletedTask;
     }
 }
 
 public sealed class ReadFileHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "read_file";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -75,8 +87,13 @@ public sealed class ReadFileHandler : IActionHandler
         if (!Path.IsPathRooted(path))
             path = Path.Combine(ctx.ProjectDir, path);
 
-        if (!File.Exists(path)) return;
+        if (!File.Exists(path))
+        {
+            Log.Warn("read_file: Datei nicht gefunden: {0}", path);
+            return;
+        }
 
+        Log.Debug("read_file: {0} mode={1} → ctx[{2}]", path, mode, ctxKey);
         var content = mode == "lines"
             ? string.Join('\n', await File.ReadAllLinesAsync(path, ctx.CancellationToken))
             : await File.ReadAllTextAsync(path, ctx.CancellationToken);
@@ -87,6 +104,7 @@ public sealed class ReadFileHandler : IActionHandler
 
 public sealed class WriteFileHandler : IActionHandler
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "write_file";
 
     public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
@@ -101,6 +119,7 @@ public sealed class WriteFileHandler : IActionHandler
         var dir = Path.GetDirectoryName(path);
         if (dir is not null) Directory.CreateDirectory(dir);
 
+        Log.Debug("write_file: {0} (append={1})", path, append);
         if (append)
             await File.AppendAllTextAsync(path, value + Environment.NewLine, ctx.CancellationToken);
         else

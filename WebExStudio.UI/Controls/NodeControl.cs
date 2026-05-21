@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using NLog;
 using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Controls;
@@ -16,6 +17,8 @@ namespace WebExStudio.UI.Controls;
 /// </summary>
 public sealed class NodeControl : Border
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
     public NodeViewModel ViewModel { get; }
     public event EventHandler<NodeViewModel>? DeleteRequested;
 
@@ -63,6 +66,7 @@ public sealed class NodeControl : Border
             _expandBtn.Click += (_, e) =>
             {
                 vm.IsExpanded = !vm.IsExpanded;
+                Log.Info("Expand-Button geklickt: {0} ({1}) → IsExpanded={2}", vm.Id, vm.ActionType, vm.IsExpanded);
                 _expandBtn.Content = vm.IsExpanded ? "▼" : "▶";
                 e.Handled = true;
             };
@@ -201,7 +205,11 @@ public sealed class NodeControl : Border
         var menu = new ContextMenu();
 
         var deleteItem = new MenuItem { Header = "🗑 Node löschen" };
-        deleteItem.Click += (_, _) => DeleteRequested?.Invoke(this, ViewModel);
+        deleteItem.Click += (_, _) =>
+        {
+            Log.Info("Node-Kontextmenü: Löschen {0} ({1})", ViewModel.Id, ViewModel.ActionType);
+            DeleteRequested?.Invoke(this, ViewModel);
+        };
         menu.Items.Add(deleteItem);
 
         return menu;
