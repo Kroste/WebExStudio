@@ -38,9 +38,19 @@ public partial class FlowEditorView : UserControl
         if (Vm is null) return;
 
         foreach (var nodeVm in Vm.Nodes)
-            AddNodeControl(nodeVm);
+            AddNodeTree(nodeVm);
 
         RefreshConnections();
+    }
+
+    private void AddNodeTree(NodeViewModel nodeVm)
+    {
+        AddNodeControl(nodeVm);
+        if (nodeVm.IsExpanded && nodeVm.HasSubActions)
+        {
+            foreach (var child in nodeVm.AllSubNodes)
+                AddNodeTree(child);
+        }
     }
 
     private void AddNodeControl(NodeViewModel nodeVm)
@@ -55,7 +65,9 @@ public partial class FlowEditorView : UserControl
 
         nodeVm.PropertyChanged += (_, args) =>
         {
-            if (args.PropertyName is nameof(NodeViewModel.X) or nameof(NodeViewModel.Y))
+            if (args.PropertyName == nameof(NodeViewModel.IsExpanded))
+                RebuildNodes();
+            else if (args.PropertyName is nameof(NodeViewModel.X) or nameof(NodeViewModel.Y))
             {
                 Avalonia.Controls.Canvas.SetLeft(ctrl, nodeVm.X);
                 Avalonia.Controls.Canvas.SetTop(ctrl, nodeVm.Y);

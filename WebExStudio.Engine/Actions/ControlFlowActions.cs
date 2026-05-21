@@ -21,6 +21,22 @@ public sealed class IfThenElseHandler : IActionHandler
         if (negate) result = !result;
 
         var branch = result ? node.GetSubActions("then") : node.GetSubActions("else");
+
+        // Fall back to external file if inline branch is empty
+        if (branch.Count == 0)
+        {
+            var fileKey = result ? "then_actions_file" : "else_actions_file";
+            var filePath = ctx.Fmt(node.GetString(fileKey));
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                var fullPath = Path.IsPathRooted(filePath)
+                    ? filePath
+                    : Path.Combine(ctx.ProjectDir, filePath);
+                var flow = await FlowSerializer.LoadAsync(fullPath);
+                branch = flow.Actions;
+            }
+        }
+
         if (branch.Count > 0)
             await ctx.RunSubActions(branch);
     }

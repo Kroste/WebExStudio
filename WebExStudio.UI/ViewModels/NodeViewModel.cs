@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using ReactiveUI;
 using WebExStudio.Core.Models;
 
@@ -11,6 +12,7 @@ public sealed class NodeViewModel : ViewModelBase
     private double _y;
     private bool _isSelected;
     private bool _isActive;
+    private bool _isExpanded = true;
     private ExecutionStatusUi _status = ExecutionStatusUi.None;
 
     public string Id => _node.EnsureUi().Id;
@@ -18,6 +20,25 @@ public sealed class NodeViewModel : ViewModelBase
     public ActionNode Model => _node;
 
     public NodeDefinition Definition { get; }
+    public bool HasSubActions => Definition.HasSubActions;
+
+    // Sub-node collections populated on load from inline then/else/actions or file refs
+    public ObservableCollection<NodeViewModel> ThenNodes { get; } = new();
+    public ObservableCollection<NodeViewModel> ElseNodes { get; } = new();
+    public ObservableCollection<NodeViewModel> BodyNodes { get; } = new();
+
+    // True when ThenNodes was loaded from then_actions_file (not inlined on save)
+    public bool ThenFromFile { get; set; }
+
+    public IEnumerable<NodeViewModel> AllSubNodes =>
+        ThenNodes.Concat(ElseNodes).Concat(BodyNodes);
+
+    public ObservableCollection<NodeViewModel> GetBranch(string key) => key switch
+    {
+        "then" => ThenNodes,
+        "else" => ElseNodes,
+        _ => BodyNodes,
+    };
 
     public double X
     {
@@ -52,6 +73,12 @@ public sealed class NodeViewModel : ViewModelBase
     {
         get => _isActive;
         set => this.RaiseAndSetIfChanged(ref _isActive, value);
+    }
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
     }
 
     public ExecutionStatusUi Status

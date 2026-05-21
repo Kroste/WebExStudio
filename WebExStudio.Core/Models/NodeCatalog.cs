@@ -40,7 +40,7 @@ public static class NodeCatalog
             Type = "get_links", DisplayName = "Links sammeln", Category = "Navigation",
             Description = "Sammelt Links von der Seite und führt Sub-Actions für jeden Link aus.",
             Color = "#0277BD", Icon = "🔗",
-            HasSubActions = true,
+            HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Placeholder = "a.item" },
@@ -115,7 +115,7 @@ public static class NodeCatalog
         {
             Type = "if_then_else", DisplayName = "If / Then / Else", Category = "Kontrollfluss",
             Description = "Bedingte Verzweigung basierend auf DOM, Seite oder Kontext.",
-            Color = "#6A1B9A", Icon = "❓", HasSubActions = true,
+            Color = "#6A1B9A", Icon = "❓", HasSubActions = true, SubActionKeys = ["then", "else"],
             Properties =
             [
                 new() { Key = "condition", Label = "Bedingung-Typ", Kind = PropertyKind.Dropdown, DefaultValue = "element_exists" },
@@ -123,13 +123,15 @@ public static class NodeCatalog
                 new() { Key = "value", Label = "Vergleichswert", Kind = PropertyKind.Text },
                 new() { Key = "regex", Label = "Regex", Kind = PropertyKind.Boolean, DefaultValue = "false" },
                 new() { Key = "negate", Label = "Negieren", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+                new() { Key = "then_actions_file", Label = "Then-Flow (Datei)", Kind = PropertyKind.FilePath },
+                new() { Key = "else_actions_file", Label = "Else-Flow (Datei)", Kind = PropertyKind.FilePath },
             ]
         },
         new()
         {
             Type = "for_range", DisplayName = "For-Schleife", Category = "Kontrollfluss",
             Description = "Wiederholt Sub-Actions für einen Zahlenbereich.",
-            Color = "#E65100", Icon = "🔄", HasSubActions = true,
+            Color = "#E65100", Icon = "🔄", HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
                 new() { Key = "start", Label = "Start", Kind = PropertyKind.Number, DefaultValue = "0" },
@@ -143,7 +145,7 @@ public static class NodeCatalog
         {
             Type = "foreach", DisplayName = "Foreach-Schleife", Category = "Kontrollfluss",
             Description = "Iteriert über eine Liste oder Dictionary aus dem Kontext.",
-            Color = "#E65100", Icon = "🔁", HasSubActions = true,
+            Color = "#E65100", Icon = "🔁", HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
                 new() { Key = "items", Label = "Elemente (JSON oder Kontext-Variable)", Kind = PropertyKind.Text, Required = true },

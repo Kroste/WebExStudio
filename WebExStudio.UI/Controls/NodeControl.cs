@@ -11,7 +11,8 @@ namespace WebExStudio.UI.Controls;
 
 /// <summary>
 /// Visual representation of a single node on the canvas.
-/// Renders as a rounded rectangle with icon, title, and status indicator.
+/// Renders as a rounded rectangle with icon, title, status indicator,
+/// and an expand/collapse button for nodes that have sub-actions.
 /// </summary>
 public sealed class NodeControl : Border
 {
@@ -21,6 +22,7 @@ public sealed class NodeControl : Border
     private readonly Border _statusIndicator;
     private readonly TextBlock _titleLabel;
     private readonly Border _header;
+    private readonly Button? _expandBtn;
 
     public NodeControl(NodeViewModel vm)
     {
@@ -39,7 +41,34 @@ public sealed class NodeControl : Border
             CornerRadius = new CornerRadius(6, 0, 0, 6),
         };
 
-        // ── Header with icon + title ─────────────────────────────────────────
+        // ── Expand/collapse button (only for nodes with sub-actions) ─────────
+        if (vm.HasSubActions)
+        {
+            _expandBtn = new Button
+            {
+                Content = vm.IsExpanded ? "▼" : "▶",
+                Width = 22,
+                Height = 22,
+                Padding = new Thickness(0),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                FontSize = 10,
+                Background = new SolidColorBrush(Color.Parse("#00000040")),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(4),
+                Cursor = new Cursor(StandardCursorType.Hand),
+            };
+            _expandBtn.Click += (_, e) =>
+            {
+                vm.IsExpanded = !vm.IsExpanded;
+                _expandBtn.Content = vm.IsExpanded ? "▼" : "▶";
+                e.Handled = true;
+            };
+        }
+
+        // ── Title label ──────────────────────────────────────────────────────
         _titleLabel = new TextBlock
         {
             VerticalAlignment = VerticalAlignment.Center,
@@ -49,26 +78,41 @@ public sealed class NodeControl : Border
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
 
+        // ── Header with icon + title (+ optional expand button) ──────────────
+        var headerContent = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+        };
+        var iconAndTitle = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 6,
+            VerticalAlignment = VerticalAlignment.Center,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = vm.Icon,
+                    FontSize = 16,
+                    VerticalAlignment = VerticalAlignment.Center,
+                },
+                _titleLabel,
+            }
+        };
+        Grid.SetColumn(iconAndTitle, 0);
+        headerContent.Children.Add(iconAndTitle);
+
+        if (_expandBtn is not null)
+        {
+            Grid.SetColumn(_expandBtn, 1);
+            headerContent.Children.Add(_expandBtn);
+        }
+
         _header = new Border
         {
             CornerRadius = new CornerRadius(6, 6, 0, 0),
-            Padding = new Thickness(8, 0),
-            Child = new StackPanel
-            {
-                Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Spacing = 6,
-                VerticalAlignment = VerticalAlignment.Center,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = vm.Icon,
-                        FontSize = 16,
-                        VerticalAlignment = VerticalAlignment.Center,
-                    },
-                    _titleLabel,
-                }
-            }
+            Padding = new Thickness(8, 0, 4, 0),
+            Child = headerContent,
         };
 
         Child = new Grid
@@ -96,17 +140,16 @@ public sealed class NodeControl : Border
             }
         };
 
-        // Context menu
         ContextMenu = BuildContextMenu();
-
-        // Bind to VM property changes
         vm.PropertyChanged += OnVmPropertyChanged;
         UpdateVisuals();
     }
 
     private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(NodeViewModel.IsSelected)
+        if (e.PropertyName == nameof(NodeViewModel.IsExpanded) && _expandBtn is not null)
+            _expandBtn.Content = ViewModel.IsExpanded ? "▼" : "▶";
+        else if (e.PropertyName is nameof(NodeViewModel.IsSelected)
             or nameof(NodeViewModel.IsActive)
             or nameof(NodeViewModel.Status)
             or nameof(NodeViewModel.StatusColor)

@@ -17,6 +17,9 @@ public sealed class NodeDefinition
 
     /// <summary>Whether this node type can contain sub-actions (loop body, branches).</summary>
     public bool HasSubActions { get; init; } = false;
+
+    /// <summary>JSON property keys that hold sub-action arrays, e.g. ["then","else"] or ["actions"].</summary>
+    public IReadOnlyList<string> SubActionKeys { get; init; } = [];
 }
 
 public sealed class PropertyDefinition
