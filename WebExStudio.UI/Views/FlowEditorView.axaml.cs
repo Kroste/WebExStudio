@@ -15,6 +15,7 @@ public partial class FlowEditorView : UserControl
     {
         InitializeComponent();
         Canvas.GridOverlay = GridOverlay;
+        ConnectionRenderer.RenderTransform = Canvas.WorldTransform;
         DataContextChanged += OnDataContextChanged;
         PointerPressed += OnCanvasPointerPressed;
     }

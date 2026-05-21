@@ -33,6 +33,9 @@ public sealed class NodeCanvas : Canvas
 
     public GridOverlay? GridOverlay { get; set; }
 
+    /// <summary>The shared zoom+pan transform — assign to ConnectionRenderer.RenderTransform so both stay in sync.</summary>
+    public TransformGroup WorldTransform => (TransformGroup)RenderTransform!;
+
     public NodeCanvas()
     {
         var group = new TransformGroup();
