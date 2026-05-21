@@ -141,7 +141,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
-    private async Task<NodeViewModel> CreateNodeVmAsync(ActionNode action, string? projectDir)
+    private async Task<NodeViewModel> CreateNodeVmAsync(ActionNode action, string? projectDir, bool expandCalls = true)
     {
         var vm = new NodeViewModel(action);
         if (!vm.HasSubActions) return vm;
@@ -161,7 +161,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
                         : Path.Combine(projectDir, thenFile);
                     if (File.Exists(full))
                     {
-                        var sub = await FlowSerializer.LoadAsync(full);
+                        var sub = await FlowSerializer.LoadAsync(full, applyLayout: false);
                         thenActions = sub.Actions;
                         fromFile = true;
                     }
@@ -178,7 +178,28 @@ public sealed class FlowEditorViewModel : ViewModelBase
             foreach (var a in elseActions)
                 vm.ElseNodes.Add(await CreateNodeVmAsync(a, projectDir));
         }
-        else
+        else if (action.Type == "call" && expandCalls)
+        {
+            var fileKey = action.GetString("file");
+            if (string.IsNullOrEmpty(fileKey))
+                fileKey = action.GetString("actions_file");
+
+            if (!string.IsNullOrEmpty(fileKey) && projectDir is not null)
+            {
+                var full = Path.IsPathRooted(fileKey)
+                    ? fileKey
+                    : Path.Combine(projectDir, fileKey);
+                if (File.Exists(full))
+                {
+                    var sub = await FlowSerializer.LoadAsync(full, applyLayout: false);
+                    EnsureSubActionLayout(sub.Actions, action, 0);
+                    foreach (var a in sub.Actions)
+                        vm.BodyNodes.Add(await CreateNodeVmAsync(a, projectDir, expandCalls: false));
+                }
+            }
+            vm.IsExpanded = false;
+        }
+        else if (action.Type != "call")
         {
             var bodyActions = action.GetSubActions("actions");
             EnsureSubActionLayout(bodyActions, action, 0);

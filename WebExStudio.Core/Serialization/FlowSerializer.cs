@@ -5,13 +5,13 @@ namespace WebExStudio.Core.Serialization;
 
 public static class FlowSerializer
 {
-    public static async Task<FlowDocument> LoadAsync(string path)
+    public static async Task<FlowDocument> LoadAsync(string path, bool applyLayout = true)
     {
         await using var stream = File.OpenRead(path);
         var doc = await JsonSerializer.DeserializeAsync<FlowDocument>(stream, FlowSerializerOptions.Default)
                   ?? new FlowDocument();
         doc.FilePath = path;
-        AutoLayout(doc);
+        if (applyLayout) AutoLayout(doc);
         return doc;
     }
 

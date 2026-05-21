@@ -157,9 +157,10 @@ public static class NodeCatalog
             Type = "call", DisplayName = "Flow aufrufen", Category = "Kontrollfluss",
             Description = "Ruft einen externen Flow auf (wie eine Funktion).",
             Color = "#F57F17", Icon = "📞",
+            HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
-                new() { Key = "file", Label = "Flow-Datei", Kind = PropertyKind.FilePath, Required = true },
+                new() { Key = "file", Label = "Flow-Datei", Kind = PropertyKind.FilePath, Required = true, Alias = "actions_file" },
                 new() { Key = "allow_quit", Label = "Quit erlaubt", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },

@@ -71,7 +71,10 @@ public partial class PropertiesPanelView : UserControl
 
     private Control BuildField(PropertyDefinition prop)
     {
-        var currentValue = _currentNode?.Model.GetString(prop.Key, prop.DefaultValue ?? string.Empty) ?? string.Empty;
+        var currentValue = _currentNode?.Model.GetString(prop.Key, string.Empty) ?? string.Empty;
+        if (string.IsNullOrEmpty(currentValue) && prop.Alias is not null)
+            currentValue = _currentNode?.Model.GetString(prop.Alias, prop.DefaultValue ?? string.Empty) ?? string.Empty;
+        if (string.IsNullOrEmpty(currentValue)) currentValue = prop.DefaultValue ?? string.Empty;
 
         var label = new TextBlock
         {
