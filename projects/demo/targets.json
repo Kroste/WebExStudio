@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Demo",
+    "host": "google.de",
+    "actions_file": "actions/start.json",
+    "ctx": {
+      "wait_seconds": 2
+    }
+  }
+]

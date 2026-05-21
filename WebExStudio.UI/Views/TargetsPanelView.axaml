@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WebExStudio.UI.ViewModels"
+             x:Class="WebExStudio.UI.Views.TargetsPanelView"
+             x:DataType="vm:MainWindowViewModel">
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="#16162A"
+            BorderBrush="#2E2E4E" BorderThickness="0,0,0,1" Padding="8,4">
+      <DockPanel>
+        <TextBlock Text="Targets" FontWeight="Bold"
+                   Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+          <Button Content="+" Click="OnAddTarget" Padding="6,2" FontSize="14"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Targets}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TargetViewModel">
+            <Border Margin="4,2" Padding="8" CornerRadius="6"
+                    Background="#1E1E3E" BorderBrush="#2E2E4E" BorderThickness="1">
+              <Grid RowDefinitions="Auto,Auto">
+
+                <DockPanel Grid.Row="0">
+                  <CheckBox IsChecked="{Binding Enabled}"
+                            VerticalAlignment="Center" Margin="0,0,6,0"/>
+                  <Button DockPanel.Dock="Right" Content="✖"
+                          Click="OnDeleteTarget"
+                          Tag="{Binding}"
+                          Padding="4,2" FontSize="11"
+                          Background="Transparent" Foreground="#F44336"/>
+                  <TextBox Text="{Binding Name}"
+                           FontWeight="Bold" Foreground="White"
+                           Background="Transparent" BorderThickness="0"
+                           Watermark="Target-Name" FontSize="13"/>
+                </DockPanel>
+
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                  <TextBox Grid.Column="0"
+                           Text="{Binding Host}"
+                           Watermark="https://example.com"
+                           FontSize="11" Foreground="#80CBC4"
+                           Background="Transparent"/>
+                  <TextBox Grid.Column="1"
+                           Text="{Binding ActionsFile}"
+                           Watermark="actions/start.json"
+                           FontSize="11" Foreground="#90A4AE"
+                           Background="Transparent"
+                           Width="120" Margin="4,0,0,0"/>
+                </Grid>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

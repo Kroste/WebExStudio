@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="WebExStudio.Core/WebExStudio.Core.csproj" />
+  <Project Path="WebExStudio.Engine/WebExStudio.Engine.csproj" />
+  <Project Path="WebExStudio.UI/WebExStudio.UI.csproj" />
+</Solution>

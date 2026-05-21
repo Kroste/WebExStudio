@@ -1,0 +1,39 @@
+# Build outputs
+bin/
+obj/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/packages/
+packages/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# Publish output
+publish/
+out/
+
+# Playwright browsers
+**/playwright-chromium/
+**/playwright-firefox/
+**/playwright-webkit/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

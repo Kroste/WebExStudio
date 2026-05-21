@@ -1,0 +1,15 @@
+{
+  "actions": [
+    {
+      "type": "goto",
+      "url": "https://google.com"
+    },
+    {
+      "type": "sleep",
+      "seconds":"{wait_seconds}"
+    },
+    {
+      "type": "quit"
+    }
+  ]
+}

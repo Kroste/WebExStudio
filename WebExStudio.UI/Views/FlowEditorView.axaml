@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WebExStudio.UI.ViewModels"
+             xmlns:controls="using:WebExStudio.UI.Controls"
+             x:Class="WebExStudio.UI.Views.FlowEditorView"
+             x:DataType="vm:FlowEditorViewModel">
+
+  <Grid>
+    <!-- Background grid (not transformed) -->
+    <controls:GridOverlay x:Name="GridOverlay" IsHitTestVisible="False"/>
+
+    <!-- Node canvas (transformed: zoom + pan) -->
+    <controls:NodeCanvas x:Name="Canvas" ClipToBounds="True"
+                         Background="Transparent"/>
+
+    <!-- Connection renderer (same transform as canvas) -->
+    <controls:ConnectionRenderer x:Name="ConnectionRenderer"
+                                  IsHitTestVisible="False"/>
+
+    <!-- Hint text -->
+    <TextBlock Text="Rechtsklick → Node hinzufügen  |  Alt+Ziehen zum Verschieben  |  Mausrad zum Zoomen"
+               HorizontalAlignment="Center" VerticalAlignment="Bottom"
+               Foreground="#2A2A4E" FontSize="11" Margin="0,0,0,8"
+               IsHitTestVisible="False"/>
+  </Grid>
+</UserControl>

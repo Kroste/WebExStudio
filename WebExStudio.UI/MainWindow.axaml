@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WebExStudio.UI.ViewModels"
+        xmlns:views="using:WebExStudio.UI.Views"
+        x:Class="WebExStudio.UI.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="WebExStudio"
+        Width="1400" Height="900"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#12121F">
+
+  <DockPanel>
+
+    <!-- ── Toolbar ── -->
+    <Border DockPanel.Dock="Top"
+            Background="#1E1E2E" BorderBrush="#2E2E4E"
+            BorderThickness="0,0,0,1" Padding="8,4">
+      <StackPanel Orientation="Horizontal" Spacing="6">
+
+        <Button Content="📂 Projekt öffnen" Click="OnOpenProject" Padding="8,4"/>
+        <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
+        <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
+                IsEnabled="{Binding FlowEditor.IsDirty}"/>
+
+        <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
+
+        <Button Content="▶ Ausführen" Click="OnRun" Padding="8,4"
+                IsEnabled="{Binding CanRun}"
+                Background="#1B5E20" Foreground="White"/>
+        <Button Content="⏹ Stopp"    Click="OnStop" Padding="8,4"
+                IsEnabled="{Binding CanStop}"
+                Background="#B71C1C" Foreground="White"/>
+
+        <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
+
+        <Button Content="🔍 Reset View" Click="OnResetView" Padding="8,4"/>
+
+        <TextBlock Text="{Binding StatusText}"
+                   VerticalAlignment="Center"
+                   Foreground="#90A4AE" FontSize="12"
+                   Margin="16,0,8,0"/>
+      </StackPanel>
+    </Border>
+
+    <!-- ── Main Area ── -->
+    <Grid ColumnDefinitions="220,*,320">
+
+      <!-- Left: Node Palette -->
+      <Border Grid.Column="0"
+              Background="#1A1A2E" BorderBrush="#2E2E4E"
+              BorderThickness="0,0,1,0">
+        <views:NodePaletteView DataContext="{Binding}"/>
+      </Border>
+
+      <!-- Center: Flow Editor + Trace panel -->
+      <Grid Grid.Column="1" RowDefinitions="*,6,200">
+
+        <Border Grid.Row="0" Background="#12121F">
+          <views:FlowEditorView x:Name="FlowEditorView"
+                                DataContext="{Binding FlowEditor}"/>
+        </Border>
+
+        <GridSplitter Grid.Row="1" Background="#2E2E4E"
+                      ResizeDirection="Rows" Margin="0"/>
+
+        <Border Grid.Row="2"
+                Background="#1A1A2E" BorderBrush="#2E2E4E"
+                BorderThickness="0,1,0,0">
+          <views:TracePanelView DataContext="{Binding TracePanel}"/>
+        </Border>
+      </Grid>
+
+      <!-- Right: Properties + Targets -->
+      <Border Grid.Column="2"
+              Background="#1A1A2E" BorderBrush="#2E2E4E"
+              BorderThickness="1,0,0,0">
+        <Grid RowDefinitions="*,6,200">
+          <views:PropertiesPanelView Grid.Row="0"
+                                     DataContext="{Binding FlowEditor.SelectedNode}"/>
+          <GridSplitter Grid.Row="1" Background="#2E2E4E"
+                        ResizeDirection="Rows" Margin="0"/>
+          <views:TargetsPanelView Grid.Row="2"
+                                   DataContext="{Binding}"/>
+        </Grid>
+      </Border>
+
+    </Grid>
+  </DockPanel>
+</Window>

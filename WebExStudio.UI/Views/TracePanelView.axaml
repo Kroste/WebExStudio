@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WebExStudio.UI.ViewModels"
+             x:Class="WebExStudio.UI.Views.TracePanelView"
+             x:DataType="vm:TracePanelViewModel">
+
+  <DockPanel>
+    <!-- Header toolbar -->
+    <Border DockPanel.Dock="Top" Background="#16162A"
+            BorderBrush="#2E2E4E" BorderThickness="0,0,0,1" Padding="6,4">
+      <DockPanel>
+        <TextBlock Text="Ausführungsprotokoll" FontWeight="Bold"
+                   Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+          <CheckBox Content="Auto-Scroll"
+                    IsChecked="{Binding AutoScroll}"
+                    Foreground="#90A4AE" FontSize="11"/>
+          <Button Content="🗑 Leeren" Click="OnClear"
+                  Padding="6,2" FontSize="11"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Log list -->
+    <ScrollViewer x:Name="Scroll" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding Entries}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TraceEntryViewModel">
+            <Border Padding="6,3" BorderBrush="#2A2A3E" BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="70,80,100,*,Auto">
+
+                <TextBlock Grid.Column="0" Text="{Binding Time}"
+                           FontFamily="Monospace" FontSize="11"
+                           Foreground="#546E7A" VerticalAlignment="Center"/>
+
+                <Border Grid.Column="1"
+                        Background="{Binding StatusColor}"
+                        CornerRadius="3" Padding="4,1" Margin="2,0"
+                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding StatusText}"
+                             FontSize="10" Foreground="White"
+                             FontWeight="Bold"/>
+                </Border>
+
+                <TextBlock Grid.Column="2" Text="{Binding ActionType}"
+                           FontSize="11" Foreground="#80CBC4"
+                           VerticalAlignment="Center" FontFamily="Monospace"/>
+
+                <TextBlock Grid.Column="3" Text="{Binding Message}"
+                           FontSize="11" Foreground="#B0BEC5"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           IsVisible="{Binding HasMessage}"/>
+
+                <TextBlock Grid.Column="4" Text="{Binding TargetName}"
+                           FontSize="10" Foreground="#455A64"
+                           VerticalAlignment="Center" Margin="8,0,4,0"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>
