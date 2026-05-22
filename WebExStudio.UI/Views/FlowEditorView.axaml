@@ -18,7 +18,7 @@
                                   IsHitTestVisible="False"/>
 
     <!-- Hint text -->
-    <TextBlock Text="Rechtsklick → Node hinzufügen  |  Alt+Ziehen zum Verschieben  |  Mausrad zum Zoomen"
+    <TextBlock Text="Rechtsklick → Node hinzufügen  |  Scrollen zum Verschieben  |  Strg+Mausrad zum Zoomen  |  Alt+Ziehen zum Verschieben"
                HorizontalAlignment="Center" VerticalAlignment="Bottom"
                Foreground="#2A2A4E" FontSize="11" Margin="0,0,0,8"
                IsHitTestVisible="False"/>

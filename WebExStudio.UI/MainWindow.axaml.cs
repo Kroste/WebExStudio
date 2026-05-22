@@ -51,8 +51,25 @@ public partial class MainWindow : Window
             await Vm.SaveFlowAsync(file.Path.LocalPath);
     }
 
-    private async void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        await Vm.RunAsync();
+    private bool _closing;
+
+    private void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.StartRun();
+
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        if (!_closing && Vm.CanStop)
+        {
+            e.Cancel = true;
+            _closing = true;
+            Vm.StopRun();
+            if (Vm.RunTask is { } task)
+                await Task.WhenAny(task, Task.Delay(5000));
+            Close();
+            return;
+        }
+        base.OnClosing(e);
+    }
 
     private void OnStop(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.StopRun();

@@ -114,7 +114,8 @@ public partial class FlowEditorView : UserControl
         Log.Debug("Node ausgewählt: {0} ({1})", ctrl.ViewModel.Id, ctrl.ViewModel.ActionType);
         Vm.SelectedNode = ctrl.ViewModel;
 
-        if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed)
+        if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed
+            && !e.KeyModifiers.HasFlag(KeyModifiers.Alt))
         {
             Canvas.BeginNodeDrag(ctrl.ViewModel, e.GetPosition(Canvas), e);
             e.Handled = true;

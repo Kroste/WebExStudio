@@ -136,13 +136,24 @@ public sealed class NodeCanvas : Canvas
 
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
-        var mouse = e.GetPosition(this);
-        var delta = Math.Pow(1.1, e.Delta.Y);
-        var newScale = Math.Clamp(_scale * delta, MinScale, MaxScale);
-        var factor = newScale / _scale;
-        _panOffsetX = mouse.X - factor * (mouse.X - _panOffsetX);
-        _panOffsetY = mouse.Y - factor * (mouse.Y - _panOffsetY);
-        _scale = newScale;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            var mouse = e.GetPosition(this);
+            var delta = Math.Pow(1.1, e.Delta.Y);
+            var newScale = Math.Clamp(_scale * delta, MinScale, MaxScale);
+            var factor = newScale / _scale;
+            _panOffsetX = mouse.X - factor * (mouse.X - _panOffsetX);
+            _panOffsetY = mouse.Y - factor * (mouse.Y - _panOffsetY);
+            _scale = newScale;
+        }
+        else if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            _panOffsetX += e.Delta.Y * 100;
+        }
+        else
+        {
+            _panOffsetY += e.Delta.Y * 100;
+        }
         UpdateTransform();
         e.Handled = true;
     }

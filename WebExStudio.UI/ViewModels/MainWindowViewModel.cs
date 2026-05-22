@@ -13,6 +13,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     private string _statusText = "Bereit";
     private string _projectDir = string.Empty;
     private CancellationTokenSource? _runCts;
+    private Task? _runTask;
+
+    public Task? RunTask => _runTask;
 
     public FlowEditorViewModel FlowEditor { get; } = new();
     public TracePanelViewModel TracePanel { get; } = new();
@@ -118,6 +121,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public void NotifyChanged(string propertyName) =>
         ((ReactiveUI.IReactiveObject)this).RaisePropertyChanged(propertyName);
+
+    public void StartRun() => _runTask = RunAsync();
 
     public void StopRun()
     {
