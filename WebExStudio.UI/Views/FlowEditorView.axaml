@@ -5,12 +5,12 @@
              x:Class="WebExStudio.UI.Views.FlowEditorView"
              x:DataType="vm:FlowEditorViewModel">
 
-  <Grid>
+  <Grid ClipToBounds="True">
     <!-- Background grid (not transformed) -->
     <controls:GridOverlay x:Name="GridOverlay" IsHitTestVisible="False"/>
 
     <!-- Node canvas (transformed: zoom + pan) -->
-    <controls:NodeCanvas x:Name="Canvas" ClipToBounds="True"
+    <controls:NodeCanvas x:Name="Canvas"
                          Background="Transparent"/>
 
     <!-- Connection renderer (same transform as canvas) -->

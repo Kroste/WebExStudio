@@ -77,7 +77,7 @@
               BorderThickness="1,0,0,0">
         <Grid RowDefinitions="*,6,200">
           <views:PropertiesPanelView Grid.Row="0"
-                                     DataContext="{Binding FlowEditor.SelectedNode}"/>
+                                     DataContext="{Binding FlowEditor}"/>
           <GridSplitter Grid.Row="1" Background="#2E2E4E"
                         ResizeDirection="Rows" Margin="0"/>
           <views:TargetsPanelView Grid.Row="2"

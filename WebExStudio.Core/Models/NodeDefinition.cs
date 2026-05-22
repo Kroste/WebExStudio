@@ -30,8 +30,8 @@ public sealed class PropertyDefinition
     public string? DefaultValue { get; init; }
     public bool Required { get; init; } = false;
     public string? Placeholder { get; init; }
-    /// <summary>Legacy key alias (e.g. Python format) used as read fallback when Key is absent.</summary>
-    public string? Alias { get; init; }
+    /// <summary>Legacy key aliases (e.g. Python format) tried in order when Key is absent.</summary>
+    public string[]? Aliases { get; init; }
 }
 
 public enum PropertyKind

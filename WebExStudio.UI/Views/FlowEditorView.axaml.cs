@@ -50,7 +50,7 @@ public partial class FlowEditorView : UserControl
         foreach (var nodeVm in Vm.Nodes)
             AddNodeTree(nodeVm);
 
-        RefreshConnections();
+        Vm.RebuildConnections();
     }
 
     private void AddNodeTree(NodeViewModel nodeVm)

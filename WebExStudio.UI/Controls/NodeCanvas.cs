@@ -43,8 +43,6 @@ public sealed class NodeCanvas : Canvas
         group.Children.Add(_pan);
         RenderTransform = group;
 
-        ClipToBounds = true;
-
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;

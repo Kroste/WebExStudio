@@ -10,6 +10,7 @@ namespace WebExStudio.UI.Views;
 public partial class PropertiesPanelView : UserControl
 {
     private NodeViewModel? _currentNode;
+    private FlowEditorViewModel? _flowEditor;
 
     public PropertiesPanelView()
     {
@@ -19,8 +20,25 @@ public partial class PropertiesPanelView : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        _currentNode = DataContext as NodeViewModel;
+        if (_flowEditor is not null)
+            _flowEditor.PropertyChanged -= OnFlowEditorPropertyChanged;
+
+        _flowEditor = DataContext as FlowEditorViewModel;
+
+        if (_flowEditor is not null)
+            _flowEditor.PropertyChanged += OnFlowEditorPropertyChanged;
+
+        _currentNode = _flowEditor?.SelectedNode;
         RebuildForm();
+    }
+
+    private void OnFlowEditorPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FlowEditorViewModel.SelectedNode))
+        {
+            _currentNode = _flowEditor?.SelectedNode;
+            RebuildForm();
+        }
     }
 
     private void RebuildForm()
@@ -72,8 +90,14 @@ public partial class PropertiesPanelView : UserControl
     private Control BuildField(PropertyDefinition prop)
     {
         var currentValue = _currentNode?.Model.GetString(prop.Key, string.Empty) ?? string.Empty;
-        if (string.IsNullOrEmpty(currentValue) && prop.Alias is not null)
-            currentValue = _currentNode?.Model.GetString(prop.Alias, prop.DefaultValue ?? string.Empty) ?? string.Empty;
+        if (string.IsNullOrEmpty(currentValue) && prop.Aliases is not null)
+        {
+            foreach (var alias in prop.Aliases)
+            {
+                currentValue = _currentNode?.Model.GetString(alias, string.Empty) ?? string.Empty;
+                if (!string.IsNullOrEmpty(currentValue)) break;
+            }
+        }
         if (string.IsNullOrEmpty(currentValue)) currentValue = prop.DefaultValue ?? string.Empty;
 
         var label = new TextBlock

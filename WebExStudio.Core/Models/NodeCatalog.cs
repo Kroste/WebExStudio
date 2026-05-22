@@ -58,7 +58,7 @@ public static class NodeCatalog
             Color = "#2E7D32", Icon = "🖱",
             Properties =
             [
-                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Alias = "xpath" },
+                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["xpath", "name"] },
                 new() { Key = "text", Label = "Link-Text (alternativ)", Kind = PropertyKind.Text },
                 new() { Key = "scroll", Label = "Scroll to element", Kind = PropertyKind.Boolean, DefaultValue = "true" },
             ]
@@ -70,7 +70,7 @@ public static class NodeCatalog
             Color = "#2E7D32", Icon = "⌨",
             Properties =
             [
-                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Alias = "name" },
+                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["name", "xpath"] },
                 new() { Key = "value", Label = "Wert", Kind = PropertyKind.Text, Required = true },
                 new() { Key = "clear", Label = "Feld leeren vorher", Kind = PropertyKind.Boolean, DefaultValue = "true" },
                 new() { Key = "append", Label = "Anhängen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
@@ -105,7 +105,7 @@ public static class NodeCatalog
             Color = "#388E3C", Icon = "📋",
             Properties =
             [
-                new() { Key = "path", Label = "Menü-Pfad (kommagetrennt)", Kind = PropertyKind.Text, Required = true, Alias = "items" },
+                new() { Key = "path", Label = "Menü-Pfad (kommagetrennt)", Kind = PropertyKind.Text, Required = true, Aliases = ["items"] },
                 new() { Key = "selector_prefix", Label = "Selektor-Präfix", Kind = PropertyKind.Text },
             ]
         },
@@ -160,7 +160,7 @@ public static class NodeCatalog
             HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
-                new() { Key = "file", Label = "Flow-Datei", Kind = PropertyKind.FilePath, Required = true, Alias = "actions_file" },
+                new() { Key = "file", Label = "Flow-Datei", Kind = PropertyKind.FilePath, Required = true, Aliases = ["actions_file"] },
                 new() { Key = "allow_quit", Label = "Quit erlaubt", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
