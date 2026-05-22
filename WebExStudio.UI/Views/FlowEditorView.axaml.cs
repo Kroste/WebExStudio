@@ -28,6 +28,14 @@ public partial class FlowEditorView : UserControl
 
     public void ResetView() => Canvas.ResetView();
 
+    public void FitToView()
+    {
+        var bounds = _nodeControls.Values
+            .Select(ctrl => new Rect(ctrl.ViewModel.X, ctrl.ViewModel.Y,
+                                     ctrl.ViewModel.Width, ctrl.ViewModel.Height));
+        Canvas.FitToView(bounds);
+    }
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (Vm is null) return;
@@ -108,7 +116,7 @@ public partial class FlowEditorView : UserControl
 
         if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed)
         {
-            Canvas.BeginNodeDrag(ctrl.ViewModel, e.GetPosition(Canvas));
+            Canvas.BeginNodeDrag(ctrl.ViewModel, e.GetPosition(Canvas), e);
             e.Handled = true;
         }
     }

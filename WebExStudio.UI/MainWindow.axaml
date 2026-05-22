@@ -34,6 +34,7 @@
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
+        <Button Content="⊞ Fit"         Click="OnFitView"   Padding="8,4"/>
         <Button Content="🔍 Reset View" Click="OnResetView" Padding="8,4"/>
 
         <TextBlock Text="{Binding StatusText}"

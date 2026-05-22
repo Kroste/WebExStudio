@@ -60,11 +60,36 @@ public sealed class NodeCanvas : Canvas
     public Point CanvasToWorld(Point screen) =>
         new((screen.X - _panOffsetX) / _scale, (screen.Y - _panOffsetY) / _scale);
 
-    internal void BeginNodeDrag(NodeViewModel node, Point canvasPos)
+    internal void BeginNodeDrag(NodeViewModel node, Point canvasPos, PointerPressedEventArgs e)
     {
         _draggingNode = node;
         _dragStart = CanvasToWorld(canvasPos);
         _nodeStartPos = new Point(node.X, node.Y);
+        e.Pointer.Capture(this);
+    }
+
+    public void FitToView(IEnumerable<Rect> nodeBounds)
+    {
+        var rects = nodeBounds.ToList();
+        if (rects.Count == 0) { ResetView(); return; }
+
+        var minX = rects.Min(r => r.Left);
+        var minY = rects.Min(r => r.Top);
+        var maxX = rects.Max(r => r.Right);
+        var maxY = rects.Max(r => r.Bottom);
+        var contentW = maxX - minX;
+        var contentH = maxY - minY;
+        var viewW = Bounds.Width;
+        var viewH = Bounds.Height;
+        if (viewW <= 0 || viewH <= 0) { ResetView(); return; }
+
+        const double padding = 60;
+        var scaleX = contentW > 0 ? (viewW - padding * 2) / contentW : 1;
+        var scaleY = contentH > 0 ? (viewH - padding * 2) / contentH : 1;
+        _scale = Math.Clamp(Math.Min(scaleX, scaleY), MinScale, MaxScale);
+        _panOffsetX = (viewW - contentW * _scale) / 2 - minX * _scale;
+        _panOffsetY = (viewH - contentH * _scale) / 2 - minY * _scale;
+        UpdateTransform();
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -75,6 +100,7 @@ public sealed class NodeCanvas : Canvas
         {
             _isPanning = true;
             _panStart = pt.Position;
+            e.Pointer.Capture(this);
             e.Handled = true;
         }
     }
@@ -102,6 +128,8 @@ public sealed class NodeCanvas : Canvas
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        if (_isPanning || _draggingNode is not null)
+            e.Pointer.Capture(null);
         _isPanning = false;
         _draggingNode = null;
     }
@@ -109,7 +137,7 @@ public sealed class NodeCanvas : Canvas
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         var mouse = e.GetPosition(this);
-        var delta = e.Delta.Y > 0 ? 1.1 : 1.0 / 1.1;
+        var delta = Math.Pow(1.1, e.Delta.Y);
         var newScale = Math.Clamp(_scale * delta, MinScale, MaxScale);
         var factor = newScale / _scale;
         _panOffsetX = mouse.X - factor * (mouse.X - _panOffsetX);

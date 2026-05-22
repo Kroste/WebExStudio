@@ -57,6 +57,9 @@ public partial class MainWindow : Window
     private void OnStop(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.StopRun();
 
+    private void OnFitView(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        (this.FindControl<FlowEditorView>("FlowEditorView"))?.FitToView();
+
     private void OnResetView(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         (this.FindControl<FlowEditorView>("FlowEditorView"))?.ResetView();
 }
