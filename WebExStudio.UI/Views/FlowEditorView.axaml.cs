@@ -339,47 +339,19 @@ public partial class FlowEditorView : UserControl
         menu.Open(this);
     }
 
+    private void UpdateTabButtonStyles() { /* active-tab highlight handled by binding */ }
+
     // ── Tab bar interactions ──────────────────────────────────────────────────
 
-    private void UpdateTabButtonStyles()
+    private void OnTabClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Find the ItemsControl for tabs and update button styles
-        var tabBar = this.FindControl<ItemsControl>("TabBar");
-        if (tabBar is null) return;
-        // Styling is done via VM binding — the active tab can be highlighted via a converter
-        // For now, just update which tab is visually active (handled by DataContext binding)
+        if (sender is Control { Tag: FlowTabViewModel tab })
+            Vm?.SwitchTab(tab);
     }
 
-    protected override void OnLoaded(Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnTabClose(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        base.OnLoaded(e);
-
-        // Wire up tab button click handlers after the AXAML items are realized
-        WireTabButtons();
-    }
-
-    private void WireTabButtons()
-    {
-        var tabBar = this.FindControl<ItemsControl>("TabBar");
-        if (tabBar is null) return;
-
-        // Subscribe to tab button clicks via pointer events on the ItemsControl
-        tabBar.PointerPressed += OnTabBarPointerPressed;
-    }
-
-    private void OnTabBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (Vm is null) return;
-        var elem = e.Source as Avalonia.StyledElement;
-        while (elem is not null)
-        {
-            if (elem is Button btn && btn.DataContext is FlowTabViewModel tabVm)
-            {
-                Vm.SwitchTab(tabVm);
-                e.Handled = true;
-                return;
-            }
-            elem = elem.Parent;
-        }
+        if (sender is Control { Tag: FlowTabViewModel tab })
+            Vm?.CloseTab(tab);
     }
 }

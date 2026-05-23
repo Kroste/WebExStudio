@@ -28,7 +28,17 @@ public sealed class FlowEditorViewModel : ViewModelBase
     /// <summary>True when there's a document that can be saved.</summary>
     public bool CanSave => Document is not null;
 
+    /// <summary>All tab view models (main, named subnodes, block-node branch tabs) — master list for lookups.</summary>
     public ObservableCollection<FlowTabViewModel> Tabs { get; } = [];
+
+    /// <summary>Tabs currently shown in the tab bar (Main + opened subnodes/branches).</summary>
+    public ObservableCollection<FlowTabViewModel> OpenTabs { get; } = [];
+
+    /// <summary>All named, standalone subnodes — shown in the Subnodes list panel.</summary>
+    public ObservableCollection<FlowTabViewModel> Subnodes { get; } = [];
+
+    /// <summary>Names of all subnodes — used for the call-target dropdown.</summary>
+    public IEnumerable<string> SubnodeNames => Subnodes.Select(s => s.Name!).Where(n => !string.IsNullOrEmpty(n));
 
     public FlowTabViewModel? ActiveTab
     {
@@ -86,15 +96,20 @@ public sealed class FlowEditorViewModel : ViewModelBase
         SelectedNode = null;
 
         Tabs.Clear();
+        OpenTabs.Clear();
+        Subnodes.Clear();
         foreach (var tab in doc.Tabs)
         {
             var tabVm = new FlowTabViewModel(tab);
             foreach (var node in doc.GetNodes(tab.Id))
                 tabVm.Nodes.Add(new NodeViewModel(node));
             Tabs.Add(tabVm);
+            if (tabVm.IsSubnode) Subnodes.Add(tabVm);
         }
 
         var mainTab = Tabs.FirstOrDefault(t => !t.IsSubFlow) ?? Tabs.FirstOrDefault();
+        if (mainTab is not null) OpenTabs.Add(mainTab);
+        _activeTab = null;
         SwitchTab(mainTab);
         IsDirty = false;
         this.RaisePropertyChanged(nameof(Title));
@@ -128,6 +143,27 @@ public sealed class FlowEditorViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ActiveTab));
         this.RaisePropertyChanged(nameof(Nodes));
         RefreshWires();
+    }
+
+    /// <summary>Opens a tab in the tab bar (if not already) and switches to it.</summary>
+    public void OpenTab(FlowTabViewModel? tab)
+    {
+        if (tab is null) return;
+        if (!OpenTabs.Contains(tab)) OpenTabs.Add(tab);
+        SwitchTab(tab);
+    }
+
+    /// <summary>Closes an open tab (the main tab cannot be closed).</summary>
+    public void CloseTab(FlowTabViewModel tab)
+    {
+        if (!tab.CanClose) return;
+        var wasActive = tab == _activeTab;
+        OpenTabs.Remove(tab);
+        if (wasActive)
+        {
+            var main = Tabs.FirstOrDefault(t => !t.IsSubFlow);
+            SwitchTab(main ?? OpenTabs.FirstOrDefault());
+        }
     }
 
     /// <summary>
@@ -168,11 +204,79 @@ public sealed class FlowEditorViewModel : ViewModelBase
             Document.Tabs.Add(newTab);
             blockNode.Model.Config[configKey] = newTab.Id;
             tabVm = new FlowTabViewModel(newTab);
+            foreach (var node in Document.GetNodes(newTab.Id))
+                tabVm.Nodes.Add(new NodeViewModel(node));
             Tabs.Add(tabVm);
             MarkDirty();
         }
 
-        SwitchTab(tabVm);
+        OpenTab(tabVm);
+    }
+
+    // ── Subnode management (Node-RED style) ────────────────────────────────────
+
+    /// <summary>Creates a new named, standalone subnode and opens it.</summary>
+    public FlowTabViewModel? CreateSubnode(string name, string label)
+    {
+        if (Document is null) return null;
+        name = name.Trim();
+        if (string.IsNullOrEmpty(name) || Document.GetTabByName(name) is not null)
+        {
+            Log.Warn("CreateSubnode: Name leer oder bereits vergeben: {0}", name);
+            return null;
+        }
+        var tab = new FlowTab
+        {
+            Id = Guid.NewGuid().ToString("N")[..8],
+            Name = name,
+            Label = string.IsNullOrWhiteSpace(label) ? name : label.Trim(),
+            IsSubFlow = true,
+        };
+        Document.Tabs.Add(tab);
+        var tabVm = new FlowTabViewModel(tab);
+        Tabs.Add(tabVm);
+        Subnodes.Add(tabVm);
+        MarkDirty();
+        this.RaisePropertyChanged(nameof(SubnodeNames));
+        OpenTab(tabVm);
+        return tabVm;
+    }
+
+    public void RenameSubnode(FlowTabViewModel tab, string name, string label)
+    {
+        if (Document is null || !tab.IsSubnode) return;
+        name = name.Trim();
+        if (string.IsNullOrEmpty(name)) return;
+        var clash = Document.GetTabByName(name);
+        if (clash is not null && clash.Id != tab.Id)
+        {
+            Log.Warn("RenameSubnode: Name bereits vergeben: {0}", name);
+            return;
+        }
+        tab.Model.Name = name;
+        tab.Model.Label = string.IsNullOrWhiteSpace(label) ? name : label.Trim();
+        tab.NotifyLabelChanged();
+        MarkDirty();
+        this.RaisePropertyChanged(nameof(SubnodeNames));
+    }
+
+    public void DeleteSubnode(FlowTabViewModel tab)
+    {
+        if (Document is null || !tab.IsSubnode) return;
+        var refs = Document.Nodes.Count(n => n.Type == "call" && n.Get("target") == tab.Name);
+        if (refs > 0)
+            Log.Warn("DeleteSubnode: '{0}' wird noch von {1} call-Node(s) referenziert", tab.Name, refs);
+
+        var subNodes = Document.Nodes.Where(n => n.TabId == tab.Id).ToList();
+        foreach (var sn in subNodes) Document.Nodes.Remove(sn);
+        Document.Tabs.Remove(tab.Model);
+        Tabs.Remove(tab);
+        Subnodes.Remove(tab);
+        OpenTabs.Remove(tab);
+        if (_activeTab == tab)
+            SwitchTab(Tabs.FirstOrDefault(t => !t.IsSubFlow));
+        MarkDirty();
+        this.RaisePropertyChanged(nameof(SubnodeNames));
     }
 
     // ── Wire operations ───────────────────────────────────────────────────────
@@ -283,7 +387,11 @@ public sealed class FlowEditorViewModel : ViewModelBase
             {
                 Document.Tabs.Remove(tab);
                 var tabVm = Tabs.FirstOrDefault(t => t.Id == tab.Id);
-                if (tabVm is not null) Tabs.Remove(tabVm);
+                if (tabVm is not null)
+                {
+                    Tabs.Remove(tabVm);
+                    OpenTabs.Remove(tabVm);
+                }
                 // Remove nodes belonging to this sub-tab
                 var subNodes = Document.Nodes.Where(n => n.TabId == tab.Id).ToList();
                 foreach (var sn in subNodes) Document.Nodes.Remove(sn);

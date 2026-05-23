@@ -30,6 +30,7 @@ public sealed class NodeControl : Panel
     private readonly Border _header;
     private readonly Ellipse? _inputPort;
     private readonly Ellipse? _outputPort;
+    private readonly TextBlock? _annotation;
 
     public NodeControl(NodeViewModel vm)
     {
@@ -101,6 +102,27 @@ public sealed class NodeControl : Panel
                 }
             }
         };
+        // Annotation nodes (label/caption): text only, no box, no ports.
+        if (vm.IsAnnotation)
+        {
+            var isCaption = vm.ActionType == "caption";
+            Width = 280;
+            Height = isCaption ? 48 : 60;
+            _annotation = new TextBlock
+            {
+                Text = vm.Model.Get("text", isCaption ? "Überschrift" : "Kommentar"),
+                Foreground = isCaption ? Brushes.White : new SolidColorBrush(Color.Parse("#B0BEC5")),
+                FontSize = isCaption ? 22 : 13,
+                FontWeight = isCaption ? FontWeight.Bold : FontWeight.Normal,
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Top,
+            };
+            Children.Add(_annotation);
+            ContextMenu = BuildContextMenu(vm);
+            vm.PropertyChanged += OnVmPropertyChanged;
+            return;
+        }
+
         Children.Add(_border);
 
         // Input port circle (top-center)
@@ -136,6 +158,11 @@ public sealed class NodeControl : Panel
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (_annotation is not null)
+        {
+            _annotation.Measure(availableSize);
+            return new Size(Width, Height);
+        }
         _border.Measure(availableSize);
         _inputPort?.Measure(availableSize);
         _outputPort?.Measure(availableSize);
@@ -144,6 +171,12 @@ public sealed class NodeControl : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        if (_annotation is not null)
+        {
+            _annotation.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
+            return finalSize;
+        }
+
         _border.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
 
         var cx = finalSize.Width / 2 - PortRadius;

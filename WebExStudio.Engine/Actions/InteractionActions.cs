@@ -113,6 +113,11 @@ public sealed class MenuPathHandler : IActionHandler
     {
         var pathStr = ctx.Fmt(node.Get("path"));
         var prefix = ctx.Fmt(node.Get("selector_prefix", ""));
+        var openStrategy = node.Get("open_strategy", "hover").ToLowerInvariant();
+        var match = node.Get("match", "exact").ToLowerInvariant();
+        var clickLast = node.GetBool("click_last", true);
+        var clickAll = openStrategy == "click_all";
+
         string[] parts;
         if (!string.IsNullOrEmpty(pathStr))
             parts = pathStr.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
@@ -120,16 +125,21 @@ public sealed class MenuPathHandler : IActionHandler
             parts = node.GetStringList("items").Select(ctx.Fmt).ToArray();
         if (parts.Length == 0) return;
 
-        Log.Debug("Menüpfad: {0}", string.Join(" > ", parts));
+        Log.Debug("Menüpfad: {0} (strategy={1}, match={2})", string.Join(" > ", parts), openStrategy, match);
         for (int i = 0; i < parts.Length; i++)
         {
             var part = parts[i];
             var isLast = i == parts.Length - 1;
+
+            var exact = match == "exact";
             var locator = string.IsNullOrEmpty(prefix)
-                ? ctx.Page.GetByText(part).First
+                ? ctx.Page.GetByText(part, new() { Exact = exact }).First
                 : ctx.Page.Locator($"{prefix} :text(\"{part}\")").First;
 
-            if (isLast)
+            // click_all → click every item; otherwise hover intermediate items.
+            // The last item is clicked when click_last is set (or when clicking all).
+            var shouldClick = clickAll || (isLast && clickLast);
+            if (shouldClick)
                 await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs });
             else
                 await locator.HoverAsync(new() { Timeout = ctx.Config.TimeoutMs });

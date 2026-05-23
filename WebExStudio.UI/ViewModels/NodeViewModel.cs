@@ -87,6 +87,9 @@ public sealed class NodeViewModel : ViewModelBase
 
     public bool HasSubFlows => Definition.HasSubFlows;
 
+    /// <summary>Visual-only annotation node (label/caption) — no ports, no execution.</summary>
+    public bool IsAnnotation => ActionType is "label" or "caption";
+
     public NodeViewModel(FlowNode node)
     {
         Model = node;

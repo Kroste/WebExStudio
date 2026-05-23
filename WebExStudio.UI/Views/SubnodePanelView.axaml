@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WebExStudio.UI.ViewModels"
+             x:Class="WebExStudio.UI.Views.SubnodePanelView"
+             x:DataType="vm:MainWindowViewModel">
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="8,6"
+            Background="#16162A" BorderBrush="#2E2E4E" BorderThickness="0,1,0,1">
+      <DockPanel>
+        <TextBlock Text="Subnodes" FontWeight="Bold" Foreground="#90A4AE" FontSize="12"
+                   VerticalAlignment="Center"/>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+          <Button Content="＋" Click="OnNew" ToolTip.Tip="Neuer Subnode"
+                  Padding="6,2" FontSize="12" Background="Transparent" Foreground="#90A4AE" BorderThickness="0"/>
+          <Button Content="✎" Click="OnRename" ToolTip.Tip="Umbenennen"
+                  Padding="6,2" FontSize="12" Background="Transparent" Foreground="#90A4AE" BorderThickness="0"/>
+          <Button Content="🗑" Click="OnDelete" ToolTip.Tip="Löschen"
+                  Padding="6,2" FontSize="12" Background="Transparent" Foreground="#90A4AE" BorderThickness="0"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer>
+      <ListBox x:Name="SubnodeList"
+               ItemsSource="{Binding FlowEditor.Subnodes}"
+               Background="Transparent"
+               DoubleTapped="OnItemDoubleTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:FlowTabViewModel">
+            <StackPanel Spacing="0">
+              <TextBlock Text="{Binding Label}" Foreground="White" FontSize="12"/>
+              <TextBlock Text="{Binding Name}" Foreground="#607D8B" FontSize="10"
+                         TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

@@ -5,10 +5,16 @@ using WebExStudio.Core.Models;
 namespace WebExStudio.Core.Serialization;
 
 /// <summary>
-/// Converts a legacy (Python WebEX) project — a start.json with nested call/then
-/// files and inline if/then/else branches — into a single v2 <see cref="FlowDocument2"/>.
-/// The main flow becomes a wired chain on the main tab; call targets, if/else branches
-/// and loop bodies become sequential sub-flow tabs. {placeholders} resolve from payload.
+/// Converts a legacy (Python WebEX) project into a single v2 <see cref="FlowDocument2"/>.
+///
+/// Structure produced:
+///  - Main tab: a <c>function</c> node holding targets.json as payload → a <c>foreach</c>
+///    node whose body is the <c>start</c> subnode.
+///  - Every referenced .json file (call / then_actions_file / else_actions_file) becomes a
+///    uniquely-named subnode (Name = dotted path under actions/, Label = PascalCase base name),
+///    referenced via <c>call &lt;name&gt;</c>.
+///  - Inline then/else arrays become branch tabs owned by the if node.
+/// {placeholders} resolve from payload.
 /// </summary>
 public static class LegacyImporter
 {
@@ -19,60 +25,87 @@ public static class LegacyImporter
         var doc = new FlowDocument2();
         var mainTab = new FlowTab { Id = "main", Label = "Main", IsSubFlow = false };
         doc.Tabs.Add(mainTab);
-
         var ctx = new Ctx(doc, projectDir);
 
-        var startActions = LoadActions(Path.Combine(projectDir, "actions", "start.json"));
-
-        // Start node providing the initial payload (replaces targets/ctx).
-        var start = new FlowNode
+        // Main: function (targets) → foreach (body = start subnode)
+        var func = new FlowNode
         {
-            Type = "function", TabId = mainTab.Id, X = 300, Y = 60,
+            Type = "function", TabId = mainTab.Id, X = 320, Y = 60,
+            Config = new() { ["payload"] = BuildTargetsPayload(projectDir) },
+        };
+        doc.Nodes.Add(func);
+
+        var startTabId = GetOrCreateSubnode(Path.Combine(projectDir, "actions", "start.json"), ctx);
+
+        var foreachNode = new FlowNode
+        {
+            Type = "foreach", TabId = mainTab.Id, X = 320, Y = 180,
             Config = new()
             {
-                ["payload"] = BuildStartPayload(projectDir),
+                ["items"] = "{payload.targets}",
+                ["ctx_key"] = "target",
+                ["bodyTabId"] = startTabId,
             },
         };
-        doc.Nodes.Add(start);
-
-        var chain = new List<FlowNode> { start };
-        AddWired(startActions, ctx, mainTab.Id, chain, startY: 180);
+        doc.Nodes.Add(foreachNode);
+        func.Wires = [[foreachNode.Id]];
 
         Log.Info("LegacyImport: {0} Tabs, {1} Nodes erzeugt", doc.Tabs.Count, doc.Nodes.Count);
         return doc;
     }
 
-    // ── Wired (main tab) ───────────────────────────────────────────────────────
+    // ── Subnode creation (one tab per legacy file, deduped) ──────────────────────
 
-    private static void AddWired(List<JsonElement> actions, Ctx ctx, string tabId,
-        List<FlowNode> chain, double startY)
+    /// <summary>Ensures a named subnode exists for the given file; returns its tab id.</summary>
+    private static string GetOrCreateSubnode(string filePath, Ctx ctx)
     {
-        double y = startY;
-        foreach (var action in actions)
+        var full = Path.GetFullPath(filePath);
+        if (ctx.FileTabs.TryGetValue(full, out var existing)) return existing;
+
+        var name = SubnodeName(full, ctx.ProjectDir);
+        var tab = new FlowTab
         {
-            var node = BuildNode(action, ctx, tabId, seqIndex: 0, x: 300, y: y);
-            ctx.Doc.Nodes.Add(node);
-            // Wire previous → this
-            chain[^1].Wires = [[node.Id]];
-            chain.Add(node);
-            y += 110;
-        }
+            Id = NewId(), Name = name, Label = LabelFor(full),
+            IsSubFlow = true, // standalone named subnode (OwnerNodeId stays null)
+        };
+        ctx.Doc.Tabs.Add(tab);
+        ctx.FileTabs[full] = tab.Id; // register before recursing (recursion guard)
+
+        if (File.Exists(full))
+            AddSequential(LoadActions(full), ctx, tab.Id);
+        else
+            Log.Warn("LegacyImport: Datei nicht gefunden: {0}", full);
+
+        return tab.Id;
     }
 
-    // ── Sequential (sub-flow tabs) ───────────────────────────────────────────────
+    /// <summary>Name = path under actions/ with '/'→'.', '.json' dropped (e.g. configuration.general.datetime.daylightSavings).</summary>
+    private static string SubnodeName(string fullPath, string projectDir)
+    {
+        var actionsRoot = Path.GetFullPath(Path.Combine(projectDir, "actions"));
+        var rel = Path.GetRelativePath(actionsRoot, fullPath);
+        rel = rel[..^Path.GetExtension(rel).Length]; // drop .json
+        return rel.Replace(Path.DirectorySeparatorChar, '.').Replace('/', '.');
+    }
+
+    private static string LabelFor(string fullPath)
+    {
+        var b = Path.GetFileNameWithoutExtension(fullPath);
+        return b.Length == 0 ? b : char.ToUpperInvariant(b[0]) + b[1..];
+    }
+
+    // ── Node building ────────────────────────────────────────────────────────────
 
     private static void AddSequential(List<JsonElement> actions, Ctx ctx, string tabId)
     {
         int i = 0;
         foreach (var action in actions)
         {
-            var node = BuildNode(action, ctx, tabId, seqIndex: i, x: 200, y: 60 + i * 110);
+            var node = BuildNode(action, ctx, tabId, seqIndex: i, x: 220, y: 60 + i * 110);
             ctx.Doc.Nodes.Add(node);
             i++;
         }
     }
-
-    // ── Node mapping ─────────────────────────────────────────────────────────────
 
     private static FlowNode BuildNode(JsonElement a, Ctx ctx, string tabId, int seqIndex, double x, double y)
     {
@@ -108,20 +141,31 @@ public static class LegacyImporter
                     cfg["path"] = string.Join(", ", items.EnumerateArray().Select(e => e.GetString() ?? ""));
                 else
                     CopyIf(a, "path", cfg, "path");
+                CopyIf(a, "open_strategy", cfg, "open_strategy");
+                CopyIf(a, "match", cfg, "match");
+                CopyIf(a, "click_last", cfg, "click_last");
                 break;
 
             case "call":
-                cfg["targetTabId"] = ConvertCallTarget(a, ctx);
+            {
+                var file = Str(a, "actions_file");
+                if (string.IsNullOrEmpty(file)) file = Str(a, "file");
+                if (!string.IsNullOrEmpty(file))
+                {
+                    var subId = GetOrCreateSubnode(ResolvePath(ctx.ProjectDir, file), ctx);
+                    cfg["target"] = ctx.Doc.GetTab(subId)?.Name ?? "";
+                }
+                CopyIf(a, "allow_quit", cfg, "allow_quit");
                 break;
+            }
 
             case "if_then_else":
                 BuildCondition(a, cfg);
-                if (TryBranch(a, ctx, "then", "then_actions_file", out var thenTab)) cfg["thenTabId"] = thenTab;
-                if (TryBranch(a, ctx, "else", "else_actions_file", out var elseTab)) cfg["elseTabId"] = elseTab;
+                if (TryBranch(a, ctx, node, "then", "then_actions_file", out var thenTab)) cfg["thenTabId"] = thenTab;
+                if (TryBranch(a, ctx, node, "else", "else_actions_file", out var elseTab)) cfg["elseTabId"] = elseTab;
                 break;
 
             default:
-                // Generic: copy scalar fields into config (skip structural keys).
                 foreach (var prop in a.EnumerateObject())
                 {
                     if (prop.Name is "type" or "then" or "else" or "actions"
@@ -158,12 +202,19 @@ public static class LegacyImporter
             selector = Str(cond, "selector");
         }
 
-        if (string.Equals(extract, "page_text", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(op, "matches", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(extract, "page_text", StringComparison.OrdinalIgnoreCase))
         {
-            cfg["condition"] = "page_matches";
-            cfg["value"] = Str(a, "value");
-            cfg["regex"] = "true";
+            if (string.Equals(op, "matches", StringComparison.OrdinalIgnoreCase))
+            {
+                cfg["condition"] = "page_matches";
+                cfg["value"] = Str(a, "value");
+                cfg["regex"] = "true";
+            }
+            else // contains (default)
+            {
+                cfg["condition"] = "page_contains";
+                cfg["value"] = Str(a, "value");
+            }
         }
         else
         {
@@ -172,90 +223,91 @@ public static class LegacyImporter
         }
     }
 
-    private static bool TryBranch(JsonElement a, Ctx ctx, string inlineKey, string fileKey, out string tabId)
+    /// <summary>
+    /// Builds a branch (then/else) tab owned by the if node. Inline arrays are converted to
+    /// sequential nodes; a *_actions_file reference becomes a single call node to that subnode.
+    /// </summary>
+    private static bool TryBranch(JsonElement a, Ctx ctx, FlowNode ifNode, string slot, string fileKey, out string tabId)
     {
         tabId = "";
-        List<JsonElement>? branch = null;
 
-        if (a.TryGetProperty(inlineKey, out var inline) && inline.ValueKind == JsonValueKind.Array
+        if (a.TryGetProperty(slot, out var inline) && inline.ValueKind == JsonValueKind.Array
             && inline.GetArrayLength() > 0)
-            branch = inline.EnumerateArray().ToList();
-        else if (a.TryGetProperty(fileKey, out var file) && file.ValueKind == JsonValueKind.String)
         {
-            var path = ResolvePath(ctx.ProjectDir, file.GetString() ?? "");
-            if (File.Exists(path)) branch = LoadActions(path);
+            var tab = NewBranchTab(ctx, ifNode, slot);
+            AddSequential(inline.EnumerateArray().ToList(), ctx, tab.Id);
+            tabId = tab.Id;
+            return true;
         }
 
-        if (branch is null || branch.Count == 0) return false;
+        if (a.TryGetProperty(fileKey, out var file) && file.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(file.GetString()))
+        {
+            var subId = GetOrCreateSubnode(ResolvePath(ctx.ProjectDir, file.GetString()!), ctx);
+            var subName = ctx.Doc.GetTab(subId)?.Name ?? "";
+            var tab = NewBranchTab(ctx, ifNode, slot);
+            ctx.Doc.Nodes.Add(new FlowNode
+            {
+                Type = "call", TabId = tab.Id, SeqIndex = 0, X = 220, Y = 60,
+                Config = new() { ["target"] = subName },
+            });
+            tabId = tab.Id;
+            return true;
+        }
 
+        return false;
+    }
+
+    private static FlowTab NewBranchTab(Ctx ctx, FlowNode ifNode, string slot)
+    {
         var tab = new FlowTab
         {
-            Id = NewId(), Label = inlineKey == "then" ? "Then" : "Else",
-            IsSubFlow = true, Slot = inlineKey,
+            Id = NewId(),
+            Label = slot == "then" ? "Then" : slot == "else" ? "Else" : "Body",
+            IsSubFlow = true,
+            OwnerNodeId = ifNode.Id,
+            Slot = slot,
         };
         ctx.Doc.Tabs.Add(tab);
-        AddSequential(branch, ctx, tab.Id);
-        tabId = tab.Id;
-        return true;
+        return tab;
     }
 
-    private static string ConvertCallTarget(JsonElement a, Ctx ctx)
+    // ── targets.json → function payload ──────────────────────────────────────────
+
+    private static string BuildTargetsPayload(string projectDir)
     {
-        var file = Str(a, "actions_file");
-        if (string.IsNullOrEmpty(file)) file = Str(a, "file");
-        if (string.IsNullOrEmpty(file)) return "";
-
-        var path = ResolvePath(ctx.ProjectDir, file);
-        if (ctx.FileTabs.TryGetValue(path, out var existing)) return existing;
-
-        var label = Path.GetFileNameWithoutExtension(path);
-        var tab = new FlowTab { Id = NewId(), Label = label, IsSubFlow = true, Slot = "body" };
-        ctx.Doc.Tabs.Add(tab);
-        ctx.FileTabs[path] = tab.Id; // register before recursing (recursion guard)
-
-        if (File.Exists(path))
-            AddSequential(LoadActions(path), ctx, tab.Id);
-        else
-            Log.Warn("LegacyImport: call-Datei nicht gefunden: {0}", path);
-
-        return tab.Id;
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static string BuildStartPayload(string projectDir)
-    {
-        // Seed payload from the first legacy target (if present) as a template.
-        var targetsPath = Path.Combine(projectDir, "targets.json");
-        var payload = new Dictionary<string, object>
-        {
-            ["host"] = "10.1.10.252",
-            ["name"] = "01-USV01",
-            ["location"] = "Humboldt Gymnasium",
-            ["seconds"] = "2",
-        };
+        var targets = new List<Dictionary<string, string>>();
+        var path = Path.Combine(projectDir, "targets.json");
         try
         {
-            if (File.Exists(targetsPath))
+            if (File.Exists(path))
             {
-                using var doc = JsonDocument.Parse(File.ReadAllText(targetsPath));
-                if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                using var doc = JsonDocument.Parse(File.ReadAllText(path));
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
                 {
-                    var first = doc.RootElement[0];
-                    if (first.TryGetProperty("host", out var h)) payload["host"] = h.GetString() ?? "";
-                    if (first.TryGetProperty("name", out var n)) payload["name"] = n.GetString() ?? "";
-                    if (first.TryGetProperty("ctx", out var c) && c.ValueKind == JsonValueKind.Object)
+                    foreach (var t in doc.RootElement.EnumerateArray())
                     {
-                        if (c.TryGetProperty("location", out var loc)) payload["location"] = loc.GetString() ?? "";
-                        if (c.TryGetProperty("seconds", out var s)) payload["seconds"] = ToStr(s);
+                        var flat = new Dictionary<string, string>();
+                        if (t.TryGetProperty("name", out var n)) flat["name"] = n.GetString() ?? "";
+                        if (t.TryGetProperty("host", out var h)) flat["host"] = h.GetString() ?? "";
+                        if (t.TryGetProperty("ctx", out var c) && c.ValueKind == JsonValueKind.Object)
+                            foreach (var p in c.EnumerateObject())
+                                flat[p.Name] = ToStr(p.Value);
+                        targets.Add(flat);
                     }
                 }
             }
         }
         catch (Exception ex) { Log.Warn("LegacyImport: targets.json nicht lesbar: {0}", ex.Message); }
 
+        if (targets.Count == 0)
+            targets.Add(new() { ["name"] = "01-USV01", ["host"] = "10.1.10.252", ["location"] = "Beispiel", ["seconds"] = "2" });
+
+        var payload = new Dictionary<string, object> { ["targets"] = targets };
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static List<JsonElement> LoadActions(string path)
     {
@@ -266,7 +318,6 @@ public static class LegacyImporter
         if (root.ValueKind == JsonValueKind.Array) arr = root;
         else if (root.TryGetProperty("actions", out var a) && a.ValueKind == JsonValueKind.Array) arr = a;
         else return [];
-        // Clone elements so they survive after the JsonDocument is disposed.
         return arr.EnumerateArray().Select(e => e.Clone()).ToList();
     }
 

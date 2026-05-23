@@ -85,11 +85,15 @@
     <!-- ── Main Area ── -->
     <Grid ColumnDefinitions="220,*,320">
 
-      <!-- Left: Node Palette -->
+      <!-- Left: Node Palette (top) + Subnodes (bottom) -->
       <Border Grid.Column="0"
               Background="#1A1A2E" BorderBrush="#2E2E4E"
               BorderThickness="0,0,1,0">
-        <views:NodePaletteView DataContext="{Binding}"/>
+        <Grid RowDefinitions="*,6,220">
+          <views:NodePaletteView Grid.Row="0" DataContext="{Binding}"/>
+          <GridSplitter Grid.Row="1" Background="#2E2E4E" ResizeDirection="Rows" Margin="0"/>
+          <views:SubnodePanelView Grid.Row="2" DataContext="{Binding}"/>
+        </Grid>
       </Border>
 
       <!-- Center: Flow Editor + Trace panel -->

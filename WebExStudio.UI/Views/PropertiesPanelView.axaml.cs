@@ -175,6 +175,24 @@ public partial class PropertiesPanelView : UserControl
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
         };
 
+        // Special case: call.target → dropdown of available subnode names.
+        if (_currentNode?.ActionType == "call" && prop.Key == "target")
+        {
+            var names = _flowEditor?.SubnodeNames.ToList() ?? [];
+            if (!string.IsNullOrEmpty(currentValue) && !names.Contains(currentValue))
+                names.Insert(0, currentValue);
+            var combo = new ComboBox { ItemsSource = names, SelectedItem = currentValue, HorizontalAlignment = HorizontalAlignment.Stretch };
+            combo.SelectionChanged += (_, _) =>
+            {
+                if (_currentNode is not null && combo.SelectedItem is string s)
+                {
+                    _currentNode.Model.Config[prop.Key] = s;
+                    _flowEditor?.MarkDirty();
+                }
+            };
+            return new StackPanel { Spacing = 2, Margin = new Avalonia.Thickness(0, 0, 0, 4), Children = { label, combo } };
+        }
+
         Control editor = prop.Kind switch
         {
             PropertyKind.Boolean => new CheckBox

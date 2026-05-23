@@ -11,7 +11,7 @@
             Background="#1A1A2E"
             BorderBrush="#252540"
             BorderThickness="0,0,0,1">
-      <ItemsControl x:Name="TabBar" ItemsSource="{Binding Tabs}">
+      <ItemsControl x:Name="TabBar" ItemsSource="{Binding OpenTabs}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Horizontal"/>
@@ -19,14 +19,21 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:FlowTabViewModel">
-            <Button x:Name="TabButton"
-                    Content="{Binding Label}"
-                    Padding="12,6"
-                    Margin="0,0,1,0"
-                    FontSize="12"
-                    CornerRadius="4,4,0,0"
-                    BorderThickness="0"
-                    Cursor="Hand"/>
+            <Border Background="#16162A" Margin="0,0,1,0" CornerRadius="4,4,0,0">
+              <StackPanel Orientation="Horizontal">
+                <Button Content="{Binding Label}"
+                        Padding="12,6" FontSize="12"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" Tag="{Binding}"
+                        Click="OnTabClick"/>
+                <Button Content="&#x2715;" FontSize="10"
+                        Padding="0" Width="22"
+                        Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                        Cursor="Hand" Tag="{Binding}"
+                        IsVisible="{Binding CanClose}"
+                        Click="OnTabClose"/>
+              </StackPanel>
+            </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
