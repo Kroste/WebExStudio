@@ -238,7 +238,8 @@ public sealed class NodeControl : Panel
             or nameof(NodeViewModel.IsActive)
             or nameof(NodeViewModel.Status)
             or nameof(NodeViewModel.StatusColor)
-            or nameof(NodeViewModel.Color))
+            or nameof(NodeViewModel.Color)
+            or nameof(NodeViewModel.Title))
         {
             UpdateVisuals();
         }
@@ -258,7 +259,7 @@ public sealed class NodeControl : Panel
             baseColor.R, baseColor.G, baseColor.B));
 
         _statusIndicator.Background = new SolidColorBrush(statusColor);
-        _titleLabel.Text = ViewModel.DisplayName;
+        _titleLabel.Text = ViewModel.Title;
 
         if (ViewModel.IsActive)
         {

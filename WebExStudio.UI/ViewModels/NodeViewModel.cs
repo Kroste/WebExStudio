@@ -90,6 +90,15 @@ public sealed class NodeViewModel : ViewModelBase
     /// <summary>Visual-only annotation node (label/caption) — no ports, no execution.</summary>
     public bool IsAnnotation => ActionType is "label" or "caption";
 
+    /// <summary>The on-canvas title. A call node shows the referenced subnode's name.</summary>
+    public string Title =>
+        ActionType == "call" && Model.Config.TryGetValue("target", out var t) && !string.IsNullOrEmpty(t)
+            ? t
+            : DisplayName;
+
+    /// <summary>Raise after changing the call target so the on-canvas title updates.</summary>
+    public void RaiseTitleChanged() => this.RaisePropertyChanged(nameof(Title));
+
     public NodeViewModel(FlowNode node)
     {
         Model = node;

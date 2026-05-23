@@ -193,60 +193,6 @@ public sealed class FlowExecutor
         }
     }
 
-    /// <summary>
-    /// Executes nodes on a sequential (sub-flow) tab in seqIndex order.
-    /// Used by control-flow handlers (if/else branches, loop bodies, call tabs).
-    /// </summary>
-    public async Task ExecuteSequentialAsync(string tabId, ExecutionContext ctx)
-    {
-        if (ctx.Document is null) return;
-        var nodes = ctx.Document.GetNodes(tabId).Where(n => !IsAnnotation(n.Type)).ToList();
-        foreach (var node in nodes)
-        {
-            ctx.CancellationToken.ThrowIfCancellationRequested();
-
-            Log.Info("Node startet (sequenziell): {0} ({1})", node.Type, node.Id);
-            ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
-                DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
-
-            var handler = _registry.Get(node.Type);
-            if (handler is null)
-            {
-                Log.Warn("Unbekannter Action-Typ: {0} ({1})", node.Type, node.Id);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
-                    $"Unbekannter Action-Typ: {node.Type}"));
-                continue;
-            }
-
-            try
-            {
-                await handler.ExecuteAsync(ctx, node);
-                Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
-            }
-            catch (QuitException)
-            {
-                Log.Info("Quit: {0} ({1})", node.Type, node.Id);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
-                throw;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Node fehlgeschlagen: {0} ({1}): {2}", node.Type, node.Id, ex.Message);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
-                    ErrorMessage: ex.Message));
-            }
-        }
-    }
-
     private ExecutionContext CreateContext(
         IPage page, TargetConfig target, RunConfig config,
         string projectDir, FlowDocument2 doc,
@@ -257,7 +203,10 @@ public sealed class FlowExecutor
             progress: progress, cancellationToken: ct)
         {
             Document = doc,
-            RunSubTabCallback = ExecuteSequentialAsync,
+            // Every tab (main, subnodes, branch tabs) executes by following wires.
+            RunSubTabCallback = (tabId, c) => c.Document is null
+                ? Task.CompletedTask
+                : ExecuteWiredAsync(c.Document, tabId, c),
             PauseCallback = onPause,
         };
     }

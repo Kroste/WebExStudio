@@ -187,6 +187,7 @@ public partial class PropertiesPanelView : UserControl
                 if (_currentNode is not null && combo.SelectedItem is string s)
                 {
                     _currentNode.Model.Config[prop.Key] = s;
+                    _currentNode.RaiseTitleChanged();
                     _flowEditor?.MarkDirty();
                 }
             };

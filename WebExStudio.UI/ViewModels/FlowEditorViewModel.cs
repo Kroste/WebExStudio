@@ -316,17 +316,21 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public void RefreshWires()
     {
         Wires.Clear();
-        if (_activeTab is null || _activeTab.IsSubFlow || Document is null) return;
-
-        foreach (var nodeVm in _activeTab.Nodes)
+        if (_activeTab is not null && Document is not null)
         {
-            var node = nodeVm.Model;
-            for (int port = 0; port < node.Wires.Count; port++)
+            foreach (var nodeVm in _activeTab.Nodes)
             {
-                foreach (var targetId in node.Wires[port])
-                    Wires.Add(new WireViewModel(node.Id, port, targetId));
+                var node = nodeVm.Model;
+                for (int port = 0; port < node.Wires.Count; port++)
+                {
+                    foreach (var targetId in node.Wires[port])
+                        Wires.Add(new WireViewModel(node.Id, port, targetId));
+                }
             }
         }
+        // Re-render connections after the collection is populated (mutating the
+        // ObservableCollection alone doesn't re-trigger the view's RefreshConnections).
+        this.RaisePropertyChanged(nameof(Wires));
     }
 
     // ── Node operations ───────────────────────────────────────────────────────

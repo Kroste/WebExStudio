@@ -300,14 +300,26 @@ public partial class FlowEditorView : UserControl
 
     private void OnDragOver(object? sender, DragEventArgs e) =>
         e.DragEffects = e.Data.Contains(NodePaletteView.NodeTypeFormat)
+                     || e.Data.Contains(SubnodePanelView.SubnodeNameFormat)
             ? DragDropEffects.Copy
             : DragDropEffects.None;
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
         if (Vm is null) return;
-        if (e.Data.Get(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
         var world = Canvas.CanvasToWorld(e.GetPosition(Canvas));
+
+        // Subnode dragged from the list → create a call node targeting it.
+        if (e.Data.Get(SubnodePanelView.SubnodeNameFormat) is string subnode && !string.IsNullOrEmpty(subnode))
+        {
+            Log.Info("Subnode per Drag&Drop einfügen: {0}", subnode);
+            var vm = Vm.AddNode("call", world.X - 100, world.Y - 30);
+            vm.Model.Config["target"] = subnode;
+            vm.RaiseTitleChanged();
+            return;
+        }
+
+        if (e.Data.Get(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
         Log.Info("Node per Drag&Drop hinzufügen: {0} @ ({1:F0},{2:F0})", type, world.X, world.Y);
         Vm.AddNode(type, world.X - 100, world.Y - 30); // center node on cursor
     }

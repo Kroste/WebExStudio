@@ -96,13 +96,17 @@ public static class LegacyImporter
 
     // ── Node building ────────────────────────────────────────────────────────────
 
+    /// <summary>Builds the actions as a wired chain (node[i] → node[i+1]) on the tab.</summary>
     private static void AddSequential(List<JsonElement> actions, Ctx ctx, string tabId)
     {
+        FlowNode? prev = null;
         int i = 0;
         foreach (var action in actions)
         {
             var node = BuildNode(action, ctx, tabId, seqIndex: i, x: 220, y: 60 + i * 110);
             ctx.Doc.Nodes.Add(node);
+            if (prev is not null) prev.Wires = [[node.Id]];
+            prev = node;
             i++;
         }
     }
