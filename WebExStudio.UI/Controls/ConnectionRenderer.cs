@@ -30,7 +30,7 @@ public sealed class ConnectionRenderer : Control
         {
             if (!_nodeMap.TryGetValue(wire.SourceNodeId, out var src)) continue;
             if (!_nodeMap.TryGetValue(wire.TargetNodeId, out var tgt)) continue;
-            if (DistanceToWire(world, src.OutputPortPosition, tgt.InputPortPosition) <= threshold)
+            if (DistanceToWire(world, src.OutputPortPosition(wire.OutputPort), tgt.InputPortPosition) <= threshold)
                 return wire;
         }
         return null;
@@ -109,7 +109,7 @@ public sealed class ConnectionRenderer : Control
         {
             if (!_nodeMap.TryGetValue(wire.SourceNodeId, out var src)) continue;
             if (!_nodeMap.TryGetValue(wire.TargetNodeId, out var tgt)) continue;
-            DrawWire(ctx, src.OutputPortPosition, tgt.InputPortPosition, false, wire == _selectedWire);
+            DrawWire(ctx, src.OutputPortPosition(wire.OutputPort), tgt.InputPortPosition, false, wire == _selectedWire);
         }
 
         // Draw drag preview

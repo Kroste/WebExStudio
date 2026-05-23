@@ -167,51 +167,10 @@ public sealed class FlowEditorViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Navigates into a block node's sub-flow tab for the given slot ("then","else","body").
-    /// Creates the tab if it doesn't exist yet.
+    /// Finds the tab view model that contains the given node id.
     /// </summary>
-    public void OpenSubTab(NodeViewModel blockNode, string slot)
-    {
-        if (Document is null) return;
-
-        var configKey = slot switch
-        {
-            "then" => "thenTabId",
-            "else" => "elseTabId",
-            _ => "bodyTabId",
-        };
-
-        string? tabId = blockNode.Model.Config.TryGetValue(configKey, out var v) ? v : null;
-        FlowTabViewModel? tabVm = tabId is null ? null : Tabs.FirstOrDefault(t => t.Id == tabId);
-
-        if (tabVm is null)
-        {
-            // Create a new sub-flow tab
-            var label = slot switch
-            {
-                "then" => "Then",
-                "else" => "Else",
-                _ => "Body",
-            };
-            var newTab = new FlowTab
-            {
-                Id = Guid.NewGuid().ToString("N")[..8],
-                Label = $"{blockNode.DisplayName}: {label}",
-                IsSubFlow = true,
-                OwnerNodeId = blockNode.Id,
-                Slot = slot,
-            };
-            Document.Tabs.Add(newTab);
-            blockNode.Model.Config[configKey] = newTab.Id;
-            tabVm = new FlowTabViewModel(newTab);
-            foreach (var node in Document.GetNodes(newTab.Id))
-                tabVm.Nodes.Add(new NodeViewModel(node));
-            Tabs.Add(tabVm);
-            MarkDirty();
-        }
-
-        OpenTab(tabVm);
-    }
+    public FlowTabViewModel? FindTabOfNode(string nodeId) =>
+        Tabs.FirstOrDefault(t => t.Nodes.Any(n => n.Id == nodeId));
 
     // ── Subnode management (Node-RED style) ────────────────────────────────────
 
@@ -383,25 +342,6 @@ public sealed class FlowEditorViewModel : ViewModelBase
         Document.Nodes.Remove(vm.Model);
         _activeTab.Nodes.Remove(vm);
 
-        // Also remove sub-flow tabs owned by this node
-        if (vm.HasSubFlows)
-        {
-            var ownedTabs = Document.Tabs.Where(t => t.OwnerNodeId == vm.Id).ToList();
-            foreach (var tab in ownedTabs)
-            {
-                Document.Tabs.Remove(tab);
-                var tabVm = Tabs.FirstOrDefault(t => t.Id == tab.Id);
-                if (tabVm is not null)
-                {
-                    Tabs.Remove(tabVm);
-                    OpenTabs.Remove(tabVm);
-                }
-                // Remove nodes belonging to this sub-tab
-                var subNodes = Document.Nodes.Where(n => n.TabId == tab.Id).ToList();
-                foreach (var sn in subNodes) Document.Nodes.Remove(sn);
-            }
-        }
-
         if (SelectedNode == vm) SelectedNode = null;
         MarkDirty();
     }
@@ -423,6 +363,11 @@ public sealed class FlowEditorViewModel : ViewModelBase
         foreach (var tab in Tabs)
             foreach (var n in tab.Nodes)
                 n.IsActive = n.Id == nodeId;
+
+        // View follows execution: open/switch to the tab containing the active node.
+        var owner = FindTabOfNode(nodeId);
+        if (owner is not null && owner != ActiveTab)
+            OpenTab(owner);
     }
 
     public void SetNodeStatus(string nodeId, ExecutionStatusUi status)

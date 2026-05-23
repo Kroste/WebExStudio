@@ -72,9 +72,6 @@ public sealed class GetLinksHandler : IActionHandler
         var ctxKey = node.Get("ctx_key", "link");
         var filter = ctx.Fmt(node.Get("filter"));
         var max = int.TryParse(node.Get("max", "500"), out var m) ? m : 500;
-        var bodyTabId = node.Get("bodyTabId");
-
-        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         var elements = await ctx.Page.QuerySelectorAllAsync(selector);
         var links = new List<string>();
@@ -93,7 +90,8 @@ public sealed class GetLinksHandler : IActionHandler
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
             var child = ctx.CreateChild(new Dictionary<string, string> { [ctxKey] = link });
-            await child.RunSubTab(bodyTabId);
+            await ctx.FollowOutput(node, 0, child); // per-link output
         }
+        await ctx.FollowOutput(node, 1); // done output
     }
 }

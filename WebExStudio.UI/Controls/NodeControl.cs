@@ -22,14 +22,14 @@ public sealed class NodeControl : Panel
 
     public NodeViewModel ViewModel { get; }
     public event EventHandler<NodeViewModel>? DeleteRequested;
-    public event EventHandler<(NodeViewModel vm, string slot)>? OpenSubTabRequested;
 
     private readonly Border _border;
     private readonly Border _statusIndicator;
     private readonly TextBlock _titleLabel;
     private readonly Border _header;
     private readonly Ellipse? _inputPort;
-    private readonly Ellipse? _outputPort;
+    private readonly List<Ellipse> _outputPorts = [];
+    private readonly List<TextBlock> _outputLabels = [];
     private readonly TextBlock? _annotation;
 
     public NodeControl(NodeViewModel vm)
@@ -132,11 +132,26 @@ public sealed class NodeControl : Panel
             Children.Add(_inputPort);
         }
 
-        // Output port circle (bottom-center)
-        if (vm.Definition.OutputPorts > 0)
+        // Output port circles (bottom, spaced) with optional labels
+        var labels = vm.Definition.OutputLabels;
+        for (int i = 0; i < vm.Definition.OutputPorts; i++)
         {
-            _outputPort = MakePortEllipse();
-            Children.Add(_outputPort);
+            var port = MakePortEllipse();
+            _outputPorts.Add(port);
+            Children.Add(port);
+
+            if (vm.Definition.OutputPorts > 1)
+            {
+                var lbl = new TextBlock
+                {
+                    Text = i < labels.Length ? labels[i] : i.ToString(),
+                    FontSize = 9,
+                    Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
+                    IsHitTestVisible = false,
+                };
+                _outputLabels.Add(lbl);
+                Children.Add(lbl);
+            }
         }
 
         ContextMenu = BuildContextMenu(vm);
@@ -165,7 +180,8 @@ public sealed class NodeControl : Panel
         }
         _border.Measure(availableSize);
         _inputPort?.Measure(availableSize);
-        _outputPort?.Measure(availableSize);
+        foreach (var p in _outputPorts) p.Measure(availableSize);
+        foreach (var l in _outputLabels) l.Measure(availableSize);
         return new Size(Width, Height);
     }
 
@@ -179,23 +195,39 @@ public sealed class NodeControl : Panel
 
         _border.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
 
-        var cx = finalSize.Width / 2 - PortRadius;
         if (_inputPort is not null)
-            _inputPort.Arrange(new Rect(cx, -PortRadius, PortRadius * 2, PortRadius * 2));
-        if (_outputPort is not null)
-            _outputPort.Arrange(new Rect(cx, finalSize.Height - PortRadius, PortRadius * 2, PortRadius * 2));
+            _inputPort.Arrange(new Rect(finalSize.Width / 2 - PortRadius, -PortRadius, PortRadius * 2, PortRadius * 2));
+
+        for (int i = 0; i < _outputPorts.Count; i++)
+        {
+            var x = OutputPortX(i, finalSize.Width);
+            _outputPorts[i].Arrange(new Rect(x - PortRadius, finalSize.Height - PortRadius, PortRadius * 2, PortRadius * 2));
+            if (i < _outputLabels.Count)
+                _outputLabels[i].Arrange(new Rect(x - 18, finalSize.Height - PortRadius - 12, 36, 12));
+        }
 
         return finalSize;
     }
 
+    /// <summary>Local X of output port i (matches NodeViewModel.OutputPortPosition spacing).</summary>
+    private double OutputPortX(int port, double width)
+    {
+        var n = Math.Max(_outputPorts.Count, 1);
+        return width * (port + 1) / (n + 1.0);
+    }
+
     // ── Port hit-test ─────────────────────────────────────────────────────────
 
-    public bool IsOnOutputPort(Point localPos)
+    /// <summary>Returns the output-port index under the point, or -1 if none.</summary>
+    public int OutputPortAt(Point localPos)
     {
-        var cx = Width / 2;
-        var cy = Height;
-        return Distance(localPos, cx, cy) <= PortRadius + 3;
+        for (int i = 0; i < _outputPorts.Count; i++)
+            if (Distance(localPos, OutputPortX(i, Width), Height) <= PortRadius + 3)
+                return i;
+        return -1;
     }
+
+    public bool IsOnOutputPort(Point localPos) => OutputPortAt(localPos) >= 0;
 
     public bool IsOnInputPort(Point localPos)
     {
@@ -209,27 +241,26 @@ public sealed class NodeControl : Panel
 
     // ── Events ────────────────────────────────────────────────────────────────
 
+    private static readonly IBrush PortIdle = new SolidColorBrush(Color.Parse("#90A4AE"));
+
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
         var pos = e.GetPosition(this);
-        var onPort = IsOnOutputPort(pos) || IsOnInputPort(pos);
+        var hitOut = OutputPortAt(pos);
+        var onPort = hitOut >= 0 || IsOnInputPort(pos);
         Cursor = onPort ? new Cursor(StandardCursorType.Cross) : new Cursor(StandardCursorType.SizeAll);
 
-        if (_outputPort is not null)
-            _outputPort.Fill = IsOnOutputPort(pos)
-                ? Brushes.White
-                : new SolidColorBrush(Color.Parse("#90A4AE"));
+        for (int i = 0; i < _outputPorts.Count; i++)
+            _outputPorts[i].Fill = i == hitOut ? Brushes.White : PortIdle;
         if (_inputPort is not null)
-            _inputPort.Fill = IsOnInputPort(pos)
-                ? Brushes.White
-                : new SolidColorBrush(Color.Parse("#90A4AE"));
+            _inputPort.Fill = IsOnInputPort(pos) ? Brushes.White : PortIdle;
     }
 
     private void OnPointerExited(object? sender, PointerEventArgs e)
     {
         Cursor = new Cursor(StandardCursorType.SizeAll);
-        if (_outputPort is not null) _outputPort.Fill = new SolidColorBrush(Color.Parse("#90A4AE"));
-        if (_inputPort is not null) _inputPort.Fill = new SolidColorBrush(Color.Parse("#90A4AE"));
+        foreach (var p in _outputPorts) p.Fill = PortIdle;
+        if (_inputPort is not null) _inputPort.Fill = PortIdle;
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -284,24 +315,6 @@ public sealed class NodeControl : Panel
     private ContextMenu BuildContextMenu(NodeViewModel vm)
     {
         var menu = new ContextMenu();
-
-        foreach (var slot in vm.Definition.SubFlowSlots)
-        {
-            var s = slot;
-            var label = s switch
-            {
-                "then" => "Then-Tab öffnen",
-                "else" => "Else-Tab öffnen",
-                "body" => "Body-Tab öffnen",
-                _ => $"{s}-Tab öffnen",
-            };
-            var item = new MenuItem { Header = $"📂 {label}" };
-            item.Click += (_, _) => OpenSubTabRequested?.Invoke(this, (vm, s));
-            menu.Items.Add(item);
-        }
-
-        if (vm.Definition.SubFlowSlots.Length > 0)
-            menu.Items.Add(new Separator());
 
         var deleteItem = new MenuItem { Header = "🗑 Node löschen" };
         deleteItem.Click += (_, _) =>

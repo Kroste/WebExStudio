@@ -84,7 +84,7 @@ public sealed class NodeCanvas : Canvas
     {
         _wireDragSource = source;
         _wireDragOutputPort = outputPort;
-        _wireDragStartWorld = source.OutputPortPosition;
+        _wireDragStartWorld = source.OutputPortPosition(outputPort);
         e.Pointer.Capture(this);
     }
 

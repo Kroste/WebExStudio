@@ -31,8 +31,15 @@ public sealed class ExecutionContext
     /// <summary>The document being executed — used for sub-tab lookup.</summary>
     public FlowDocument2? Document { get; init; }
 
-    /// <summary>Callback to execute a sequential sub-flow tab.</summary>
+    /// <summary>Callback to execute a sub-flow tab (used by call to run a named subnode).</summary>
     public Func<string, ExecutionContext, Task>? RunSubTabCallback { get; init; }
+
+    /// <summary>Callback to traverse the targets wired to a node's output port.</summary>
+    public Func<FlowNode, int, ExecutionContext, Task>? FollowOutputCallback { get; init; }
+
+    /// <summary>Follows the wires on the given output port (used by if/foreach to route).</summary>
+    public Task FollowOutput(FlowNode node, int port, ExecutionContext? with = null) =>
+        FollowOutputCallback?.Invoke(node, port, with ?? this) ?? Task.CompletedTask;
 
     /// <summary>Callback to pause execution until the user resumes (used by the debug node).</summary>
     public Func<string, Task>? PauseCallback { get; init; }
@@ -97,6 +104,7 @@ public sealed class ExecutionContext
         {
             Document = Document,
             RunSubTabCallback = RunSubTabCallback,
+            FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
         };
 
@@ -107,6 +115,7 @@ public sealed class ExecutionContext
         {
             Document = Document,
             RunSubTabCallback = RunSubTabCallback,
+            FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
         };
 

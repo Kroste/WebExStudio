@@ -24,14 +24,8 @@ public sealed class NodeDefinition
     /// <summary>Number of output ports (bottom of node). Default 1.</summary>
     public int OutputPorts { get; init; } = 1;
 
-    /// <summary>
-    /// Slot names for sub-flow tabs owned by this node type.
-    /// E.g. ["then","else"] for if_then_else, ["body"] for loops.
-    /// Empty for leaf nodes.
-    /// </summary>
-    public string[] SubFlowSlots { get; init; } = [];
-
-    public bool HasSubFlows => SubFlowSlots.Length > 0;
+    /// <summary>Labels for each output port (e.g. ["then","else"]). May be empty.</summary>
+    public string[] OutputLabels { get; init; } = [];
 }
 
 public sealed class PropertyDefinition

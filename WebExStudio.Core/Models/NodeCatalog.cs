@@ -54,10 +54,10 @@ public static class NodeCatalog
         new()
         {
             Type = "get_links", DisplayName = "Links sammeln", Category = "Navigation",
-            Description = "Sammelt Links von der Seite und führt den Body-Tab für jeden Link aus.",
+            Description = "Sammelt Links und führt den 'je Link'-Ausgang für jeden Link aus.",
             Color = "#0277BD", Icon = "🔗",
-            SubFlowSlots = ["body"],
-            Example = "selector = a.product  →  Body-Tab läuft je gefundenem Link; aktueller Link in {link}.",
+            OutputPorts = 2, OutputLabels = ["je Link", "fertig"],
+            Example = "selector = a.product  →  'je Link'-Ausgang läuft je Link; aktueller Link in {link}.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Placeholder = "a.item" },
@@ -136,10 +136,10 @@ public static class NodeCatalog
         new()
         {
             Type = "if_then_else", DisplayName = "If / Then / Else", Category = "Kontrollfluss",
-            Description = "Bedingte Verzweigung basierend auf DOM, Seite oder Payload.",
+            Description = "Bedingte Verzweigung. Verbinde die Ausgänge 'then' und 'else' mit den Folge-Nodes.",
             Color = "#6A1B9A", Icon = "❓",
-            SubFlowSlots = ["then", "else"],
-            Example = "condition = element_exists, selector = .fehler  →  Treffer: Then-Tab, sonst: Else-Tab.",
+            OutputPorts = 2, OutputLabels = ["then", "else"],
+            Example = "condition = element_exists, selector = .fehler  →  Treffer: 'then'-Ausgang, sonst: 'else'-Ausgang.",
             Properties =
             [
                 new() { Key = "condition", Label = "Bedingung-Typ", Kind = PropertyKind.Dropdown, DefaultValue = "element_exists" },
@@ -152,10 +152,10 @@ public static class NodeCatalog
         new()
         {
             Type = "for_range", DisplayName = "For-Schleife", Category = "Kontrollfluss",
-            Description = "Wiederholt den Body-Tab für einen Zahlenbereich.",
+            Description = "Wiederholt den 'Schleife'-Ausgang für einen Zahlenbereich.",
             Color = "#E65100", Icon = "🔄",
-            SubFlowSlots = ["body"],
-            Example = "start = 1, end = 5  →  Body-Tab läuft 5x; aktueller Wert in {i}.",
+            OutputPorts = 2, OutputLabels = ["Schleife", "fertig"],
+            Example = "start = 1, end = 5  →  'Schleife'-Ausgang läuft 5x; aktueller Wert in {i}.",
             Properties =
             [
                 new() { Key = "start", Label = "Start", Kind = PropertyKind.Number, DefaultValue = "0" },
@@ -168,10 +168,10 @@ public static class NodeCatalog
         new()
         {
             Type = "foreach", DisplayName = "Foreach-Schleife", Category = "Kontrollfluss",
-            Description = "Iteriert über eine Liste oder ein Dictionary.",
+            Description = "Iteriert über eine Liste/Dictionary. Verbinde den 'Element'-Ausgang mit dem Schleifenkörper.",
             Color = "#E65100", Icon = "🔁",
-            SubFlowSlots = ["body"],
-            Example = "items = {payload.liste}  →  Body-Tab läuft je Element; aktuelles Element in {item}.",
+            OutputPorts = 2, OutputLabels = ["Element", "fertig"],
+            Example = "items = {payload.targets}  →  'Element'-Ausgang läuft je Element; Felder als {payload.host} usw.",
             Properties =
             [
                 new() { Key = "items", Label = "Elemente (JSON oder {payload.key})", Kind = PropertyKind.Text, Required = true },

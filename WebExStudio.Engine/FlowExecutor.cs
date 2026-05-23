@@ -109,32 +109,37 @@ public sealed class FlowExecutor
         }
     }
 
+    /// <summary>Control nodes route their own outputs (via ctx.FollowOutput) instead of auto-following.</summary>
+    private static bool IsControlNode(string type) =>
+        type is "if_then_else" or "foreach" or "for_range" or "get_links";
+
     /// <summary>
-    /// Executes nodes on a wired (main canvas) tab in topological order.
-    /// Entry nodes are those with no incoming wires.
+    /// Executes a tab as a wired graph: starts from entry nodes (no incoming wires)
+    /// and follows wires. Branches/loops route via output ports.
     /// </summary>
     public async Task ExecuteWiredAsync(FlowDocument2 doc, string tabId, ExecutionContext ctx)
     {
-        // Annotation nodes (label/caption) are visual-only — never execute them.
         var tabNodes = doc.Nodes.Where(n => n.TabId == tabId && !IsAnnotation(n.Type)).ToList();
         if (tabNodes.Count == 0) return;
 
         var incoming = doc.BuildIncomingSet(tabId);
-        var entryNodes = tabNodes.Where(n => !incoming.Contains(n.Id)).ToList();
-
-        // Build adjacency for topological traversal
-        var nodeById = tabNodes.ToDictionary(n => n.Id);
-        var visited = new HashSet<string>();
-
-        foreach (var entry in entryNodes)
-            await TraverseAsync(doc, entry, nodeById, visited, ctx);
+        var entryIds = tabNodes.Where(n => !incoming.Contains(n.Id)).Select(n => n.Id).ToList();
+        await TraverseFrom(entryIds, ctx);
     }
 
-    private async Task TraverseAsync(
-        FlowDocument2 doc, FlowNode node,
-        Dictionary<string, FlowNode> nodeById,
-        HashSet<string> visited,
-        ExecutionContext ctx)
+    /// <summary>Traverses the given target nodes with a fresh visited set.</summary>
+    private async Task TraverseFrom(IEnumerable<string> ids, ExecutionContext ctx)
+    {
+        var visited = new HashSet<string>();
+        foreach (var id in ids)
+        {
+            var node = ctx.Document?.GetNode(id);
+            if (node is not null && !IsAnnotation(node.Type))
+                await RunNode(node, visited, ctx);
+        }
+    }
+
+    private async Task RunNode(FlowNode node, HashSet<string> visited, ExecutionContext ctx)
     {
         if (!visited.Add(node.Id)) return;
         ctx.CancellationToken.ThrowIfCancellationRequested();
@@ -177,18 +182,21 @@ public sealed class FlowExecutor
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                     ErrorMessage: ex.Message));
-                return; // stop traversal on error
+                return; // stop this path on error
             }
         }
 
-        // Follow output wires sequentially
-        foreach (var port in node.Wires)
+        // Control nodes already routed via ctx.FollowOutput inside their handler.
+        // Normal nodes auto-follow their first output port within the same traversal.
+        if (IsControlNode(node.Type)) return;
+        if (node.Wires.Count > 0)
         {
-            foreach (var targetId in port)
+            foreach (var targetId in node.Wires[0])
             {
                 ctx.CancellationToken.ThrowIfCancellationRequested();
-                if (nodeById.TryGetValue(targetId, out var next))
-                    await TraverseAsync(doc, next, nodeById, visited, ctx);
+                var next = ctx.Document?.GetNode(targetId);
+                if (next is not null && !IsAnnotation(next.Type))
+                    await RunNode(next, visited, ctx);
             }
         }
     }
@@ -203,10 +211,13 @@ public sealed class FlowExecutor
             progress: progress, cancellationToken: ct)
         {
             Document = doc,
-            // Every tab (main, subnodes, branch tabs) executes by following wires.
+            // call → run a named subnode's tab as a fresh wired traversal.
             RunSubTabCallback = (tabId, c) => c.Document is null
                 ? Task.CompletedTask
                 : ExecuteWiredAsync(c.Document, tabId, c),
+            // if/foreach → route a specific output port (fresh traversal so loop bodies re-run).
+            FollowOutputCallback = (node, port, c) =>
+                TraverseFrom(node.Wires.ElementAtOrDefault(port) ?? [], c),
             PauseCallback = onPause,
         };
     }

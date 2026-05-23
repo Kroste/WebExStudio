@@ -124,7 +124,6 @@ public partial class FlowEditorView : UserControl
         var ctrl = new NodeControl(nodeVm);
         ctrl.PointerPressed += OnNodePointerPressed;
         ctrl.DeleteRequested += OnNodeDeleteRequested;
-        ctrl.OpenSubTabRequested += OnNodeOpenSubTabRequested;
         _nodeControls[nodeVm.Id] = ctrl;
         Canvas.Children.Add(ctrl);
         Avalonia.Controls.Canvas.SetLeft(ctrl, nodeVm.X);
@@ -153,13 +152,12 @@ public partial class FlowEditorView : UserControl
         Focus();
 
         var pos = e.GetPosition(ctrl);
+        var outPort = ctrl.OutputPortAt(pos);
 
-        // Wire drag: pointer on output port
-        if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed
-            && ctrl.IsOnOutputPort(pos)
-            && ctrl.ViewModel.Definition.OutputPorts > 0)
+        // Wire drag: pointer on a specific output port
+        if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed && outPort >= 0)
         {
-            Canvas.BeginWireDrag(ctrl.ViewModel, 0, e);
+            Canvas.BeginWireDrag(ctrl.ViewModel, outPort, e);
             e.Handled = true;
             return;
         }
@@ -167,7 +165,7 @@ public partial class FlowEditorView : UserControl
         // Node drag: left button, not on port, not Alt
         if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed
             && !e.KeyModifiers.HasFlag(KeyModifiers.Alt)
-            && !ctrl.IsOnOutputPort(pos)
+            && outPort < 0
             && !ctrl.IsOnInputPort(pos))
         {
             Canvas.BeginNodeDrag(ctrl.ViewModel, e.GetPosition(Canvas), e);
@@ -209,13 +207,6 @@ public partial class FlowEditorView : UserControl
         Log.Info("Node löschen: {0} ({1})", vm.Id, vm.ActionType);
         Vm?.DeleteNode(vm);
         RebuildCanvas();
-    }
-
-    private void OnNodeOpenSubTabRequested(object? sender, (NodeViewModel vm, string slot) args)
-    {
-        Log.Debug("Sub-Tab öffnen: {0} slot={1}", args.vm.Id, args.slot);
-        Vm?.OpenSubTab(args.vm, args.slot);
-        // Tab switch triggers RebuildCanvas via PropertyChanged
     }
 
     private void RefreshConnections()

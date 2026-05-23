@@ -76,16 +76,18 @@ public sealed class NodeViewModel : ViewModelBase
         _ => Definition.Color,
     };
 
+    public int OutputPorts => Math.Max(Definition.OutputPorts, 0);
+
     // Port positions (world coordinates) — used by ConnectionRenderer and wire drag
     public Point InputPortPosition => new(X + Width / 2, Y);
-    public Point OutputPortPosition => new(X + Width / 2, Y + Height);
 
-    // Sub-flow tab IDs stored in Config by the editor
-    public string? ThenTabId => Model.Config.TryGetValue("thenTabId", out var v) ? v : null;
-    public string? ElseTabId => Model.Config.TryGetValue("elseTabId", out var v) ? v : null;
-    public string? BodyTabId => Model.Config.TryGetValue("bodyTabId", out var v) ? v : null;
-
-    public bool HasSubFlows => Definition.HasSubFlows;
+    /// <summary>Output port center, spaced evenly along the bottom edge.</summary>
+    public Point OutputPortPosition(int port)
+    {
+        var n = Math.Max(OutputPorts, 1);
+        var x = X + Width * (port + 1) / (n + 1.0);
+        return new Point(x, Y + Height);
+    }
 
     /// <summary>Visual-only annotation node (label/caption) — no ports, no execution.</summary>
     public bool IsAnnotation => ActionType is "label" or "caption";

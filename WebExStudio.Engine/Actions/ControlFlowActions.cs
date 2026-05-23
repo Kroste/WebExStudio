@@ -22,12 +22,8 @@ public sealed class IfThenElseHandler : IActionHandler
         if (negate) result = !result;
         Log.Debug("if_then_else: {0} selector='{1}' → {2}", condition, selector, result);
 
-        var tabId = result ? node.Get("thenTabId") : node.Get("elseTabId");
-        if (!string.IsNullOrEmpty(tabId))
-        {
-            Log.Debug("if_then_else führt {0}-Tab aus: {1}", result ? "then" : "else", tabId);
-            await ctx.RunSubTab(tabId);
-        }
+        // Route to output port 0 (then) or 1 (else); downstream nodes are wired there.
+        await ctx.FollowOutput(node, result ? 0 : 1);
     }
 
     private static async Task<bool> EvaluateCondition(
@@ -102,9 +98,6 @@ public sealed class ForRangeHandler : IActionHandler
         var stepStr = ctx.Fmt(node.Get("step", "1"));
         var ctxKey = node.Get("ctx_key", "i");
         var exclusive = node.GetBool("exclusive");
-        var bodyTabId = node.Get("bodyTabId");
-
-        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         if (!int.TryParse(startStr, out var start)) start = 0;
         if (!int.TryParse(endStr, out var end)) end = 0;
@@ -115,8 +108,9 @@ public sealed class ForRangeHandler : IActionHandler
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
             var child = ctx.CreateChild(new Dictionary<string, string> { [ctxKey] = i.ToString() });
-            await child.RunSubTab(bodyTabId);
+            await ctx.FollowOutput(node, 0, child); // body output, per iteration
         }
+        await ctx.FollowOutput(node, 1); // done output
     }
 }
 
@@ -129,9 +123,6 @@ public sealed class ForeachHandler : IActionHandler
     {
         var itemsRaw = ctx.Fmt(node.Get("items"));
         var ctxKey = node.Get("ctx_key", "item");
-        var bodyTabId = node.Get("bodyTabId");
-
-        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         var items = ParseItems(itemsRaw);
         Log.Debug("foreach: {0} Items, key={1}", items.Count, ctxKey);
@@ -145,8 +136,9 @@ public sealed class ForeachHandler : IActionHandler
             if (fields != null)
                 foreach (var kv in fields) extra[kv.Key] = kv.Value;
             var child = ctx.CreateChild(extra);
-            await child.RunSubTab(bodyTabId);
+            await ctx.FollowOutput(node, 0, child); // body output, per item
         }
+        await ctx.FollowOutput(node, 1); // done output
     }
 
     private static List<(string key, string value, Dictionary<string, string>? fields)> ParseItems(string raw)
