@@ -79,6 +79,11 @@ public sealed class IfThenElseHandler : IActionHandler
                 var text = await ctx.Page.TextContentAsync("body") ?? string.Empty;
                 return Regex.IsMatch(text, value);
             }
+            case "page_contains":
+            {
+                var text = await ctx.Page.TextContentAsync("body") ?? string.Empty;
+                return text.Contains(value, StringComparison.OrdinalIgnoreCase);
+            }
             default:
                 return false;
         }
@@ -131,17 +136,20 @@ public sealed class ForeachHandler : IActionHandler
         var items = ParseItems(itemsRaw);
         Log.Debug("foreach: {0} Items, key={1}", items.Count, ctxKey);
 
-        foreach (var (key, val) in items)
+        foreach (var (key, val, fields) in items)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
             var extra = new Dictionary<string, string> { [ctxKey] = val };
             if (key != val) extra[$"{ctxKey}_key"] = key;
+            // Spread an object item's fields into the payload so {payload.host} etc. resolve.
+            if (fields != null)
+                foreach (var kv in fields) extra[kv.Key] = kv.Value;
             var child = ctx.CreateChild(extra);
             await child.RunSubTab(bodyTabId);
         }
     }
 
-    private static List<(string key, string value)> ParseItems(string raw)
+    private static List<(string key, string value, Dictionary<string, string>? fields)> ParseItems(string raw)
     {
         raw = raw.Trim();
         if (raw.StartsWith('['))
@@ -150,7 +158,7 @@ public sealed class ForeachHandler : IActionHandler
             {
                 var list = JsonSerializer.Deserialize<List<JsonElement>>(raw);
                 if (list != null)
-                    return list.Select((e, i) => (i.ToString(), e.ToString())).ToList();
+                    return list.Select((e, i) => (i.ToString(), e.ToString(), Spread(e))).ToList();
             }
             catch { /* fall through */ }
         }
@@ -160,13 +168,33 @@ public sealed class ForeachHandler : IActionHandler
             {
                 var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(raw);
                 if (dict != null)
-                    return dict.Select(kv => (kv.Key, kv.Value)).ToList();
+                    return dict.Select(kv => (kv.Key, kv.Value, (Dictionary<string, string>?)null)).ToList();
             }
             catch { /* fall through */ }
         }
         return raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                  .Select((v, i) => (i.ToString(), v))
+                  .Select((v, i) => (i.ToString(), v, (Dictionary<string, string>?)null))
                   .ToList();
+    }
+
+    /// <summary>If the element is a JSON object, returns its flattened key/value fields.</summary>
+    private static Dictionary<string, string>? Spread(JsonElement e)
+    {
+        if (e.ValueKind != JsonValueKind.Object) return null;
+        var d = new Dictionary<string, string>();
+        foreach (var p in e.EnumerateObject())
+        {
+            d[p.Name] = p.Value.ValueKind switch
+            {
+                JsonValueKind.String => p.Value.GetString() ?? "",
+                JsonValueKind.Number => p.Value.GetRawText(),
+                JsonValueKind.True => "true",
+                JsonValueKind.False => "false",
+                JsonValueKind.Null or JsonValueKind.Undefined => "",
+                _ => p.Value.GetRawText(),
+            };
+        }
+        return d;
     }
 }
 
@@ -177,25 +205,34 @@ public sealed class CallHandler : IActionHandler
 
     public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var targetTabId = node.Get("targetTabId");
+        var target = node.Get("target");
+        if (string.IsNullOrEmpty(target)) target = node.Get("targetTabId"); // legacy fallback
         var allowQuit = node.GetBool("allow_quit");
 
-        if (string.IsNullOrEmpty(targetTabId))
+        if (string.IsNullOrEmpty(target))
         {
-            Log.Warn("call: kein targetTabId angegeben");
+            Log.Warn("call: kein Ziel-Subnode angegeben");
             return;
         }
 
-        if (ctx.CallStack.Contains(targetTabId))
-            throw new InvalidOperationException($"Rekursion erkannt: Tab {targetTabId}");
+        // Resolve subnode by Name (or fall back to tab id).
+        var tab = ctx.Document?.GetTabByName(target) ?? ctx.Document?.GetTab(target);
+        if (tab is null)
+        {
+            Log.Warn("call: Subnode nicht gefunden: {0}", target);
+            return;
+        }
 
-        Log.Info("call: Rufe Tab auf: {0}", targetTabId);
-        var child = ctx.CreateCallChild(targetTabId);
+        if (ctx.CallStack.Contains(tab.Id))
+            throw new InvalidOperationException($"Rekursion erkannt: Subnode {target}");
+
+        Log.Info("call: Rufe Subnode auf: {0}", target);
+        var child = ctx.CreateCallChild(tab.Id);
 
         try
         {
-            await child.RunSubTab(targetTabId);
-            Log.Info("call: Tab abgeschlossen: {0}", targetTabId);
+            await child.RunSubTab(tab.Id);
+            Log.Info("call: Subnode abgeschlossen: {0}", target);
         }
         catch (QuitException) when (!allowQuit)
         {

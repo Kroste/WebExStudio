@@ -10,6 +10,10 @@ public sealed class FlowTab
     public string Label { get; set; } = string.Empty;
     public bool IsSubFlow { get; set; }
 
+    /// <summary>Unique identifier for a named subnode (e.g. dotted path). Empty for the main
+    /// tab and for anonymous branch/body tabs owned by a block node.</summary>
+    public string? Name { get; set; }
+
     /// <summary>ID of the block node that owns this sub-flow tab.</summary>
     public string? OwnerNodeId { get; set; }
 

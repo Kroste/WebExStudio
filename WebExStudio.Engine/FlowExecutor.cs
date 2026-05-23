@@ -115,7 +115,8 @@ public sealed class FlowExecutor
     /// </summary>
     public async Task ExecuteWiredAsync(FlowDocument2 doc, string tabId, ExecutionContext ctx)
     {
-        var tabNodes = doc.Nodes.Where(n => n.TabId == tabId).ToList();
+        // Annotation nodes (label/caption) are visual-only — never execute them.
+        var tabNodes = doc.Nodes.Where(n => n.TabId == tabId && !IsAnnotation(n.Type)).ToList();
         if (tabNodes.Count == 0) return;
 
         var incoming = doc.BuildIncomingSet(tabId);
@@ -199,7 +200,7 @@ public sealed class FlowExecutor
     public async Task ExecuteSequentialAsync(string tabId, ExecutionContext ctx)
     {
         if (ctx.Document is null) return;
-        var nodes = ctx.Document.GetNodes(tabId).ToList();
+        var nodes = ctx.Document.GetNodes(tabId).Where(n => !IsAnnotation(n.Type)).ToList();
         foreach (var node in nodes)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
@@ -260,6 +261,9 @@ public sealed class FlowExecutor
             PauseCallback = onPause,
         };
     }
+
+    private static bool IsAnnotation(string type) =>
+        type is "label" or "caption";
 
     /// <summary>If a driver path is configured, point Playwright at it (used when the
     /// driver can't be located automatically).</summary>

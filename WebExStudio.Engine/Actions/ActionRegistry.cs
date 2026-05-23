@@ -44,6 +44,8 @@ public sealed class ActionRegistry
         r.Register(new WriteFileHandler());
         r.Register(new DownloadUrlHandler());
         r.Register(new CaptchaGuardHandler());
+        r.Register(new LabelHandler());
+        r.Register(new CaptionHandler());
         // navigate_to is an alias for goto
         r.Register(new AliasHandler("navigate_to", r.Get("goto")!));
         return r;

@@ -180,13 +180,13 @@ public static class NodeCatalog
         },
         new()
         {
-            Type = "call", DisplayName = "Tab aufrufen", Category = "Kontrollfluss",
-            Description = "Ruft einen anderen Tab-Flow auf (wie eine Funktion).",
+            Type = "call", DisplayName = "Subnode aufrufen", Category = "Kontrollfluss",
+            Description = "Ruft einen benannten Subnode als Unterprogramm auf.",
             Color = "#F57F17", Icon = "📞",
-            Example = "targetTabId = <ID eines Tabs>  →  führt diesen Tab als Unterprogramm aus.",
+            Example = "target = configuration.general.datetime.daylightSavings  →  führt diesen Subnode aus.",
             Properties =
             [
-                new() { Key = "targetTabId", Label = "Ziel-Tab ID", Kind = PropertyKind.Text, Required = true },
+                new() { Key = "target", Label = "Ziel-Subnode", Kind = PropertyKind.Dropdown, Required = true },
                 new() { Key = "allow_quit", Label = "Quit erlaubt", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
@@ -302,6 +302,32 @@ public static class NodeCatalog
             Properties =
             [
                 new() { Key = "timeout_s", Label = "Timeout (Sek.)", Kind = PropertyKind.Number, DefaultValue = "120" },
+            ]
+        },
+
+        // ── Anmerkung (reine Anzeige, keine Funktion) ─────────────────────────
+        new()
+        {
+            Type = "caption", DisplayName = "Caption / Überschrift", Category = "Anmerkung",
+            Description = "Zeigt eine große Überschrift auf der Arbeitsfläche an. Keine Funktion.",
+            Color = "#37474F", Icon = "🏷",
+            InputPorts = 0, OutputPorts = 0,
+            Example = "text = Konfiguration  →  große Überschrift zur Gliederung des Flows.",
+            Properties =
+            [
+                new() { Key = "text", Label = "Text", Kind = PropertyKind.Text, DefaultValue = "Überschrift" },
+            ]
+        },
+        new()
+        {
+            Type = "label", DisplayName = "Label / Kommentar", Category = "Anmerkung",
+            Description = "Zeigt einen Kommentartext auf der Arbeitsfläche an. Keine Funktion.",
+            Color = "#37474F", Icon = "💬",
+            InputPorts = 0, OutputPorts = 0,
+            Example = "text = Hier wird eingeloggt  →  kleiner Kommentar zur Erläuterung.",
+            Properties =
+            [
+                new() { Key = "text", Label = "Text", Kind = PropertyKind.MultilineText, DefaultValue = "Kommentar" },
             ]
         },
     ];

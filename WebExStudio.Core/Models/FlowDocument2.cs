@@ -26,6 +26,14 @@ public sealed class FlowDocument2
     public FlowTab? GetTab(string tabId) =>
         Tabs.FirstOrDefault(t => t.Id == tabId);
 
+    /// <summary>Finds a named subnode tab by its unique Name.</summary>
+    public FlowTab? GetTabByName(string name) =>
+        Tabs.FirstOrDefault(t => t.Name == name);
+
+    /// <summary>All named, standalone subnodes (reusable sub-flows referenced by call).</summary>
+    public IEnumerable<FlowTab> Subnodes =>
+        Tabs.Where(t => t.IsSubFlow && t.OwnerNodeId is null && !string.IsNullOrEmpty(t.Name));
+
     public FlowNode? GetNode(string nodeId) =>
         Nodes.FirstOrDefault(n => n.Id == nodeId);
 }
