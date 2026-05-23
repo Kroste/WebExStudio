@@ -26,6 +26,7 @@ public sealed class FlowExecutor
         CancellationToken ct = default)
     {
         Log.Info("Projekt-Ausführung gestartet: {0} Targets, Browser={1}", targets.Count(t => t.Enabled), config.Browser);
+        ApplyDriverPath(config);
         using var playwright = await Playwright.CreateAsync();
         var browser = await LaunchBrowserAsync(playwright, config);
         try
@@ -82,6 +83,7 @@ public sealed class FlowExecutor
         Func<string, Task>? onPause = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
+        ApplyDriverPath(config);
         using var playwright = await Playwright.CreateAsync();
         var browser = await LaunchBrowserAsync(playwright, config);
         try
@@ -259,6 +261,15 @@ public sealed class FlowExecutor
         };
     }
 
+    /// <summary>If a driver path is configured, point Playwright at it (used when the
+    /// driver can't be located automatically).</summary>
+    private static void ApplyDriverPath(RunConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.DriverPath)) return;
+        Log.Info("Playwright-Treiberpfad: {0}", config.DriverPath);
+        Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_PATH", config.DriverPath);
+    }
+
     private static async Task<IBrowser> LaunchBrowserAsync(IPlaywright pw, RunConfig config)
     {
         var options = new BrowserTypeLaunchOptions
@@ -268,9 +279,19 @@ public sealed class FlowExecutor
             DownloadsPath = string.IsNullOrEmpty(config.DownloadDir) ? null : config.DownloadDir,
         };
 
+        if (!string.IsNullOrWhiteSpace(config.BrowserChannel))
+            options.Channel = config.BrowserChannel;
+        if (!string.IsNullOrWhiteSpace(config.BrowserExecutablePath))
+            options.ExecutablePath = config.BrowserExecutablePath;
+
+        Log.Info("Browser starten: {0}{1}{2}", config.Browser,
+            string.IsNullOrWhiteSpace(config.BrowserChannel) ? "" : $" (Channel {config.BrowserChannel})",
+            string.IsNullOrWhiteSpace(config.BrowserExecutablePath) ? "" : $" @ {config.BrowserExecutablePath}");
+
         return config.Browser.ToLowerInvariant() switch
         {
             "firefox" => await pw.Firefox.LaunchAsync(options),
+            "webkit" => await pw.Webkit.LaunchAsync(options),
             _ => await pw.Chromium.LaunchAsync(options),
         };
     }

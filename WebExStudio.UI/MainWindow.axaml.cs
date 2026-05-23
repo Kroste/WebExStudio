@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using WebExStudio.UI.ViewModels;
 using WebExStudio.UI.Views;
@@ -10,6 +11,39 @@ public partial class MainWindow : Window
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
 
     public MainWindow() => InitializeComponent();
+
+    // ── Custom title bar ──────────────────────────────────────────────────────
+
+    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+
+    private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e) =>
+        ToggleMaximize();
+
+    private void OnMinimize(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        WindowState = WindowState.Minimized;
+
+    private void OnToggleMaximize(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        ToggleMaximize();
+
+    private void ToggleMaximize() =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void OnCloseWindow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Close();
+
+    private async void OnAbout(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await new AboutWindow().ShowDialog(this);
+
+    private async void OnSettings(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var dlg = new SettingsWindow(Vm.RunConfig);
+        await dlg.ShowDialog(this);
+        if (dlg.Saved) AppSettings.Save(Vm.RunConfig);
+    }
 
     private async void OnOpenProject(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {

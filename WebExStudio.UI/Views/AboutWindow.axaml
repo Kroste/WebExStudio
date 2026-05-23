@@ -1,102 +1,70 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="DTM.Views.AboutWindow"
-        Title="Über Datenbank-Manager"
-        Width="400" Height="370"
+        x:Class="WebExStudio.UI.Views.AboutWindow"
+        Title="Über WebExStudio"
+        Width="420" Height="320"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
-        SystemDecorations="BorderOnly"
-        Background="{DynamicResource WindowBgBrush}">
+        SystemDecorations="None"
+        Background="#12121F">
 
+  <Border BorderBrush="#2E2E4E" BorderThickness="1">
     <Grid RowDefinitions="Auto,*">
 
-        <!-- Titelleiste -->
-        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
-                PointerPressed="OnTitleBarPointerPressed">
-            <Grid ColumnDefinitions="*,Auto" Height="36">
-                <TextBlock Grid.Column="0"
-                           Text="Über Datenbank-Manager" FontSize="12" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           VerticalAlignment="Center" Margin="14,0"
-                           IsHitTestVisible="False" />
-                <Button Grid.Column="1" Classes="titleBtn close"
-                        Click="OnTitleClose" Content="&#x2715;" />
-            </Grid>
-        </Border>
+      <!-- Titelleiste -->
+      <Border Grid.Row="0" Background="#1E1E2E"
+              BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
+              PointerPressed="OnTitleBarPointerPressed">
+        <Grid ColumnDefinitions="*,Auto" Height="36">
+          <TextBlock Grid.Column="0"
+                     Text="Über WebExStudio" FontSize="12" FontWeight="SemiBold"
+                     Foreground="#90A4AE"
+                     VerticalAlignment="Center" Margin="14,0"
+                     IsHitTestVisible="False" />
+          <Button Grid.Column="1" Click="OnTitleClose"
+                  Content="&#x2715;" FontSize="13"
+                  Background="Transparent" Foreground="#90A4AE"
+                  BorderThickness="0" Width="40" Height="36" Padding="0" />
+        </Grid>
+      </Border>
 
-        <!-- Inhalt -->
-        <StackPanel Grid.Row="1" Margin="28,20,28,20" Spacing="0">
+      <!-- Inhalt -->
+      <StackPanel Grid.Row="1" Margin="28,22,28,20" Spacing="0">
 
-            <!-- Organisation + Logo -->
-            <StackPanel x:Name="OrgPanel" Orientation="Horizontal"
-                        Spacing="16" HorizontalAlignment="Center">
-                <Image x:Name="LogoImage" Width="68" Height="68"
-                       VerticalAlignment="Center" 
-                       RenderOptions.BitmapInterpolationMode="HighQuality" />
-                <StackPanel VerticalAlignment="Center" Spacing="5">
-                    <TextBlock Text="Landeshauptstadt Potsdam"
-                               FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <TextBlock Text="Fachbereich 54.2"
-                               FontSize="12"
-                               Foreground="{DynamicResource TextMutedBrush}" />
-                </StackPanel>
-            </StackPanel>
-
-            <!-- Trennlinie -->
-            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,18" />
-
-            <!-- App-Name + Version -->
-            <StackPanel HorizontalAlignment="Center" Spacing="5">
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                    <TextBlock Text="&#x25A0;" FontSize="13"
-                               Foreground="{DynamicResource AccentBrush}"
-                               VerticalAlignment="Center" />
-                    <TextBlock Text="Datenbank-Manager" FontSize="16" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-                <TextBlock x:Name="VersionText" FontSize="12"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           HorizontalAlignment="Center" />
-            </StackPanel>
-
-            <!-- Trennlinie -->
-            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,18" />
-
-            <!-- Credits -->
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
-                  HorizontalAlignment="Center">
-                <TextBlock Grid.Row="0" Grid.Column="0" Classes="infoLabel" Text="Entwickler" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Classes="infoValue" Text="Lars Oste" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Classes="infoLabel"
-                           Text="Fachbereich" Margin="0,4,0,0" />
-                <TextBlock Grid.Row="1" Grid.Column="1" Classes="infoValue"
-                           Text="54.2" Margin="0,4,0,0" />
-            </Grid>
-
-            <!-- Update-Bereich -->
-            <Grid ColumnDefinitions="*,Auto" Margin="0,18,0,0">
-                <TextBlock x:Name="UpdateStatusText" Grid.Column="0"
-                           FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                           VerticalAlignment="Center" TextWrapping="Wrap" />
-                <Button x:Name="UpdateCheckButton" Grid.Column="1"
-                        Classes="action" Click="OnCheckUpdate"
-                        MinWidth="0" Padding="12,0" Height="34">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Classes="glyph" Text="&#x21BB;" FontSize="13" Margin="0" />
-                        <TextBlock Text="Update prüfen" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-
-            <!-- Footer -->
-            <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0"
-                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                       Text="&#x00A9; 2025 Landeshauptstadt Potsdam" />
-
+        <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
+          <TextBlock Text="🌐" FontSize="44" VerticalAlignment="Center" />
+          <StackPanel VerticalAlignment="Center" Spacing="4">
+            <TextBlock Text="WebExStudio" FontSize="20" FontWeight="Bold"
+                       Foreground="White" />
+            <TextBlock x:Name="VersionText" FontSize="12"
+                       Foreground="#90A4AE" />
+          </StackPanel>
         </StackPanel>
-    </Grid>
 
+        <Border Height="1" Background="#2E2E4E" Margin="0,18" />
+
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+              HorizontalAlignment="Center" ColumnSpacing="16" RowSpacing="6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Organisation"
+                     FontSize="12" Foreground="#607D8B" />
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="Landeshauptstadt Potsdam"
+                     FontSize="12" Foreground="#B0BEC5" />
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Fachbereich"
+                     FontSize="12" Foreground="#607D8B" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="54.2"
+                     FontSize="12" Foreground="#B0BEC5" />
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Entwickler"
+                     FontSize="12" Foreground="#607D8B" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Text="Lars Oste"
+                     FontSize="12" Foreground="#B0BEC5" />
+        </Grid>
+
+        <Border Height="1" Background="#2E2E4E" Margin="0,18" />
+
+        <TextBlock HorizontalAlignment="Center"
+                   FontSize="11" Foreground="#546E7A"
+                   Text="© 2026 Landeshauptstadt Potsdam" />
+      </StackPanel>
+    </Grid>
+  </Border>
 </Window>

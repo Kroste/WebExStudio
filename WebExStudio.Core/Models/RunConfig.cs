@@ -7,6 +7,18 @@ public sealed class RunConfig
     [JsonPropertyName("browser")]
     public string Browser { get; set; } = "chromium";
 
+    /// <summary>System-browser channel (e.g. "chrome", "msedge"). Empty = use bundled Chromium/Firefox.</summary>
+    [JsonPropertyName("browser_channel")]
+    public string BrowserChannel { get; set; } = string.Empty;
+
+    /// <summary>Path to the browser executable. Empty = let Playwright pick (system/bundled default).</summary>
+    [JsonPropertyName("browser_executable_path")]
+    public string BrowserExecutablePath { get; set; } = string.Empty;
+
+    /// <summary>Path to the Playwright driver folder, used when it can't be located automatically.</summary>
+    [JsonPropertyName("driver_path")]
+    public string DriverPath { get; set; } = string.Empty;
+
     [JsonPropertyName("headless")]
     public bool Headless { get; set; } = false;
 

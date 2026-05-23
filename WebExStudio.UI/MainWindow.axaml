@@ -8,9 +8,44 @@
         Width="1400" Height="900"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
         Background="#12121F">
 
   <DockPanel>
+
+    <!-- ── Custom title bar ── -->
+    <Border DockPanel.Dock="Top"
+            Background="#16162A" BorderBrush="#2E2E4E"
+            BorderThickness="0,0,0,1"
+            PointerPressed="OnTitleBarPointerPressed"
+            DoubleTapped="OnTitleBarDoubleTapped">
+      <Grid ColumnDefinitions="Auto,*,Auto" Height="34">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                    VerticalAlignment="Center" Margin="12,0">
+          <TextBlock Text="🌐" FontSize="14" VerticalAlignment="Center"/>
+          <TextBlock Text="WebExStudio" FontSize="12" FontWeight="SemiBold"
+                     Foreground="#90A4AE" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
+          <Button Content="⚙" Click="OnSettings" ToolTip.Tip="Einstellungen"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="42" Padding="0" FontSize="14"/>
+          <Button Content="ℹ" Click="OnAbout" ToolTip.Tip="Über"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="42" Padding="0" FontSize="14"/>
+          <Button Content="&#x2014;" Click="OnMinimize" ToolTip.Tip="Minimieren"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="42" Padding="0" FontSize="13"/>
+          <Button Content="&#x2610;" Click="OnToggleMaximize" ToolTip.Tip="Maximieren"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="42" Padding="0" FontSize="13"/>
+          <Button Content="&#x2715;" Click="OnCloseWindow" ToolTip.Tip="Schließen"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="46" Padding="0" FontSize="13"/>
+        </StackPanel>
+      </Grid>
+    </Border>
 
     <!-- ── Toolbar ── -->
     <Border DockPanel.Dock="Top"

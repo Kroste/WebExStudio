@@ -62,15 +62,22 @@ public sealed class IfThenElseHandler : IActionHandler
                 var url = ctx.Page.Url;
                 return useRegex ? Regex.IsMatch(url, value) : url.Contains(value, StringComparison.OrdinalIgnoreCase);
             }
+            case "payload_equals":
             case "ctx_equals":
             {
-                var ctxVal = ctx.Get(selector);
-                return useRegex ? Regex.IsMatch(ctxVal, value) : string.Equals(ctxVal, value, StringComparison.OrdinalIgnoreCase);
+                var payloadVal = ctx.Get(selector);
+                return useRegex ? Regex.IsMatch(payloadVal, value) : string.Equals(payloadVal, value, StringComparison.OrdinalIgnoreCase);
             }
+            case "payload_contains":
             case "ctx_contains":
             {
-                var ctxVal = ctx.Get(selector);
-                return useRegex ? Regex.IsMatch(ctxVal, value) : ctxVal.Contains(value, StringComparison.OrdinalIgnoreCase);
+                var payloadVal = ctx.Get(selector);
+                return useRegex ? Regex.IsMatch(payloadVal, value) : payloadVal.Contains(value, StringComparison.OrdinalIgnoreCase);
+            }
+            case "page_matches":
+            {
+                var text = await ctx.Page.TextContentAsync("body") ?? string.Empty;
+                return Regex.IsMatch(text, value);
             }
             default:
                 return false;
