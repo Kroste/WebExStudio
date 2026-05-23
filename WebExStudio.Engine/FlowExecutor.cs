@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using NLog;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
 using WebExStudio.Engine.Actions;
@@ -7,6 +8,7 @@ namespace WebExStudio.Engine;
 
 public sealed class FlowExecutor
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly ActionRegistry _registry;
 
     public FlowExecutor(ActionRegistry? registry = null)
@@ -23,6 +25,7 @@ public sealed class FlowExecutor
         IProgress<TraceEntry>? progress = null,
         CancellationToken ct = default)
     {
+        Log.Info("Projekt-Ausführung gestartet: {0} Targets, Browser={1}", targets.Count(t => t.Enabled), config.Browser);
         using var playwright = await Playwright.CreateAsync();
         var browser = await LaunchBrowserAsync(playwright, config);
         try
@@ -30,20 +33,24 @@ public sealed class FlowExecutor
             foreach (var target in targets.Where(t => t.Enabled))
             {
                 ct.ThrowIfCancellationRequested();
-                var page = await browser.NewPageAsync();
+                Log.Info("Target startet: {0} ({1})", target.Name, target.Host);
+                // Explicit context so handlers (e.g. open_tab) can create additional pages.
+                var context = await browser.NewContextAsync();
+                var page = await context.NewPageAsync();
                 try
                 {
                     await RunTargetAsync(page, target, config, progress, ct);
                 }
                 finally
                 {
-                    await page.CloseAsync();
+                    await context.CloseAsync();
                 }
             }
         }
         finally
         {
             await browser.CloseAsync();
+            Log.Info("Projekt-Ausführung beendet");
         }
     }
 
@@ -71,27 +78,32 @@ public sealed class FlowExecutor
         RunConfig config,
         TargetConfig target,
         IProgress<TraceEntry>? progress = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        Func<string, Task>? onPause = null)
     {
+        Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
         using var playwright = await Playwright.CreateAsync();
         var browser = await LaunchBrowserAsync(playwright, config);
         try
         {
-            var page = await browser.NewPageAsync();
+            // Explicit context so handlers (e.g. open_tab) can create additional pages.
+            var context = await browser.NewContextAsync();
+            var page = await context.NewPageAsync();
             try
             {
                 var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
-                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
             finally
             {
-                await page.CloseAsync();
+                await context.CloseAsync();
             }
         }
         finally
         {
             await browser.CloseAsync();
+            Log.Info("Dokument-Ausführung beendet");
         }
     }
 
@@ -124,12 +136,14 @@ public sealed class FlowExecutor
         if (!visited.Add(node.Id)) return;
         ctx.CancellationToken.ThrowIfCancellationRequested();
 
+        Log.Info("Node startet: {0} ({1})", node.Type, node.Id);
         ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
             DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
 
         var handler = _registry.Get(node.Type);
         if (handler is null)
         {
+            Log.Warn("Unbekannter Action-Typ: {0} ({1})", node.Type, node.Id);
             ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
                 DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                 $"Unbekannter Action-Typ: {node.Type}"));
@@ -139,11 +153,13 @@ public sealed class FlowExecutor
             try
             {
                 await handler.ExecuteAsync(ctx, node);
+                Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
             }
             catch (QuitException)
             {
+                Log.Info("Quit: {0} ({1})", node.Type, node.Id);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
                 throw;
@@ -154,6 +170,7 @@ public sealed class FlowExecutor
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Node fehlgeschlagen: {0} ({1}): {2}", node.Type, node.Id, ex.Message);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                     ErrorMessage: ex.Message));
@@ -185,12 +202,14 @@ public sealed class FlowExecutor
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
 
+            Log.Info("Node startet (sequenziell): {0} ({1})", node.Type, node.Id);
             ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
                 DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
 
             var handler = _registry.Get(node.Type);
             if (handler is null)
             {
+                Log.Warn("Unbekannter Action-Typ: {0} ({1})", node.Type, node.Id);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                     $"Unbekannter Action-Typ: {node.Type}"));
@@ -200,11 +219,13 @@ public sealed class FlowExecutor
             try
             {
                 await handler.ExecuteAsync(ctx, node);
+                Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
             }
             catch (QuitException)
             {
+                Log.Info("Quit: {0} ({1})", node.Type, node.Id);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
                 throw;
@@ -215,6 +236,7 @@ public sealed class FlowExecutor
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Node fehlgeschlagen: {0} ({1}): {2}", node.Type, node.Id, ex.Message);
                 ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                     ErrorMessage: ex.Message));
@@ -225,13 +247,15 @@ public sealed class FlowExecutor
     private ExecutionContext CreateContext(
         IPage page, TargetConfig target, RunConfig config,
         string projectDir, FlowDocument2 doc,
-        IProgress<TraceEntry>? progress, CancellationToken ct)
+        IProgress<TraceEntry>? progress, CancellationToken ct,
+        Func<string, Task>? onPause = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
         {
             Document = doc,
             RunSubTabCallback = ExecuteSequentialAsync,
+            PauseCallback = onPause,
         };
     }
 

@@ -58,14 +58,23 @@ public partial class MainWindow : Window
 
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
-        if (!_closing && Vm.CanStop)
+        if (!_closing)
         {
-            e.Cancel = true;
             _closing = true;
-            Vm.StopRun();
-            if (Vm.RunTask is { } task)
-                await Task.WhenAny(task, Task.Delay(5000));
-            Close();
+
+            // Cancel a running flow and give it a moment to release Playwright.
+            if (Vm.CanStop)
+            {
+                e.Cancel = true;
+                Vm.StopRun();
+                if (Vm.RunTask is { } task)
+                    await Task.WhenAny(task, Task.Delay(5000));
+            }
+
+            // Playwright spawns foreground driver/browser threads that keep the
+            // process alive even after the window closes. Force-terminate to avoid
+            // a lingering process that has to be killed manually.
+            Environment.Exit(0);
             return;
         }
         base.OnClosing(e);
@@ -73,6 +82,9 @@ public partial class MainWindow : Window
 
     private void OnStop(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.StopRun();
+
+    private void OnResume(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.Resume();
 
     private void OnFitView(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         (this.FindControl<FlowEditorView>("FlowEditorView"))?.FitToView();

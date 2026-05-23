@@ -229,17 +229,20 @@ public sealed class NodeControl : Panel
 
         if (ViewModel.IsActive)
         {
-            _border.BorderBrush = new SolidColorBrush(Color.Parse("#FFC107"));
-            _border.BoxShadow = new BoxShadows(new BoxShadow { Blur = 12, Color = Color.Parse("#FFC107") });
+            _border.BorderBrush = new SolidColorBrush(Color.Parse("#FFD740"));
+            _border.BorderThickness = new Thickness(3);
+            _border.BoxShadow = new BoxShadows(new BoxShadow { Blur = 18, Color = Color.Parse("#FFD740") });
         }
         else if (ViewModel.IsSelected)
         {
             _border.BorderBrush = new SolidColorBrush(Colors.White);
+            _border.BorderThickness = new Thickness(2);
             _border.BoxShadow = BoxShadows.Parse("0 0 8 #FFFFFF44");
         }
         else
         {
             _border.BorderBrush = new SolidColorBrush(Color.Parse(ViewModel.Color));
+            _border.BorderThickness = new Thickness(2);
             _border.BoxShadow = BoxShadows.Parse("0 2 6 #00000066");
         }
     }

@@ -7,26 +7,41 @@ public static class NodeCatalog
 {
     private static readonly List<NodeDefinition> _all =
     [
+        // ── Start ────────────────────────────────────────────────────────────
+        new()
+        {
+            Type = "function", DisplayName = "Function / Start", Category = "Start",
+            Description = "Startpunkt des Flows. Setzt die initialen Payload-Werte (ersetzt Targets).",
+            Color = "#D84315", Icon = "🚀",
+            Example = "payload = {\"host\":\"https://example.com\",\"user\":\"max\"}  →  im Flow nutzbar als {payload.host}",
+            Properties =
+            [
+                new() { Key = "payload", Label = "Start-Payload (JSON)", Kind = PropertyKind.Code, DefaultValue = "{\n  \"host\": \"https://example.com\"\n}" },
+            ]
+        },
+
         // ── Navigation ───────────────────────────────────────────────────────
         new()
         {
             Type = "goto", DisplayName = "Goto / Navigate", Category = "Navigation",
             Description = "Navigiert zu einer URL und wartet auf das Laden der Seite.",
             Color = "#1565C0", Icon = "🌐",
+            Example = "url = {payload.host}/login  →  öffnet die Login-Seite und wartet aufs Laden.",
             Properties =
             [
-                new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Required = true, Placeholder = "{host}/pfad" },
+                new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Required = true, Placeholder = "{payload.host}/pfad" },
                 new() { Key = "wait_ms", Label = "Wartezeit (ms)", Kind = PropertyKind.Number, DefaultValue = "0" },
             ]
         },
         new()
         {
             Type = "open_tab", DisplayName = "Tab öffnen", Category = "Navigation",
-            Description = "Öffnet einen neuen Browser-Tab.",
+            Description = "Öffnet einen neuen Browser-Tab und wechselt dorthin.",
             Color = "#1565C0", Icon = "➕",
+            Example = "url = https://example.com  →  öffnet einen neuen Tab; nachfolgende Aktionen laufen darin.",
             Properties =
             [
-                new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Placeholder = "{host}" },
+                new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Placeholder = "{payload.host}" },
             ]
         },
         new()
@@ -34,19 +49,21 @@ public static class NodeCatalog
             Type = "close_tab", DisplayName = "Tab schließen", Category = "Navigation",
             Description = "Schließt den aktuellen Tab.",
             Color = "#1565C0", Icon = "✖",
+            Example = "Schließt den aktuellen Tab und wechselt zum verbleibenden Tab zurück.",
         },
         new()
         {
             Type = "get_links", DisplayName = "Links sammeln", Category = "Navigation",
-            Description = "Sammelt Links von der Seite und führt Sub-Actions für jeden Link aus.",
+            Description = "Sammelt Links von der Seite und führt den Body-Tab für jeden Link aus.",
             Color = "#0277BD", Icon = "🔗",
             SubFlowSlots = ["body"],
+            Example = "selector = a.product  →  Body-Tab läuft je gefundenem Link; aktueller Link in {link}.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Placeholder = "a.item" },
                 new() { Key = "max", Label = "Max. Links", Kind = PropertyKind.Number, DefaultValue = "500" },
                 new() { Key = "filter", Label = "Filter (Regex)", Kind = PropertyKind.Text },
-                new() { Key = "ctx_key", Label = "Kontext-Variable", Kind = PropertyKind.Text, DefaultValue = "link" },
+                new() { Key = "ctx_key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "link" },
             ]
         },
 
@@ -56,6 +73,7 @@ public static class NodeCatalog
             Type = "click", DisplayName = "Klicken", Category = "Interaktion",
             Description = "Klickt auf ein Element (mit automatischem Scroll und Retry).",
             Color = "#2E7D32", Icon = "🖱",
+            Example = "selector = button#submit  →  klickt den Senden-Button.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["xpath", "name"] },
@@ -68,6 +86,7 @@ public static class NodeCatalog
             Type = "send_keys", DisplayName = "Tastatureingabe", Category = "Interaktion",
             Description = "Gibt Text in ein Eingabefeld ein.",
             Color = "#2E7D32", Icon = "⌨",
+            Example = "selector = input[name=q], value = {payload.suchwort}  →  tippt den Suchbegriff ein.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["name", "xpath"] },
@@ -81,6 +100,7 @@ public static class NodeCatalog
             Type = "wait_for", DisplayName = "Warten auf Element", Category = "Interaktion",
             Description = "Wartet bis ein Element sichtbar/vorhanden ist.",
             Color = "#2E7D32", Icon = "⏳",
+            Example = "selector = .ergebnis, state = visible  →  wartet bis Ergebnisse sichtbar sind.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true },
@@ -93,6 +113,7 @@ public static class NodeCatalog
             Type = "sleep", DisplayName = "Pause", Category = "Interaktion",
             Description = "Pausiert die Ausführung für eine bestimmte Zeit.",
             Color = "#2E7D32", Icon = "💤",
+            Example = "seconds = 2  →  pausiert 2 Sekunden.",
             Properties =
             [
                 new() { Key = "seconds", Label = "Sekunden", Kind = PropertyKind.Number, DefaultValue = "1" },
@@ -103,6 +124,7 @@ public static class NodeCatalog
             Type = "menu_path", DisplayName = "Menü-Navigation", Category = "Interaktion",
             Description = "Navigiert ein hierarchisches Menü (Hover → Klick).",
             Color = "#388E3C", Icon = "📋",
+            Example = "path = Datei, Export, PDF  →  hovert/klickt durch das Menü zum PDF-Export.",
             Properties =
             [
                 new() { Key = "path", Label = "Menü-Pfad (kommagetrennt)", Kind = PropertyKind.Text, Required = true, Aliases = ["items"] },
@@ -114,9 +136,10 @@ public static class NodeCatalog
         new()
         {
             Type = "if_then_else", DisplayName = "If / Then / Else", Category = "Kontrollfluss",
-            Description = "Bedingte Verzweigung basierend auf DOM, Seite oder Kontext.",
+            Description = "Bedingte Verzweigung basierend auf DOM, Seite oder Payload.",
             Color = "#6A1B9A", Icon = "❓",
             SubFlowSlots = ["then", "else"],
+            Example = "condition = element_exists, selector = .fehler  →  Treffer: Then-Tab, sonst: Else-Tab.",
             Properties =
             [
                 new() { Key = "condition", Label = "Bedingung-Typ", Kind = PropertyKind.Dropdown, DefaultValue = "element_exists" },
@@ -129,28 +152,30 @@ public static class NodeCatalog
         new()
         {
             Type = "for_range", DisplayName = "For-Schleife", Category = "Kontrollfluss",
-            Description = "Wiederholt Sub-Actions für einen Zahlenbereich.",
+            Description = "Wiederholt den Body-Tab für einen Zahlenbereich.",
             Color = "#E65100", Icon = "🔄",
             SubFlowSlots = ["body"],
+            Example = "start = 1, end = 5  →  Body-Tab läuft 5x; aktueller Wert in {i}.",
             Properties =
             [
                 new() { Key = "start", Label = "Start", Kind = PropertyKind.Number, DefaultValue = "0" },
                 new() { Key = "end", Label = "Ende", Kind = PropertyKind.Number, Required = true },
                 new() { Key = "step", Label = "Schritt", Kind = PropertyKind.Number, DefaultValue = "1" },
-                new() { Key = "ctx_key", Label = "Kontext-Variable", Kind = PropertyKind.Text, DefaultValue = "i" },
+                new() { Key = "ctx_key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "i" },
                 new() { Key = "exclusive", Label = "Exklusiv (< statt <=)", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
         new()
         {
             Type = "foreach", DisplayName = "Foreach-Schleife", Category = "Kontrollfluss",
-            Description = "Iteriert über eine Liste oder Dictionary aus dem Kontext.",
+            Description = "Iteriert über eine Liste oder ein Dictionary.",
             Color = "#E65100", Icon = "🔁",
             SubFlowSlots = ["body"],
+            Example = "items = {payload.liste}  →  Body-Tab läuft je Element; aktuelles Element in {item}.",
             Properties =
             [
-                new() { Key = "items", Label = "Elemente (JSON oder Kontext-Variable)", Kind = PropertyKind.Text, Required = true },
-                new() { Key = "ctx_key", Label = "Kontext-Variable", Kind = PropertyKind.Text, DefaultValue = "item" },
+                new() { Key = "items", Label = "Elemente (JSON oder {payload.key})", Kind = PropertyKind.Text, Required = true },
+                new() { Key = "ctx_key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "item" },
             ]
         },
         new()
@@ -158,6 +183,7 @@ public static class NodeCatalog
             Type = "call", DisplayName = "Tab aufrufen", Category = "Kontrollfluss",
             Description = "Ruft einen anderen Tab-Flow auf (wie eine Funktion).",
             Color = "#F57F17", Icon = "📞",
+            Example = "targetTabId = <ID eines Tabs>  →  führt diesen Tab als Unterprogramm aus.",
             Properties =
             [
                 new() { Key = "targetTabId", Label = "Ziel-Tab ID", Kind = PropertyKind.Text, Required = true },
@@ -167,15 +193,17 @@ public static class NodeCatalog
         new()
         {
             Type = "noop", DisplayName = "No-Op / Breakpoint", Category = "Kontrollfluss",
-            Description = "Tut nichts — nützlich als Debug-Breakpoint.",
+            Description = "Tut nichts — nützlich als Platzhalter oder Debug-Breakpoint.",
             Color = "#757575", Icon = "⏸",
+            Example = "Ohne Konfiguration — überspringt einfach und läuft weiter.",
         },
         new()
         {
-            Type = "quit", DisplayName = "Browser beenden", Category = "Kontrollfluss",
-            Description = "Schließt den Browser und beendet die Ausführung.",
+            Type = "quit", DisplayName = "Beenden", Category = "Kontrollfluss",
+            Description = "Beendet die Ausführung dieses Flows sofort.",
             Color = "#B71C1C", Icon = "🚪",
             OutputPorts = 0,
+            Example = "Stoppt den Flow an dieser Stelle (z. B. nach einem Fehlerzweig).",
             Properties =
             [
                 new() { Key = "force", Label = "Erzwingen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
@@ -186,38 +214,16 @@ public static class NodeCatalog
         new()
         {
             Type = "get_value", DisplayName = "Wert lesen", Category = "Daten",
-            Description = "Liest einen Wert aus dem DOM (Text, Attribut, HTML) in den Kontext.",
+            Description = "Liest einen Wert aus dem DOM (Text, Attribut) ins Payload.",
             Color = "#00695C", Icon = "📖",
+            Example = "selector = .preis, ctx_key = preis  →  liest den Preis-Text nach {preis}.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true },
                 new() { Key = "attr", Label = "Attribut (leer = Text)", Kind = PropertyKind.Text },
-                new() { Key = "ctx_key", Label = "Kontext-Variable", Kind = PropertyKind.Text, Required = true },
+                new() { Key = "ctx_key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, Required = true },
                 new() { Key = "regex", Label = "Regex-Extraktion", Kind = PropertyKind.Text },
                 new() { Key = "filter", Label = "Filter", Kind = PropertyKind.Text },
-            ]
-        },
-        new()
-        {
-            Type = "set_ctx", DisplayName = "Kontext setzen", Category = "Daten",
-            Description = "Setzt oder berechnet Kontext-Variablen.",
-            Color = "#00695C", Icon = "📝",
-            Properties =
-            [
-                new() { Key = "key", Label = "Variable", Kind = PropertyKind.Text, Required = true },
-                new() { Key = "value", Label = "Wert", Kind = PropertyKind.Text, Required = true },
-            ]
-        },
-        new()
-        {
-            Type = "debug", DisplayName = "Debug-Ausgabe", Category = "Daten",
-            Description = "Gibt Payload/Kontext im Ausführungsprotokoll aus.",
-            Color = "#00838F", Icon = "🐞",
-            Properties =
-            [
-                new() { Key = "source", Label = "Quelle (payload/ctx/both)", Kind = PropertyKind.Dropdown, DefaultValue = "payload" },
-                new() { Key = "key", Label = "Nur Schlüssel (optional)", Kind = PropertyKind.Text },
-                new() { Key = "label", Label = "Label (optional)", Kind = PropertyKind.Text },
             ]
         },
         new()
@@ -225,6 +231,7 @@ public static class NodeCatalog
             Type = "set_payload", DisplayName = "Payload setzen", Category = "Daten",
             Description = "Setzt einen Schlüssel im Payload-Objekt, das durch Verbindungen fließt.",
             Color = "#00695C", Icon = "📦",
+            Example = "key = status, value = ok  →  schreibt status ins Payload ({payload.status}).",
             Properties =
             [
                 new() { Key = "key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, Required = true },
@@ -233,13 +240,28 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "debug", DisplayName = "Debug-Ausgabe", Category = "Daten",
+            Description = "Gibt Payload/Kontext im Ausführungsprotokoll aus. Kann den Flow anhalten.",
+            Color = "#00838F", Icon = "🐞",
+            Example = "source = payload, pause = true  →  zeigt den Payload im Protokoll und wartet auf „Weiter“.",
+            Properties =
+            [
+                new() { Key = "source", Label = "Quelle (payload/ctx/both)", Kind = PropertyKind.Dropdown, DefaultValue = "payload" },
+                new() { Key = "key", Label = "Nur Schlüssel (optional)", Kind = PropertyKind.Text },
+                new() { Key = "label", Label = "Label (optional)", Kind = PropertyKind.Text },
+                new() { Key = "pause", Label = "Anhalten (zum Inspizieren)", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+            ]
+        },
+        new()
+        {
             Type = "read_file", DisplayName = "Datei lesen", Category = "Daten",
-            Description = "Liest eine Datei in den Kontext.",
+            Description = "Liest eine Datei ins Payload.",
             Color = "#004D40", Icon = "📄",
+            Example = "path = daten.txt, ctx_key = inhalt  →  liest die Datei nach {inhalt}.",
             Properties =
             [
                 new() { Key = "path", Label = "Pfad", Kind = PropertyKind.FilePath, Required = true },
-                new() { Key = "ctx_key", Label = "Kontext-Variable", Kind = PropertyKind.Text, DefaultValue = "file_content" },
+                new() { Key = "ctx_key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "file_content" },
                 new() { Key = "mode", Label = "Modus", Kind = PropertyKind.Dropdown, DefaultValue = "full" },
             ]
         },
@@ -248,6 +270,7 @@ public static class NodeCatalog
             Type = "write_file", DisplayName = "Datei schreiben", Category = "Daten",
             Description = "Schreibt einen Wert in eine Datei.",
             Color = "#004D40", Icon = "💾",
+            Example = "path = out.txt, value = {payload.ergebnis}  →  schreibt das Ergebnis in die Datei.",
             Properties =
             [
                 new() { Key = "path", Label = "Pfad", Kind = PropertyKind.FilePath, Required = true },
@@ -262,6 +285,7 @@ public static class NodeCatalog
             Type = "download_url", DisplayName = "URL herunterladen", Category = "Erweitert",
             Description = "Lädt eine Datei von einer URL herunter.",
             Color = "#4527A0", Icon = "⬇",
+            Example = "url = {payload.host}/datei.pdf  →  lädt die Datei in den Download-Ordner.",
             Properties =
             [
                 new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Required = true },
@@ -274,6 +298,7 @@ public static class NodeCatalog
             Type = "captcha_guard", DisplayName = "CAPTCHA-Schutz", Category = "Erweitert",
             Description = "Erkennt CAPTCHA und wartet auf manuelle Lösung.",
             Color = "#4527A0", Icon = "🤖",
+            Example = "timeout_s = 120  →  hält an, bis ein erkanntes CAPTCHA gelöst ist (max. 2 Min).",
             Properties =
             [
                 new() { Key = "timeout_s", Label = "Timeout (Sek.)", Kind = PropertyKind.Number, DefaultValue = "120" },

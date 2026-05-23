@@ -39,6 +39,8 @@ public sealed class OpenTabHandler : IActionHandler
         var newPage = await ctx.Page.Context.NewPageAsync();
         if (!string.IsNullOrEmpty(url))
             await newPage.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+        // Switch the active page to the newly opened tab.
+        ctx.Page = newPage;
     }
 }
 
@@ -50,7 +52,12 @@ public sealed class CloseTabHandler : IActionHandler
     public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
         Log.Debug("Schließe Tab");
+        var context = ctx.Page.Context;
         await ctx.Page.CloseAsync();
+        // Switch back to a remaining page so subsequent actions have a valid page.
+        var remaining = context.Pages.FirstOrDefault();
+        if (remaining is not null)
+            ctx.Page = remaining;
     }
 }
 

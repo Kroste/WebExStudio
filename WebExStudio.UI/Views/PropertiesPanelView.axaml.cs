@@ -84,6 +84,68 @@ public partial class PropertiesPanelView : UserControl
         // Property fields from definition
         foreach (var prop in _currentNode.Definition.Properties)
             PropertiesPanel.Children.Add(BuildField(prop));
+
+        // Description + example box (under the properties)
+        PropertiesPanel.Children.Add(BuildInfoBox(_currentNode.Definition));
+    }
+
+    private static Control BuildInfoBox(WebExStudio.Core.Models.NodeDefinition def)
+    {
+        var panel = new StackPanel { Spacing = 6 };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "ℹ Beschreibung",
+            FontSize = 11,
+            FontWeight = FontWeight.Bold,
+            Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
+        });
+
+        if (!string.IsNullOrEmpty(def.Description))
+            panel.Children.Add(new TextBlock
+            {
+                Text = def.Description,
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Color.Parse("#B0BEC5")),
+                TextWrapping = TextWrapping.Wrap,
+            });
+
+        if (!string.IsNullOrEmpty(def.Example))
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Beispiel",
+                FontSize = 11,
+                FontWeight = FontWeight.Bold,
+                Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
+                Margin = new Avalonia.Thickness(0, 4, 0, 0),
+            });
+            panel.Children.Add(new Border
+            {
+                Background = new SolidColorBrush(Color.Parse("#12121F")),
+                CornerRadius = new Avalonia.CornerRadius(4),
+                Padding = new Avalonia.Thickness(8, 6),
+                Child = new TextBlock
+                {
+                    Text = def.Example,
+                    FontSize = 11,
+                    FontFamily = new FontFamily("Monospace"),
+                    Foreground = new SolidColorBrush(Color.Parse("#80CBC4")),
+                    TextWrapping = TextWrapping.Wrap,
+                }
+            });
+        }
+
+        return new Border
+        {
+            Margin = new Avalonia.Thickness(0, 12, 0, 0),
+            Padding = new Avalonia.Thickness(10, 8),
+            CornerRadius = new Avalonia.CornerRadius(6),
+            Background = new SolidColorBrush(Color.Parse("#16162A")),
+            BorderBrush = new SolidColorBrush(Color.Parse("#2A2A4E")),
+            BorderThickness = new Avalonia.Thickness(1),
+            Child = panel,
+        };
     }
 
     private Control BuildField(PropertyDefinition prop)

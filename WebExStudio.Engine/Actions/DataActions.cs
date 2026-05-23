@@ -55,24 +55,6 @@ public sealed class GetValueHandler : IActionHandler
         };
 }
 
-public sealed class SetCtxHandler : IActionHandler
-{
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    public string Type => "set_ctx";
-
-    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
-    {
-        var key = node.Get("key");
-        var value = ctx.Fmt(node.Get("value"));
-        if (!string.IsNullOrEmpty(key))
-        {
-            Log.Debug("set_ctx: {0} = '{1}'", key, value);
-            ctx.Set(key, value);
-        }
-        return Task.CompletedTask;
-    }
-}
-
 public sealed class SetPayloadHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -91,16 +73,51 @@ public sealed class SetPayloadHandler : IActionHandler
     }
 }
 
+public sealed class FunctionHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "function";
+
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var json = node.Get("payload");
+        if (string.IsNullOrWhiteSpace(json)) return Task.CompletedTask;
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    var value = prop.Value.ValueKind == System.Text.Json.JsonValueKind.String
+                        ? prop.Value.GetString() ?? string.Empty
+                        : prop.Value.GetRawText();
+                    ctx.Payload[prop.Name] = value;
+                }
+                Log.Info("function: Start-Payload gesetzt ({0} Schlüssel)", doc.RootElement.GetPropertyCount());
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("function: ungültiges JSON im Start-Payload: {0}", ex.Message);
+            throw new InvalidOperationException($"Ungültiges Start-Payload-JSON: {ex.Message}");
+        }
+        return Task.CompletedTask;
+    }
+}
+
 public sealed class DebugHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "debug";
 
-    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
         var source = node.Get("source", "payload").ToLowerInvariant();
         var key = node.Get("key");
         var label = node.Get("label");
+        var pause = node.GetBool("pause");
 
         string Render(IReadOnlyDictionary<string, string> d) =>
             !string.IsNullOrEmpty(key)
@@ -118,7 +135,13 @@ public sealed class DebugHandler : IActionHandler
         Log.Info("debug: {0}", msg);
         ctx.Report(new TraceEntry(node.Id, "debug", ExecutionStatus.Success,
             DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), Message: msg));
-        return Task.CompletedTask;
+
+        // Optionally hold the flow here so the user can inspect the payload.
+        if (pause)
+        {
+            Log.Info("debug: Flow angehalten — warte auf „Weiter“");
+            await ctx.Pause(msg);
+        }
     }
 }
 

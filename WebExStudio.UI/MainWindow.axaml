@@ -31,6 +31,9 @@
         <Button Content="⏹ Stopp"    Click="OnStop" Padding="8,4"
                 IsEnabled="{Binding CanStop}"
                 Background="#B71C1C" Foreground="White"/>
+        <Button Content="⏭ Weiter"   Click="OnResume" Padding="8,4"
+                IsVisible="{Binding IsPaused}"
+                Background="#F57F17" Foreground="White"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
@@ -72,18 +75,11 @@
         </Border>
       </Grid>
 
-      <!-- Right: Properties + Targets -->
+      <!-- Right: Properties (with description + example) -->
       <Border Grid.Column="2"
               Background="#1A1A2E" BorderBrush="#2E2E4E"
               BorderThickness="1,0,0,0">
-        <Grid RowDefinitions="*,6,200">
-          <views:PropertiesPanelView Grid.Row="0"
-                                     DataContext="{Binding FlowEditor}"/>
-          <GridSplitter Grid.Row="1" Background="#2E2E4E"
-                        ResizeDirection="Rows" Margin="0"/>
-          <views:TargetsPanelView Grid.Row="2"
-                                   DataContext="{Binding}"/>
-        </Grid>
+        <views:PropertiesPanelView DataContext="{Binding FlowEditor}"/>
       </Border>
 
     </Grid>

@@ -12,6 +12,9 @@ public sealed class NodeDefinition
     public string Color { get; init; } = "#607D8B";
     public string Icon { get; init; } = "⚙";
 
+    /// <summary>A short concrete usage example, shown in the properties panel.</summary>
+    public string Example { get; init; } = string.Empty;
+
     /// <summary>Ordered list of editable properties shown in the property panel.</summary>
     public List<PropertyDefinition> Properties { get; init; } = [];
 
