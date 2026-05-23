@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using Avalonia;
 using ReactiveUI;
 using WebExStudio.Core.Models;
 
@@ -6,39 +6,17 @@ namespace WebExStudio.UI.ViewModels;
 
 public sealed class NodeViewModel : ViewModelBase
 {
-    private readonly ActionNode _node;
-
     private double _x;
     private double _y;
     private bool _isSelected;
     private bool _isActive;
-    private bool _isExpanded = true;
     private ExecutionStatusUi _status = ExecutionStatusUi.None;
 
-    public string Id => _node.EnsureUi().Id;
-    public string ActionType => _node.Type;
-    public ActionNode Model => _node;
+    public FlowNode Model { get; }
+    public string Id => Model.Id;
+    public string ActionType => Model.Type;
 
     public NodeDefinition Definition { get; }
-    public bool HasSubActions => Definition.HasSubActions;
-
-    // Sub-node collections populated on load from inline then/else/actions or file refs
-    public ObservableCollection<NodeViewModel> ThenNodes { get; } = new();
-    public ObservableCollection<NodeViewModel> ElseNodes { get; } = new();
-    public ObservableCollection<NodeViewModel> BodyNodes { get; } = new();
-
-    // True when ThenNodes was loaded from then_actions_file (not inlined on save)
-    public bool ThenFromFile { get; set; }
-
-    public IEnumerable<NodeViewModel> AllSubNodes =>
-        ThenNodes.Concat(ElseNodes).Concat(BodyNodes);
-
-    public ObservableCollection<NodeViewModel> GetBranch(string key) => key switch
-    {
-        "then" => ThenNodes,
-        "else" => ElseNodes,
-        _ => BodyNodes,
-    };
 
     public double X
     {
@@ -46,7 +24,7 @@ public sealed class NodeViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _x, value);
-            _node.EnsureUi().X = value;
+            Model.X = value;
         }
     }
 
@@ -56,12 +34,12 @@ public sealed class NodeViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _y, value);
-            _node.EnsureUi().Y = value;
+            Model.Y = value;
         }
     }
 
-    public double Width => _node.Ui?.Width ?? 200;
-    public double Height => _node.Ui?.Height ?? 60;
+    public double Width { get; } = 200;
+    public double Height { get; } = 60;
 
     public bool IsSelected
     {
@@ -75,16 +53,14 @@ public sealed class NodeViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isActive, value);
     }
 
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
-    }
-
     public ExecutionStatusUi Status
     {
         get => _status;
-        set => this.RaiseAndSetIfChanged(ref _status, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _status, value);
+            this.RaisePropertyChanged(nameof(StatusColor));
+        }
     }
 
     public string DisplayName => Definition.DisplayName;
@@ -100,13 +76,23 @@ public sealed class NodeViewModel : ViewModelBase
         _ => Definition.Color,
     };
 
-    public NodeViewModel(ActionNode node)
+    // Port positions (world coordinates) — used by ConnectionRenderer and wire drag
+    public Point InputPortPosition => new(X + Width / 2, Y);
+    public Point OutputPortPosition => new(X + Width / 2, Y + Height);
+
+    // Sub-flow tab IDs stored in Config by the editor
+    public string? ThenTabId => Model.Config.TryGetValue("thenTabId", out var v) ? v : null;
+    public string? ElseTabId => Model.Config.TryGetValue("elseTabId", out var v) ? v : null;
+    public string? BodyTabId => Model.Config.TryGetValue("bodyTabId", out var v) ? v : null;
+
+    public bool HasSubFlows => Definition.HasSubFlows;
+
+    public NodeViewModel(FlowNode node)
     {
-        _node = node;
+        Model = node;
         Definition = NodeCatalog.GetOrUnknown(node.Type);
-        var ui = node.EnsureUi();
-        _x = ui.X;
-        _y = ui.Y;
+        _x = node.X;
+        _y = node.Y;
     }
 }
 

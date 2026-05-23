@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using NLog;
 using WebExStudio.Core.Models;
@@ -10,11 +9,11 @@ public sealed class DownloadUrlHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "download_url";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var url = ctx.Fmt(node.GetString("url"));
-        var filename = ctx.Fmt(node.GetString("filename"));
-        var timeoutMs = int.TryParse(node.GetString("timeout_ms", "60000"), out var t) ? t : 60000;
+        var url = ctx.Fmt(node.Get("url"));
+        var filename = ctx.Fmt(node.Get("filename"));
+        var timeoutMs = int.TryParse(node.Get("timeout_ms", "60000"), out var t) ? t : 60000;
 
         if (string.IsNullOrEmpty(filename))
             filename = Path.GetFileName(new Uri(url).LocalPath);
@@ -44,7 +43,6 @@ public sealed class CaptchaGuardHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "captcha_guard";
 
-    // Known CAPTCHA selectors
     private static readonly string[] CaptchaSelectors =
     [
         "iframe[src*='recaptcha']",
@@ -55,9 +53,9 @@ public sealed class CaptchaGuardHandler : IActionHandler
         "[data-sitekey]",
     ];
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var timeoutSec = int.TryParse(node.GetString("timeout_s", "120"), out var t) ? t : 120;
+        var timeoutSec = int.TryParse(node.Get("timeout_s", "120"), out var t) ? t : 120;
 
         var detected = false;
         foreach (var sel in CaptchaSelectors)
@@ -78,11 +76,9 @@ public sealed class CaptchaGuardHandler : IActionHandler
 
         Log.Warn("captcha_guard: CAPTCHA erkannt, warte auf Lösung (timeout={0}s)", timeoutSec);
 
-        // Wait for CAPTCHA to be resolved (user solves manually or auto-solver handles it)
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.CancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(timeoutSec));
 
-        // Poll until CAPTCHA selectors disappear
         var deadline = DateTime.Now.AddSeconds(timeoutSec);
         while (DateTime.Now < deadline)
         {
@@ -105,6 +101,6 @@ public sealed class CaptchaGuardHandler : IActionHandler
             await Task.Delay(2000, cts.Token);
         }
 
-        Log.Warn("captcha_guard: Timeout abgelaufen, CAPTCHA möglicherweise nicht gelöst");
+        Log.Warn("captcha_guard: Timeout abgelaufen");
     }
 }

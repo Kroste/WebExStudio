@@ -56,40 +56,62 @@ public sealed class FlowExecutor
         CancellationToken ct = default)
     {
         var actionsPath = Path.Combine(config.ProjectDir, target.ActionsFile);
-        var flow = await FlowSerializer.LoadAsync(actionsPath);
-        var ctx = CreateContext(page, target, config, config.ProjectDir, progress, ct);
-        await ExecuteActionsAsync(ctx, flow.Actions);
+        var doc = await FlowSerializer2.LoadAsync(actionsPath);
+        var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
+        var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct);
+        await ExecuteWiredAsync(doc, mainTab.Id, ctx);
     }
 
-    /// <summary>Executes an action list — the inner loop used recursively by control-flow handlers.</summary>
-    public async Task ExecuteActionsAsync(ExecutionContext ctx, List<ActionNode> actions)
+    /// <summary>
+    /// Executes nodes on a wired (main canvas) tab in topological order.
+    /// Entry nodes are those with no incoming wires.
+    /// </summary>
+    public async Task ExecuteWiredAsync(FlowDocument2 doc, string tabId, ExecutionContext ctx)
     {
-        foreach (var node in actions)
+        var tabNodes = doc.Nodes.Where(n => n.TabId == tabId).ToList();
+        if (tabNodes.Count == 0) return;
+
+        var incoming = doc.BuildIncomingSet(tabId);
+        var entryNodes = tabNodes.Where(n => !incoming.Contains(n.Id)).ToList();
+
+        // Build adjacency for topological traversal
+        var nodeById = tabNodes.ToDictionary(n => n.Id);
+        var visited = new HashSet<string>();
+
+        foreach (var entry in entryNodes)
+            await TraverseAsync(doc, entry, nodeById, visited, ctx);
+    }
+
+    private async Task TraverseAsync(
+        FlowDocument2 doc, FlowNode node,
+        Dictionary<string, FlowNode> nodeById,
+        HashSet<string> visited,
+        ExecutionContext ctx)
+    {
+        if (!visited.Add(node.Id)) return;
+        ctx.CancellationToken.ThrowIfCancellationRequested();
+
+        ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
+            DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+
+        var handler = _registry.Get(node.Type);
+        if (handler is null)
         {
-            ctx.CancellationToken.ThrowIfCancellationRequested();
-
-            var nodeId = node.Ui?.Id ?? node.Type;
-            ctx.Report(new TraceEntry(nodeId, node.Type, ExecutionStatus.Running,
-                DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
-
-            var handler = _registry.Get(node.Type);
-            if (handler is null)
-            {
-                ctx.Report(new TraceEntry(nodeId, node.Type, ExecutionStatus.Skipped,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
-                    $"Unbekannter Action-Typ: {node.Type}"));
-                continue;
-            }
-
+            ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
+                DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                $"Unbekannter Action-Typ: {node.Type}"));
+        }
+        else
+        {
             try
             {
                 await handler.ExecuteAsync(ctx, node);
-                ctx.Report(new TraceEntry(nodeId, node.Type, ExecutionStatus.Success,
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
             }
             catch (QuitException)
             {
-                ctx.Report(new TraceEntry(nodeId, node.Type, ExecutionStatus.Success,
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
                 throw;
             }
@@ -99,7 +121,68 @@ public sealed class FlowExecutor
             }
             catch (Exception ex)
             {
-                ctx.Report(new TraceEntry(nodeId, node.Type, ExecutionStatus.Error,
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
+                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                    ErrorMessage: ex.Message));
+                return; // stop traversal on error
+            }
+        }
+
+        // Follow output wires sequentially
+        foreach (var port in node.Wires)
+        {
+            foreach (var targetId in port)
+            {
+                ctx.CancellationToken.ThrowIfCancellationRequested();
+                if (nodeById.TryGetValue(targetId, out var next))
+                    await TraverseAsync(doc, next, nodeById, visited, ctx);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes nodes on a sequential (sub-flow) tab in seqIndex order.
+    /// Used by control-flow handlers (if/else branches, loop bodies, call tabs).
+    /// </summary>
+    public async Task ExecuteSequentialAsync(string tabId, ExecutionContext ctx)
+    {
+        if (ctx.Document is null) return;
+        var nodes = ctx.Document.GetNodes(tabId).ToList();
+        foreach (var node in nodes)
+        {
+            ctx.CancellationToken.ThrowIfCancellationRequested();
+
+            ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
+                DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+
+            var handler = _registry.Get(node.Type);
+            if (handler is null)
+            {
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
+                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                    $"Unbekannter Action-Typ: {node.Type}"));
+                continue;
+            }
+
+            try
+            {
+                await handler.ExecuteAsync(ctx, node);
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
+                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+            }
+            catch (QuitException)
+            {
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
+                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
                     DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
                     ErrorMessage: ex.Message));
             }
@@ -108,12 +191,14 @@ public sealed class FlowExecutor
 
     private ExecutionContext CreateContext(
         IPage page, TargetConfig target, RunConfig config,
-        string projectDir, IProgress<TraceEntry>? progress, CancellationToken ct)
+        string projectDir, FlowDocument2 doc,
+        IProgress<TraceEntry>? progress, CancellationToken ct)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
         {
-            RunSubActionsCallback = ExecuteActionsAsync
+            Document = doc,
+            RunSubTabCallback = ExecuteSequentialAsync,
         };
     }
 

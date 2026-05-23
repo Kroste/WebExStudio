@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Reactive;
 using ReactiveUI;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
@@ -57,7 +56,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         var targetsPath = Path.Combine(projectDir, "targets.json");
         if (File.Exists(targetsPath))
         {
-            var configs = await FlowSerializer.LoadTargetsAsync(targetsPath);
+            var configs = await FlowSerializer2.LoadTargetsAsync(targetsPath);
             Targets.Clear();
             foreach (var t in configs)
                 Targets.Add(new TargetViewModel(t));

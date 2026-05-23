@@ -9,13 +9,13 @@ public sealed class GetValueHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "get_value";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var selector = ctx.Fmt(node.GetString("selector"));
-        var attr = node.GetString("attr");
-        var ctxKey = node.GetString("ctx_key", "value");
-        var regexPattern = ctx.Fmt(node.GetString("regex"));
-        var filter = ctx.Fmt(node.GetString("filter"));
+        var selector = ctx.Fmt(node.Get("selector"));
+        var attr = node.Get("attr");
+        var ctxKey = node.Get("ctx_key", "value");
+        var regexPattern = ctx.Fmt(node.Get("regex"));
+        var filter = ctx.Fmt(node.Get("filter"));
 
         var el = await ctx.Page.QuerySelectorAsync(selector);
         if (el is null)
@@ -60,14 +60,32 @@ public sealed class SetCtxHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "set_ctx";
 
-    public Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var key = node.GetString("key");
-        var value = ctx.Fmt(node.GetString("value"));
+        var key = node.Get("key");
+        var value = ctx.Fmt(node.Get("value"));
         if (!string.IsNullOrEmpty(key))
         {
             Log.Debug("set_ctx: {0} = '{1}'", key, value);
             ctx.Set(key, value);
+        }
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class SetPayloadHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "set_payload";
+
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var key = node.Get("key");
+        var value = ctx.Fmt(node.Get("value"));
+        if (!string.IsNullOrEmpty(key))
+        {
+            Log.Debug("set_payload: {0} = '{1}'", key, value);
+            ctx.Payload[key] = value;
         }
         return Task.CompletedTask;
     }
@@ -78,11 +96,11 @@ public sealed class ReadFileHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "read_file";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var path = ctx.Fmt(node.GetString("path"));
-        var ctxKey = node.GetString("ctx_key", "file_content");
-        var mode = node.GetString("mode", "full");
+        var path = ctx.Fmt(node.Get("path"));
+        var ctxKey = node.Get("ctx_key", "file_content");
+        var mode = node.Get("mode", "full");
 
         if (!Path.IsPathRooted(path))
             path = Path.Combine(ctx.ProjectDir, path);
@@ -107,10 +125,10 @@ public sealed class WriteFileHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "write_file";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var path = ctx.Fmt(node.GetString("path"));
-        var value = ctx.Fmt(node.GetString("value"));
+        var path = ctx.Fmt(node.Get("path"));
+        var value = ctx.Fmt(node.Get("value"));
         var append = node.GetBool("append");
 
         if (!Path.IsPathRooted(path))

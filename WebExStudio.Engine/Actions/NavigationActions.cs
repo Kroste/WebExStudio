@@ -9,9 +9,9 @@ public sealed class GotoHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "goto";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var url = ctx.Fmt(node.GetString("url"));
+        var url = ctx.Fmt(node.Get("url"));
         if (string.IsNullOrEmpty(url)) url = ctx.Get("host");
 
         Log.Info("Navigiere zu: {0}", url);
@@ -21,7 +21,7 @@ public sealed class GotoHandler : IActionHandler
             Timeout = ctx.Config.TimeoutMs,
         });
 
-        var waitMs = node.GetString("wait_ms");
+        var waitMs = node.Get("wait_ms");
         if (int.TryParse(waitMs, out var ms) && ms > 0)
             await Task.Delay(ms, ctx.CancellationToken);
     }
@@ -32,9 +32,9 @@ public sealed class OpenTabHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "open_tab";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var url = ctx.Fmt(node.GetString("url"));
+        var url = ctx.Fmt(node.Get("url"));
         Log.Debug("Neuer Tab: {0}", url);
         var newPage = await ctx.Page.Context.NewPageAsync();
         if (!string.IsNullOrEmpty(url))
@@ -47,7 +47,7 @@ public sealed class CloseTabHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "close_tab";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
         Log.Debug("Schließe Tab");
         await ctx.Page.CloseAsync();
@@ -59,16 +59,15 @@ public sealed class GetLinksHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "get_links";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var selector = ctx.Fmt(node.GetString("selector", "a"));
-        var ctxKey = node.GetString("ctx_key", "link");
-        var filter = ctx.Fmt(node.GetString("filter"));
-        var maxStr = node.GetString("max", "500");
-        var max = int.TryParse(maxStr, out var m) ? m : 500;
+        var selector = ctx.Fmt(node.Get("selector", "a"));
+        var ctxKey = node.Get("ctx_key", "link");
+        var filter = ctx.Fmt(node.Get("filter"));
+        var max = int.TryParse(node.Get("max", "500"), out var m) ? m : 500;
+        var bodyTabId = node.Get("bodyTabId");
 
-        var subActions = node.GetSubActions("actions");
-        if (subActions.Count == 0) return;
+        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         var elements = await ctx.Page.QuerySelectorAllAsync(selector);
         var links = new List<string>();
@@ -82,12 +81,12 @@ public sealed class GetLinksHandler : IActionHandler
             if (links.Count >= max) break;
         }
 
-        Log.Debug("get_links: {0} Links gefunden (selector='{1}', filter='{2}')", links.Count, selector, filter);
+        Log.Debug("get_links: {0} Links (selector='{1}')", links.Count, selector);
         foreach (var link in links)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
             var child = ctx.CreateChild(new Dictionary<string, string> { [ctxKey] = link });
-            await child.RunSubActions(subActions);
+            await child.RunSubTab(bodyTabId);
         }
     }
 }

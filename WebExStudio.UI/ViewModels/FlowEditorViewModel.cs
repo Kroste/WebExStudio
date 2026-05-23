@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text.Json;
 using NLog;
 using ReactiveUI;
 using WebExStudio.Core.Models;
@@ -10,18 +9,38 @@ namespace WebExStudio.UI.ViewModels;
 public sealed class FlowEditorViewModel : ViewModelBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private FlowDocument? _document;
+
+    private FlowDocument2? _document;
+    private FlowTabViewModel? _activeTab;
     private NodeViewModel? _selectedNode;
     private bool _isDirty;
 
-    public ObservableCollection<NodeViewModel> Nodes { get; } = [];
-    public ObservableCollection<ConnectionViewModel> Connections { get; } = [];
-
-    public FlowDocument? Document
+    public FlowDocument2? Document
     {
         get => _document;
         private set => this.RaiseAndSetIfChanged(ref _document, value);
     }
+
+    public ObservableCollection<FlowTabViewModel> Tabs { get; } = [];
+
+    public FlowTabViewModel? ActiveTab
+    {
+        get => _activeTab;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _activeTab, value);
+            this.RaisePropertyChanged(nameof(Nodes));
+            RefreshWires();
+        }
+    }
+
+    /// <summary>Nodes on the currently active tab.</summary>
+    public ObservableCollection<NodeViewModel> Nodes =>
+        _activeTab?.Nodes ?? _emptyNodes;
+    private static readonly ObservableCollection<NodeViewModel> _emptyNodes = [];
+
+    /// <summary>Wires visible on the current tab (populated only for main-canvas tabs).</summary>
+    public ObservableCollection<WireViewModel> Wires { get; } = [];
 
     public NodeViewModel? SelectedNode
     {
@@ -37,35 +56,40 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public bool IsDirty
     {
         get => _isDirty;
-        set => this.RaiseAndSetIfChanged(ref _isDirty, value);
+        private set => this.RaiseAndSetIfChanged(ref _isDirty, value);
     }
 
     public string Title => Document is null
         ? "Kein Flow geöffnet"
-        : $"{Document.DisplayName}{(IsDirty ? " *" : "")}";
+        : $"{(Document.FilePath is null ? "Unbenannt" : Path.GetFileNameWithoutExtension(Document.FilePath))}{(IsDirty ? " *" : "")}";
+
+    // ── Load / Save ──────────────────────────────────────────────────────────
 
     public async Task LoadAsync(string path)
     {
         Log.Info("Öffne Flow-Datei: {0}", path);
-        var doc = await FlowSerializer.LoadAsync(path);
-        await LoadDocumentAsync(doc);
+        var doc = await FlowSerializer2.LoadAsync(path);
+        LoadDocument(doc);
     }
 
-    public async Task LoadDocumentAsync(FlowDocument doc)
+    public void LoadDocument(FlowDocument2 doc)
     {
-        Log.Info("Lade Dokument: {0}", doc.DisplayName ?? "(unbenannt)");
+        Log.Info("Lade Dokument: {0} Tabs, {1} Nodes", doc.Tabs.Count, doc.Nodes.Count);
         Document = doc;
-        Nodes.Clear();
-        Connections.Clear();
+        SelectedNode = null;
 
-        var projectDir = doc.FilePath is not null ? InferProjectDir(doc.FilePath) : null;
+        Tabs.Clear();
+        foreach (var tab in doc.Tabs)
+        {
+            var tabVm = new FlowTabViewModel(tab);
+            foreach (var node in doc.GetNodes(tab.Id))
+                tabVm.Nodes.Add(new NodeViewModel(node));
+            Tabs.Add(tabVm);
+        }
 
-        foreach (var action in doc.Actions)
-            Nodes.Add(await CreateNodeVmAsync(action, projectDir));
-
-        RebuildConnections();
+        var mainTab = Tabs.FirstOrDefault(t => !t.IsSubFlow) ?? Tabs.FirstOrDefault();
+        SwitchTab(mainTab);
         IsDirty = false;
-        Log.Debug("Dokument geladen: {0} Nodes, {1} Verbindungen", Nodes.Count, Connections.Count);
         this.RaisePropertyChanged(nameof(Title));
     }
 
@@ -73,357 +97,233 @@ public sealed class FlowEditorViewModel : ViewModelBase
     {
         if (Document is null) return;
         Log.Info("Speichere Dokument: {0}", path);
-        SyncPositionsToModel();
-        SyncSubActionsToModel();
-        await FlowSerializer.SaveAsync(Document, path);
+
+        // Sync VM positions back to model
+        foreach (var tab in Tabs)
+            foreach (var nodeVm in tab.Nodes)
+            {
+                nodeVm.Model.X = nodeVm.X;
+                nodeVm.Model.Y = nodeVm.Y;
+            }
+
+        await FlowSerializer2.SaveAsync(Document, path);
         IsDirty = false;
         this.RaisePropertyChanged(nameof(Title));
     }
 
-    public void AddNode(string actionType, double x, double y)
+    // ── Tab operations ────────────────────────────────────────────────────────
+
+    public void SwitchTab(FlowTabViewModel? tab)
     {
-        Log.Debug("Füge Node hinzu: {0} @ ({1:F0},{2:F0})", actionType, x, y);
-        var node = new ActionNode { Type = actionType };
-        node.EnsureUi(x, y);
-        Document ??= new FlowDocument();
-        Document.Actions.Add(node);
+        if (tab is null || tab == _activeTab) return;
+        Log.Debug("Tab wechseln: {0}", tab.Label);
+        _activeTab = tab;
+        this.RaisePropertyChanged(nameof(ActiveTab));
+        this.RaisePropertyChanged(nameof(Nodes));
+        RefreshWires();
+    }
+
+    /// <summary>
+    /// Navigates into a block node's sub-flow tab for the given slot ("then","else","body").
+    /// Creates the tab if it doesn't exist yet.
+    /// </summary>
+    public void OpenSubTab(NodeViewModel blockNode, string slot)
+    {
+        if (Document is null) return;
+
+        var configKey = slot switch
+        {
+            "then" => "thenTabId",
+            "else" => "elseTabId",
+            _ => "bodyTabId",
+        };
+
+        string? tabId = blockNode.Model.Config.TryGetValue(configKey, out var v) ? v : null;
+        FlowTabViewModel? tabVm = tabId is null ? null : Tabs.FirstOrDefault(t => t.Id == tabId);
+
+        if (tabVm is null)
+        {
+            // Create a new sub-flow tab
+            var label = slot switch
+            {
+                "then" => "Then",
+                "else" => "Else",
+                _ => "Body",
+            };
+            var newTab = new FlowTab
+            {
+                Id = Guid.NewGuid().ToString("N")[..8],
+                Label = $"{blockNode.DisplayName}: {label}",
+                IsSubFlow = true,
+                OwnerNodeId = blockNode.Id,
+                Slot = slot,
+            };
+            Document.Tabs.Add(newTab);
+            blockNode.Model.Config[configKey] = newTab.Id;
+            tabVm = new FlowTabViewModel(newTab);
+            Tabs.Add(tabVm);
+            MarkDirty();
+        }
+
+        SwitchTab(tabVm);
+    }
+
+    // ── Wire operations ───────────────────────────────────────────────────────
+
+    public bool AddWire(string sourceId, int outPort, string targetId, int inPort = 0)
+    {
+        if (Document is null || _activeTab is null) return false;
+        if (sourceId == targetId) return false;
+
+        var sourceNode = Document.GetNode(sourceId);
+        if (sourceNode is null) return false;
+
+        // Expand wires list to accommodate the port index
+        while (sourceNode.Wires.Count <= outPort)
+            sourceNode.Wires.Add([]);
+
+        if (sourceNode.Wires[outPort].Contains(targetId)) return false;
+
+        sourceNode.Wires[outPort].Add(targetId);
+        Wires.Add(new WireViewModel(sourceId, outPort, targetId, inPort));
+        MarkDirty();
+        Log.Debug("Verbindung hinzugefügt: {0} → {1}", sourceId, targetId);
+        return true;
+    }
+
+    public void RemoveWire(WireViewModel wire)
+    {
+        if (Document is null) return;
+        var sourceNode = Document.GetNode(wire.SourceNodeId);
+        if (sourceNode is not null && sourceNode.Wires.Count > wire.OutputPort)
+            sourceNode.Wires[wire.OutputPort].Remove(wire.TargetNodeId);
+        Wires.Remove(wire);
+        MarkDirty();
+        Log.Debug("Verbindung entfernt: {0} → {1}", wire.SourceNodeId, wire.TargetNodeId);
+    }
+
+    public void RefreshWires()
+    {
+        Wires.Clear();
+        if (_activeTab is null || _activeTab.IsSubFlow || Document is null) return;
+
+        foreach (var nodeVm in _activeTab.Nodes)
+        {
+            var node = nodeVm.Model;
+            for (int port = 0; port < node.Wires.Count; port++)
+            {
+                foreach (var targetId in node.Wires[port])
+                    Wires.Add(new WireViewModel(node.Id, port, targetId));
+            }
+        }
+    }
+
+    // ── Node operations ───────────────────────────────────────────────────────
+
+    public NodeViewModel AddNode(string type, double x, double y)
+    {
+        if (Document is null || _activeTab is null)
+        {
+            Document ??= FlowSerializer2.CreateEmpty();
+            LoadDocument(Document);
+        }
+
+        var seqIndex = _activeTab!.Nodes.Count;
+        var node = new FlowNode
+        {
+            Type = type,
+            TabId = _activeTab.Id,
+            X = x,
+            Y = y,
+            SeqIndex = seqIndex,
+        };
+
+        // Set default config values from NodeDefinition
+        var def = NodeCatalog.Get(type);
+        if (def is not null)
+        {
+            foreach (var prop in def.Properties.Where(p => p.DefaultValue is not null))
+                node.Config[prop.Key] = prop.DefaultValue!;
+        }
+
+        Document.Nodes.Add(node);
         var vm = new NodeViewModel(node);
-        Nodes.Add(vm);
-        RebuildConnections();
+        _activeTab.Nodes.Add(vm);
         MarkDirty();
+        Log.Debug("Node hinzugefügt: {0} @ ({1:F0},{2:F0})", type, x, y);
+        return vm;
     }
 
-    public void DeleteNode(NodeViewModel node)
+    public void DeleteNode(NodeViewModel vm)
     {
-        Log.Debug("Lösche Node: {0} ({1})", node.Id, node.ActionType);
-        if (Document?.Actions.Remove(node.Model) == true)
-            Nodes.Remove(node);
-        else
-            RemoveFromSubNodes(Nodes, node);
+        if (Document is null || _activeTab is null) return;
+        Log.Debug("Node gelöscht: {0} ({1})", vm.Id, vm.ActionType);
 
-        if (SelectedNode == node) SelectedNode = null;
-        RebuildConnections();
+        // Remove all wires to/from this node
+        var wiresToRemove = Wires.Where(w => w.SourceNodeId == vm.Id || w.TargetNodeId == vm.Id).ToList();
+        foreach (var wire in wiresToRemove)
+            RemoveWire(wire);
+
+        Document.Nodes.Remove(vm.Model);
+        _activeTab.Nodes.Remove(vm);
+
+        // Also remove sub-flow tabs owned by this node
+        if (vm.HasSubFlows)
+        {
+            var ownedTabs = Document.Tabs.Where(t => t.OwnerNodeId == vm.Id).ToList();
+            foreach (var tab in ownedTabs)
+            {
+                Document.Tabs.Remove(tab);
+                var tabVm = Tabs.FirstOrDefault(t => t.Id == tab.Id);
+                if (tabVm is not null) Tabs.Remove(tabVm);
+                // Remove nodes belonging to this sub-tab
+                var subNodes = Document.Nodes.Where(n => n.TabId == tab.Id).ToList();
+                foreach (var sn in subNodes) Document.Nodes.Remove(sn);
+            }
+        }
+
+        if (SelectedNode == vm) SelectedNode = null;
         MarkDirty();
     }
 
-    public void MoveNode(NodeViewModel node, double dx, double dy)
+    public NodeViewModel? FindNode(string id)
     {
-        node.X += dx;
-        node.Y += dy;
-        RebuildConnections();
-        MarkDirty();
+        foreach (var tab in Tabs)
+        {
+            var vm = tab.Nodes.FirstOrDefault(n => n.Id == id);
+            if (vm is not null) return vm;
+        }
+        return null;
     }
+
+    // ── Execution state ───────────────────────────────────────────────────────
 
     public void SetActiveNode(string nodeId)
     {
-        foreach (var n in AllNodesFlat())
-            n.IsActive = n.Id == nodeId;
+        foreach (var tab in Tabs)
+            foreach (var n in tab.Nodes)
+                n.IsActive = n.Id == nodeId;
     }
 
     public void SetNodeStatus(string nodeId, ExecutionStatusUi status)
     {
-        var node = AllNodesFlat().FirstOrDefault(n => n.Id == nodeId);
-        if (node is not null) node.Status = status;
+        var vm = FindNode(nodeId);
+        if (vm is not null) vm.Status = status;
     }
 
     public void ClearExecutionState()
     {
-        foreach (var n in AllNodesFlat())
-        {
-            n.IsActive = false;
-            n.Status = ExecutionStatusUi.None;
-        }
+        foreach (var tab in Tabs)
+            foreach (var n in tab.Nodes)
+            {
+                n.IsActive = false;
+                n.Status = ExecutionStatusUi.None;
+            }
     }
 
-    public void MarkDirty()
+    private void MarkDirty()
     {
         IsDirty = true;
         this.RaisePropertyChanged(nameof(Title));
     }
-
-    public void RebuildConnections()
-    {
-        Connections.Clear();
-        BuildConnectionsForList(Nodes);
-    }
-
-    // ── Private helpers ──────────────────────────────────────────────────────
-
-    private async Task<NodeViewModel> CreateNodeVmAsync(ActionNode action, string? projectDir, bool expandCalls = true)
-    {
-        var vm = new NodeViewModel(action);
-        if (!vm.HasSubActions) return vm;
-
-        if (action.Type == "if_then_else")
-        {
-            var thenActions = action.GetSubActions("then");
-            var fromFile = false;
-
-            if (thenActions.Count == 0)
-            {
-                var thenFile = action.GetString("then_actions_file");
-                if (!string.IsNullOrEmpty(thenFile) && projectDir is not null)
-                {
-                    var full = Path.IsPathRooted(thenFile)
-                        ? thenFile
-                        : Path.Combine(projectDir, thenFile);
-                    if (File.Exists(full))
-                    {
-                        Log.Debug("if_then_else lädt then-Datei: {0}", full);
-                        var sub = await FlowSerializer.LoadAsync(full, applyLayout: false);
-                        thenActions = sub.Actions;
-                        fromFile = true;
-                    }
-                    else
-                    {
-                        Log.Warn("then_actions_file nicht gefunden: {0}", full);
-                    }
-                }
-            }
-
-            EnsureSubActionLayout(thenActions, action, -1, forceReset: fromFile);
-            foreach (var a in thenActions)
-                vm.ThenNodes.Add(await CreateNodeVmAsync(a, projectDir));
-            vm.ThenFromFile = fromFile;
-
-            var elseActions = action.GetSubActions("else");
-            EnsureSubActionLayout(elseActions, action, +1);
-            foreach (var a in elseActions)
-                vm.ElseNodes.Add(await CreateNodeVmAsync(a, projectDir));
-        }
-        else if (action.Type == "call" && expandCalls)
-        {
-            var fileKey = action.GetString("file");
-            if (string.IsNullOrEmpty(fileKey))
-                fileKey = action.GetString("actions_file");
-
-            Log.Debug("call-Node id={0} fileKey='{1}' projectDir='{2}'",
-                action.EnsureUi().Id, fileKey, projectDir ?? "(null)");
-
-            if (!string.IsNullOrEmpty(fileKey) && projectDir is not null)
-            {
-                var full = Path.IsPathRooted(fileKey)
-                    ? fileKey
-                    : Path.Combine(projectDir, fileKey);
-                try
-                {
-                    if (File.Exists(full))
-                    {
-                        Log.Debug("call-Node lädt Sub-Flow: {0}", full);
-                        var sub = await FlowSerializer.LoadAsync(full, applyLayout: false);
-                        EnsureSubActionLayout(sub.Actions, action, 0, forceReset: true);
-                        foreach (var a in sub.Actions)
-                            vm.BodyNodes.Add(await CreateNodeVmAsync(a, projectDir, expandCalls: false));
-                        Log.Info("call-Node {0}: Sub-Flow geladen, {1} Sub-Nodes ({2})",
-                            action.EnsureUi().Id, vm.BodyNodes.Count, Path.GetFileName(full));
-                    }
-                    else
-                    {
-                        Log.Warn("call-Datei nicht gefunden: {0}", full);
-                        vm.BodyNodes.Add(MakeErrorNode(action, $"Nicht gefunden: {full}"));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Fehler beim Laden von call-Sub-Flow: {0}", full);
-                    vm.BodyNodes.Add(MakeErrorNode(action, ex.Message));
-                }
-            }
-            else if (string.IsNullOrEmpty(fileKey))
-            {
-                Log.Warn("call-Node hat keine Dateiangabe (id={0})", action.EnsureUi().Id);
-            }
-            else
-            {
-                Log.Warn("call-Node {0}: projectDir ist null, Sub-Flow kann nicht geladen werden (fileKey='{1}')",
-                    action.EnsureUi().Id, fileKey);
-                vm.BodyNodes.Add(MakeErrorNode(action, $"Kein Projektverzeichnis bekannt (fileKey={fileKey})"));
-            }
-            vm.IsExpanded = false;
-        }
-        else if (action.Type != "call")
-        {
-            var bodyActions = action.GetSubActions("actions");
-            EnsureSubActionLayout(bodyActions, action, 0);
-            foreach (var a in bodyActions)
-                vm.BodyNodes.Add(await CreateNodeVmAsync(a, projectDir));
-        }
-
-        return vm;
-    }
-
-    private static NodeViewModel MakeErrorNode(ActionNode parent, string message)
-    {
-        var err = new ActionNode { Type = "noop" };
-        err.EnsureUi((parent.Ui?.X ?? 0) + 280, parent.Ui?.Y ?? 0);
-        err.Properties = new Dictionary<string, JsonElement>
-        {
-            ["_error"] = JsonSerializer.SerializeToElement(message)
-        };
-        return new NodeViewModel(err);
-    }
-
-    private static string? InferProjectDir(string filePath)
-    {
-        var dir = Path.GetDirectoryName(filePath);
-        // Flows live in {projectRoot}/actions/*.json — step up one level
-        if (dir is not null && Path.GetFileName(dir).Equals("actions", StringComparison.OrdinalIgnoreCase))
-            return Path.GetDirectoryName(dir);
-        return dir;
-    }
-
-    private static void EnsureSubActionLayout(
-        List<ActionNode> nodes, ActionNode parent, int side, bool forceReset = false)
-    {
-        var px = parent.Ui?.X ?? 0;
-        var py = parent.Ui?.Y ?? 0;
-        var ph = parent.Ui?.Height ?? 60;
-        const double nodeWidth = 200;
-        const double hGap = 80;
-        const double vGap = 40;
-        const double vStep = 120;
-
-        double startX = side switch
-        {
-            +1 => px + 2 * (nodeWidth + hGap),
-            _  => px + nodeWidth + hGap,
-        };
-
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            if (forceReset || nodes[i].Ui is null)
-            {
-                var ui = nodes[i].EnsureUi();
-                ui.X = startX;
-                ui.Y = py + vGap + i * vStep;
-            }
-        }
-    }
-
-    private void BuildConnectionsForList(IList<NodeViewModel> nodes)
-    {
-        for (int i = 0; i < nodes.Count - 1; i++)
-            Connections.Add(new ConnectionViewModel(nodes[i], nodes[i + 1], ConnectionKind.Sequential));
-
-        foreach (var node in nodes)
-        {
-            if (!node.IsExpanded || !node.HasSubActions) continue;
-
-            if (node.ThenNodes.Count > 0)
-            {
-                Connections.Add(new ConnectionViewModel(node, node.ThenNodes[0], ConnectionKind.TrueBranch));
-                BuildConnectionsForList(node.ThenNodes);
-            }
-            if (node.ElseNodes.Count > 0)
-            {
-                Connections.Add(new ConnectionViewModel(node, node.ElseNodes[0], ConnectionKind.FalseBranch));
-                BuildConnectionsForList(node.ElseNodes);
-            }
-            if (node.BodyNodes.Count > 0)
-            {
-                Connections.Add(new ConnectionViewModel(node, node.BodyNodes[0], ConnectionKind.LoopBody));
-                BuildConnectionsForList(node.BodyNodes);
-            }
-        }
-    }
-
-    private void SyncSubActionsToModel()
-    {
-        foreach (var vm in Nodes)
-            SyncNodeToModel(vm);
-    }
-
-    private static void SyncNodeToModel(NodeViewModel vm)
-    {
-        if (!vm.HasSubActions) return;
-
-        foreach (var child in vm.AllSubNodes)
-            SyncNodeToModel(child);
-
-        vm.Model.Properties ??= [];
-
-        if (vm.ActionType == "if_then_else")
-        {
-            // If ThenNodes came from a file, keep the file reference instead of inlining
-            if (vm.ThenNodes.Count > 0 && !vm.ThenFromFile)
-            {
-                vm.Model.Properties["then"] = JsonSerializer.SerializeToElement(
-                    vm.ThenNodes.Select(n => n.Model).ToList(),
-                    FlowSerializerOptions.Default);
-                vm.Model.Properties.Remove("then_actions_file");
-            }
-            if (vm.ElseNodes.Count > 0)
-            {
-                vm.Model.Properties["else"] = JsonSerializer.SerializeToElement(
-                    vm.ElseNodes.Select(n => n.Model).ToList(),
-                    FlowSerializerOptions.Default);
-            }
-        }
-        else
-        {
-            if (vm.BodyNodes.Count > 0)
-            {
-                vm.Model.Properties["actions"] = JsonSerializer.SerializeToElement(
-                    vm.BodyNodes.Select(n => n.Model).ToList(),
-                    FlowSerializerOptions.Default);
-            }
-        }
-    }
-
-    private IEnumerable<NodeViewModel> AllNodesFlat() =>
-        Nodes.SelectMany(FlattenNode);
-
-    private static IEnumerable<NodeViewModel> FlattenNode(NodeViewModel vm)
-    {
-        yield return vm;
-        foreach (var sub in vm.AllSubNodes)
-            foreach (var desc in FlattenNode(sub))
-                yield return desc;
-    }
-
-    private static bool RemoveFromSubNodes(IEnumerable<NodeViewModel> nodes, NodeViewModel target)
-    {
-        foreach (var n in nodes)
-        {
-            if (n.ThenNodes.Remove(target) || n.ElseNodes.Remove(target) || n.BodyNodes.Remove(target))
-                return true;
-            if (RemoveFromSubNodes(n.AllSubNodes.ToList(), target))
-                return true;
-        }
-        return false;
-    }
-
-    private void SyncPositionsToModel()
-    {
-        foreach (var vm in AllNodesFlat())
-        {
-            var ui = vm.Model.EnsureUi();
-            ui.X = vm.X;
-            ui.Y = vm.Y;
-        }
-    }
-}
-
-public enum ConnectionKind { Sequential, TrueBranch, FalseBranch, LoopBody }
-
-public sealed class ConnectionViewModel : ViewModelBase
-{
-    public NodeViewModel Source { get; }
-    public NodeViewModel Target { get; }
-    public ConnectionKind Kind { get; }
-
-    public ConnectionViewModel(NodeViewModel source, NodeViewModel target, ConnectionKind kind)
-    {
-        Source = source;
-        Target = target;
-        Kind = kind;
-    }
-
-    public string StrokeColor => Kind switch
-    {
-        ConnectionKind.TrueBranch => "#4CAF50",
-        ConnectionKind.FalseBranch => "#F44336",
-        ConnectionKind.LoopBody => "#FF9800",
-        _ => "#90A4AE",
-    };
 }

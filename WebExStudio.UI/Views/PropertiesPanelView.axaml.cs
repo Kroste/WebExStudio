@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -89,13 +88,19 @@ public partial class PropertiesPanelView : UserControl
 
     private Control BuildField(PropertyDefinition prop)
     {
-        var currentValue = _currentNode?.Model.GetString(prop.Key, string.Empty) ?? string.Empty;
-        if (string.IsNullOrEmpty(currentValue) && prop.Aliases is not null)
+        var config = _currentNode?.Model.Config;
+        var currentValue = string.Empty;
+
+        if (config is not null)
         {
-            foreach (var alias in prop.Aliases)
+            config.TryGetValue(prop.Key, out currentValue);
+            if (string.IsNullOrEmpty(currentValue) && prop.Aliases is not null)
             {
-                currentValue = _currentNode?.Model.GetString(alias, string.Empty) ?? string.Empty;
-                if (!string.IsNullOrEmpty(currentValue)) break;
+                foreach (var alias in prop.Aliases)
+                {
+                    if (config.TryGetValue(alias, out currentValue) && !string.IsNullOrEmpty(currentValue))
+                        break;
+                }
             }
         }
         if (string.IsNullOrEmpty(currentValue)) currentValue = prop.DefaultValue ?? string.Empty;
@@ -136,7 +141,6 @@ public partial class PropertiesPanelView : UserControl
             }
         };
 
-        // Wire changes back to model
         WireEditorChange(editor, prop.Key, prop.Kind);
 
         return new StackPanel
@@ -153,26 +157,24 @@ public partial class PropertiesPanelView : UserControl
         {
             tb.TextChanged += (_, _) =>
             {
-                _currentNode?.Model.Properties?.Remove(key);
-                var props = _currentNode?.Model.Properties ??= [];
-                props[key] = JsonSerializer.SerializeToElement(tb.Text ?? string.Empty);
-                _currentNode?.Model.EnsureUi();
+                if (_currentNode is not null)
+                    _currentNode.Model.Config[key] = tb.Text ?? string.Empty;
             };
         }
         else if (editor is CheckBox cb)
         {
             cb.IsCheckedChanged += (_, _) =>
             {
-                var props = _currentNode?.Model.Properties ??= [];
-                props[key] = JsonSerializer.SerializeToElement(cb.IsChecked == true);
+                if (_currentNode is not null)
+                    _currentNode.Model.Config[key] = (cb.IsChecked == true).ToString().ToLowerInvariant();
             };
         }
         else if (editor is NumericUpDown nud)
         {
             nud.ValueChanged += (_, _) =>
             {
-                var props = _currentNode?.Model.Properties ??= [];
-                props[key] = JsonSerializer.SerializeToElement((double)(nud.Value ?? 0));
+                if (_currentNode is not null)
+                    _currentNode.Model.Config[key] = ((long)(nud.Value ?? 0)).ToString();
             };
         }
     }

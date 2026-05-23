@@ -1,3 +1,5 @@
+using WebExStudio.Core.Models;
+
 namespace WebExStudio.Engine.Actions;
 
 public sealed class ActionRegistry
@@ -36,6 +38,7 @@ public sealed class ActionRegistry
         r.Register(new QuitHandler());
         r.Register(new GetValueHandler());
         r.Register(new SetCtxHandler());
+        r.Register(new SetPayloadHandler());
         r.Register(new ReadFileHandler());
         r.Register(new WriteFileHandler());
         r.Register(new DownloadUrlHandler());
@@ -50,6 +53,6 @@ public sealed class ActionRegistry
 internal sealed class AliasHandler(string type, IActionHandler target) : IActionHandler
 {
     public string Type => type;
-    public Task ExecuteAsync(ExecutionContext ctx, Core.Models.ActionNode node) =>
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) =>
         target.ExecuteAsync(ctx, node);
 }

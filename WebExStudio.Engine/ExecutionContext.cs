@@ -7,6 +7,7 @@ namespace WebExStudio.Engine;
 
 /// <summary>
 /// Holds all runtime state for a single target execution.
+/// Payload flows through wires between nodes; ctx is the shared mutable dict.
 /// </summary>
 public sealed class ExecutionContext
 {
@@ -21,7 +22,14 @@ public sealed class ExecutionContext
     public ImmutableHashSet<string> CallStack { get; }
     public CancellationToken CancellationToken { get; }
 
-    public Func<ExecutionContext, List<ActionNode>, Task>? RunSubActionsCallback { get; init; }
+    /// <summary>Payload dict flowing through wires (Node-RED msg.payload style).</summary>
+    public Dictionary<string, string> Payload { get; set; } = new();
+
+    /// <summary>The document being executed — used for sub-tab lookup.</summary>
+    public FlowDocument2? Document { get; init; }
+
+    /// <summary>Callback to execute a sequential sub-flow tab.</summary>
+    public Func<string, ExecutionContext, Task>? RunSubTabCallback { get; init; }
 
     public ExecutionContext(
         IPage page,
@@ -42,7 +50,6 @@ public sealed class ExecutionContext
         CancellationToken = cancellationToken;
 
         _ctx = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        // Merge: global < target < passed overrides
         foreach (var kv in config.Ctx) _ctx[kv.Key] = kv.Value;
         foreach (var kv in target.Ctx) _ctx[kv.Key] = kv.Value;
         _ctx["name"] = target.Name;
@@ -52,12 +59,14 @@ public sealed class ExecutionContext
             foreach (var kv in ctx) _ctx[kv.Key] = kv.Value;
     }
 
-    /// <summary>Substitutes {placeholder} tokens in a string with context values.</summary>
+    /// <summary>Substitutes {placeholder} and {payload.key} tokens in a string.</summary>
     public string Fmt(string? value)
     {
         if (string.IsNullOrEmpty(value)) return string.Empty;
         foreach (var kv in _ctx)
             value = value.Replace($"{{{kv.Key}}}", kv.Value, StringComparison.OrdinalIgnoreCase);
+        foreach (var kv in Payload)
+            value = value.Replace($"{{payload.{kv.Key}}}", kv.Value, StringComparison.OrdinalIgnoreCase);
         return value;
     }
 
@@ -69,30 +78,41 @@ public sealed class ExecutionContext
     public IReadOnlyDictionary<string, string> ContextSnapshot() =>
         new Dictionary<string, string>(_ctx);
 
-    /// <summary>Creates a child context for sub-action execution with extra variables.</summary>
-    public ExecutionContext CreateChild(Dictionary<string, string>? extra = null) =>
-        new(Page, Target, Config, ProjectDir, MergeWith(extra), CallStack, _progress, CancellationToken)
-        {
-            RunSubActionsCallback = RunSubActionsCallback
-        };
+    /// <summary>Executes all sequential nodes in the given sub-flow tab.</summary>
+    public async Task RunSubTab(string tabId)
+    {
+        if (RunSubTabCallback is null || Document is null) return;
+        Log.Debug("RunSubTab: {0}", tabId);
+        await RunSubTabCallback(tabId, this);
+    }
 
-    /// <summary>Creates a child context for a called flow, adding the callee path to the callstack.</summary>
-    public ExecutionContext CreateCallChild(string calleePath, Dictionary<string, string>? extra = null) =>
-        new(Page, Target, Config, ProjectDir, MergeWith(extra), CallStack.Add(calleePath), _progress, CancellationToken)
+    /// <summary>Creates a child context for sub-action execution with extra variables.</summary>
+    public ExecutionContext CreateChild(Dictionary<string, string>? extra = null)
+    {
+        var child = new ExecutionContext(Page, Target, Config, ProjectDir, MergeWith(extra),
+            CallStack, _progress, CancellationToken)
         {
-            RunSubActionsCallback = RunSubActionsCallback
+            Document = Document,
+            RunSubTabCallback = RunSubTabCallback,
         };
+        child.Payload = new Dictionary<string, string>(Payload);
+        return child;
+    }
+
+    /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
+    public ExecutionContext CreateCallChild(string calleeTabId, Dictionary<string, string>? extra = null)
+    {
+        var child = new ExecutionContext(Page, Target, Config, ProjectDir, MergeWith(extra),
+            CallStack.Add(calleeTabId), _progress, CancellationToken)
+        {
+            Document = Document,
+            RunSubTabCallback = RunSubTabCallback,
+        };
+        child.Payload = new Dictionary<string, string>(Payload);
+        return child;
+    }
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);
-
-    public async Task RunSubActions(List<ActionNode> actions)
-    {
-        if (RunSubActionsCallback != null)
-        {
-            Log.Debug("RunSubActions: {0} Aktionen", actions.Count);
-            await RunSubActionsCallback(this, actions);
-        }
-    }
 
     private Dictionary<string, string> MergeWith(Dictionary<string, string>? extra)
     {

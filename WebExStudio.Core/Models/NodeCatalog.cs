@@ -40,7 +40,7 @@ public static class NodeCatalog
             Type = "get_links", DisplayName = "Links sammeln", Category = "Navigation",
             Description = "Sammelt Links von der Seite und führt Sub-Actions für jeden Link aus.",
             Color = "#0277BD", Icon = "🔗",
-            HasSubActions = true, SubActionKeys = ["actions"],
+            SubFlowSlots = ["body"],
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Placeholder = "a.item" },
@@ -115,7 +115,8 @@ public static class NodeCatalog
         {
             Type = "if_then_else", DisplayName = "If / Then / Else", Category = "Kontrollfluss",
             Description = "Bedingte Verzweigung basierend auf DOM, Seite oder Kontext.",
-            Color = "#6A1B9A", Icon = "❓", HasSubActions = true, SubActionKeys = ["then", "else"],
+            Color = "#6A1B9A", Icon = "❓",
+            SubFlowSlots = ["then", "else"],
             Properties =
             [
                 new() { Key = "condition", Label = "Bedingung-Typ", Kind = PropertyKind.Dropdown, DefaultValue = "element_exists" },
@@ -123,15 +124,14 @@ public static class NodeCatalog
                 new() { Key = "value", Label = "Vergleichswert", Kind = PropertyKind.Text },
                 new() { Key = "regex", Label = "Regex", Kind = PropertyKind.Boolean, DefaultValue = "false" },
                 new() { Key = "negate", Label = "Negieren", Kind = PropertyKind.Boolean, DefaultValue = "false" },
-                new() { Key = "then_actions_file", Label = "Then-Flow (Datei)", Kind = PropertyKind.FilePath },
-                new() { Key = "else_actions_file", Label = "Else-Flow (Datei)", Kind = PropertyKind.FilePath },
             ]
         },
         new()
         {
             Type = "for_range", DisplayName = "For-Schleife", Category = "Kontrollfluss",
             Description = "Wiederholt Sub-Actions für einen Zahlenbereich.",
-            Color = "#E65100", Icon = "🔄", HasSubActions = true, SubActionKeys = ["actions"],
+            Color = "#E65100", Icon = "🔄",
+            SubFlowSlots = ["body"],
             Properties =
             [
                 new() { Key = "start", Label = "Start", Kind = PropertyKind.Number, DefaultValue = "0" },
@@ -145,7 +145,8 @@ public static class NodeCatalog
         {
             Type = "foreach", DisplayName = "Foreach-Schleife", Category = "Kontrollfluss",
             Description = "Iteriert über eine Liste oder Dictionary aus dem Kontext.",
-            Color = "#E65100", Icon = "🔁", HasSubActions = true, SubActionKeys = ["actions"],
+            Color = "#E65100", Icon = "🔁",
+            SubFlowSlots = ["body"],
             Properties =
             [
                 new() { Key = "items", Label = "Elemente (JSON oder Kontext-Variable)", Kind = PropertyKind.Text, Required = true },
@@ -154,13 +155,12 @@ public static class NodeCatalog
         },
         new()
         {
-            Type = "call", DisplayName = "Flow aufrufen", Category = "Kontrollfluss",
-            Description = "Ruft einen externen Flow auf (wie eine Funktion).",
+            Type = "call", DisplayName = "Tab aufrufen", Category = "Kontrollfluss",
+            Description = "Ruft einen anderen Tab-Flow auf (wie eine Funktion).",
             Color = "#F57F17", Icon = "📞",
-            HasSubActions = true, SubActionKeys = ["actions"],
             Properties =
             [
-                new() { Key = "file", Label = "Flow-Datei", Kind = PropertyKind.FilePath, Required = true, Aliases = ["actions_file"] },
+                new() { Key = "targetTabId", Label = "Ziel-Tab ID", Kind = PropertyKind.Text, Required = true },
                 new() { Key = "allow_quit", Label = "Quit erlaubt", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
@@ -175,6 +175,7 @@ public static class NodeCatalog
             Type = "quit", DisplayName = "Browser beenden", Category = "Kontrollfluss",
             Description = "Schließt den Browser und beendet die Ausführung.",
             Color = "#B71C1C", Icon = "🚪",
+            OutputPorts = 0,
             Properties =
             [
                 new() { Key = "force", Label = "Erzwingen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
@@ -204,6 +205,17 @@ public static class NodeCatalog
             Properties =
             [
                 new() { Key = "key", Label = "Variable", Kind = PropertyKind.Text, Required = true },
+                new() { Key = "value", Label = "Wert", Kind = PropertyKind.Text, Required = true },
+            ]
+        },
+        new()
+        {
+            Type = "set_payload", DisplayName = "Payload setzen", Category = "Daten",
+            Description = "Setzt einen Schlüssel im Payload-Objekt, das durch Verbindungen fließt.",
+            Color = "#00695C", Icon = "📦",
+            Properties =
+            [
+                new() { Key = "key", Label = "Payload-Schlüssel", Kind = PropertyKind.Text, Required = true },
                 new() { Key = "value", Label = "Wert", Kind = PropertyKind.Text, Required = true },
             ]
         },

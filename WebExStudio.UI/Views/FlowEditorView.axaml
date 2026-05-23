@@ -5,22 +5,51 @@
              x:Class="WebExStudio.UI.Views.FlowEditorView"
              x:DataType="vm:FlowEditorViewModel">
 
-  <Grid ClipToBounds="True">
-    <!-- Background grid (not transformed) -->
-    <controls:GridOverlay x:Name="GridOverlay" IsHitTestVisible="False"/>
+  <DockPanel>
+    <!-- Tab bar -->
+    <Border DockPanel.Dock="Top"
+            Background="#1A1A2E"
+            BorderBrush="#252540"
+            BorderThickness="0,0,0,1">
+      <ItemsControl x:Name="TabBar" ItemsSource="{Binding Tabs}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:FlowTabViewModel">
+            <Button x:Name="TabButton"
+                    Content="{Binding Label}"
+                    Padding="12,6"
+                    Margin="0,0,1,0"
+                    FontSize="12"
+                    CornerRadius="4,4,0,0"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
 
-    <!-- Node canvas (transformed: zoom + pan) -->
-    <controls:NodeCanvas x:Name="Canvas"
-                         Background="Transparent"/>
+    <!-- Canvas area -->
+    <Grid ClipToBounds="True">
+      <!-- Background grid (not transformed) -->
+      <controls:GridOverlay x:Name="GridOverlay" IsHitTestVisible="False"/>
 
-    <!-- Connection renderer (same transform as canvas) -->
-    <controls:ConnectionRenderer x:Name="ConnectionRenderer"
-                                  IsHitTestVisible="False"/>
+      <!-- Node canvas (transformed: zoom + pan) -->
+      <controls:NodeCanvas x:Name="Canvas"
+                           Background="Transparent"/>
 
-    <!-- Hint text -->
-    <TextBlock Text="Rechtsklick → Node hinzufügen  |  Scrollen zum Verschieben  |  Strg+Mausrad zum Zoomen  |  Alt+Ziehen zum Verschieben"
-               HorizontalAlignment="Center" VerticalAlignment="Bottom"
-               Foreground="#2A2A4E" FontSize="11" Margin="0,0,0,8"
-               IsHitTestVisible="False"/>
-  </Grid>
+      <!-- Connection renderer (same transform as canvas) -->
+      <controls:ConnectionRenderer x:Name="ConnectionRenderer"
+                                    IsHitTestVisible="False"/>
+
+      <!-- Hint text -->
+      <TextBlock Text="Rechtsklick → Node hinzufügen  |  Scrollen zum Verschieben  |  Strg+Mausrad zum Zoomen  |  Ausgangsport ziehen → Verbindung erstellen"
+                 HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                 Foreground="#2A2A4E" FontSize="11" Margin="0,0,0,8"
+                 IsHitTestVisible="False"/>
+    </Grid>
+  </DockPanel>
 </UserControl>

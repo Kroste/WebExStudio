@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using NLog;
 using WebExStudio.Core.Models;
-using WebExStudio.Core.Serialization;
 
 namespace WebExStudio.Engine.Actions;
 
@@ -11,39 +10,24 @@ public sealed class IfThenElseHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "if_then_else";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var condition = node.GetString("condition", "element_exists");
-        var selector = ctx.Fmt(node.GetString("selector"));
-        var value = ctx.Fmt(node.GetString("value"));
+        var condition = node.Get("condition", "element_exists");
+        var selector = ctx.Fmt(node.Get("selector"));
+        var value = ctx.Fmt(node.Get("value"));
         var regex = node.GetBool("regex");
         var negate = node.GetBool("negate");
 
         var result = await EvaluateCondition(ctx, condition, selector, value, regex);
         if (negate) result = !result;
-        Log.Debug("if_then_else: {0} selector='{1}' → {2}{3}", condition, selector, result, negate ? " (negiert)" : "");
+        Log.Debug("if_then_else: {0} selector='{1}' → {2}", condition, selector, result);
 
-        var branch = result ? node.GetSubActions("then") : node.GetSubActions("else");
-
-        // Fall back to external file if inline branch is empty
-        if (branch.Count == 0)
+        var tabId = result ? node.Get("thenTabId") : node.Get("elseTabId");
+        if (!string.IsNullOrEmpty(tabId))
         {
-            var fileKey = result ? "then_actions_file" : "else_actions_file";
-            var filePath = ctx.Fmt(node.GetString(fileKey));
-            if (!string.IsNullOrEmpty(filePath))
-            {
-                var fullPath = Path.IsPathRooted(filePath)
-                    ? filePath
-                    : Path.Combine(ctx.ProjectDir, filePath);
-                Log.Debug("if_then_else lädt Branch-Datei: {0}", fullPath);
-                var flow = await FlowSerializer.LoadAsync(fullPath);
-                branch = flow.Actions;
-            }
+            Log.Debug("if_then_else führt {0}-Tab aus: {1}", result ? "then" : "else", tabId);
+            await ctx.RunSubTab(tabId);
         }
-
-        Log.Debug("if_then_else führt {0}-Branch aus ({1} Aktionen)", result ? "then" : "else", branch.Count);
-        if (branch.Count > 0)
-            await ctx.RunSubActions(branch);
     }
 
     private static async Task<bool> EvaluateCondition(
@@ -99,27 +83,27 @@ public sealed class ForRangeHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "for_range";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var startStr = ctx.Fmt(node.GetString("start", "0"));
-        var endStr = ctx.Fmt(node.GetString("end", "0"));
-        var stepStr = ctx.Fmt(node.GetString("step", "1"));
-        var ctxKey = node.GetString("ctx_key", "i");
+        var startStr = ctx.Fmt(node.Get("start", "0"));
+        var endStr = ctx.Fmt(node.Get("end", "0"));
+        var stepStr = ctx.Fmt(node.Get("step", "1"));
+        var ctxKey = node.Get("ctx_key", "i");
         var exclusive = node.GetBool("exclusive");
+        var bodyTabId = node.Get("bodyTabId");
+
+        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         if (!int.TryParse(startStr, out var start)) start = 0;
         if (!int.TryParse(endStr, out var end)) end = 0;
         if (!int.TryParse(stepStr, out var step) || step == 0) step = 1;
 
-        var subActions = node.GetSubActions("actions");
-        if (subActions.Count == 0) return;
-
-        Log.Debug("for_range: {0}..{1} step={2} key={3} ({4} Aktionen)", start, end, step, ctxKey, subActions.Count);
+        Log.Debug("for_range: {0}..{1} step={2} key={3}", start, end, step, ctxKey);
         for (var i = start; exclusive ? i < end : i <= end; i += step)
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
             var child = ctx.CreateChild(new Dictionary<string, string> { [ctxKey] = i.ToString() });
-            await child.RunSubActions(subActions);
+            await child.RunSubTab(bodyTabId);
         }
     }
 }
@@ -129,15 +113,16 @@ public sealed class ForeachHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "foreach";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var itemsRaw = ctx.Fmt(node.GetString("items"));
-        var ctxKey = node.GetString("ctx_key", "item");
-        var subActions = node.GetSubActions("actions");
-        if (subActions.Count == 0) return;
+        var itemsRaw = ctx.Fmt(node.Get("items"));
+        var ctxKey = node.Get("ctx_key", "item");
+        var bodyTabId = node.Get("bodyTabId");
+
+        if (string.IsNullOrEmpty(bodyTabId)) return;
 
         var items = ParseItems(itemsRaw);
-        Log.Debug("foreach: {0} Items, key={1} ({2} Aktionen)", items.Count, ctxKey, subActions.Count);
+        Log.Debug("foreach: {0} Items, key={1}", items.Count, ctxKey);
 
         foreach (var (key, val) in items)
         {
@@ -145,7 +130,7 @@ public sealed class ForeachHandler : IActionHandler
             var extra = new Dictionary<string, string> { [ctxKey] = val };
             if (key != val) extra[$"{ctxKey}_key"] = key;
             var child = ctx.CreateChild(extra);
-            await child.RunSubActions(subActions);
+            await child.RunSubTab(bodyTabId);
         }
     }
 
@@ -172,7 +157,6 @@ public sealed class ForeachHandler : IActionHandler
             }
             catch { /* fall through */ }
         }
-        // Comma-separated
         return raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                   .Select((v, i) => (i.ToString(), v))
                   .ToList();
@@ -184,27 +168,27 @@ public sealed class CallHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "call";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var filePath = ctx.Fmt(node.GetString("file"));
-        if (string.IsNullOrEmpty(filePath))
-            filePath = ctx.Fmt(node.GetString("actions_file"));
+        var targetTabId = node.Get("targetTabId");
         var allowQuit = node.GetBool("allow_quit");
-        var fullPath = Path.IsPathRooted(filePath)
-            ? filePath
-            : Path.Combine(ctx.ProjectDir, filePath);
 
-        if (ctx.CallStack.Contains(fullPath))
-            throw new InvalidOperationException($"Rekursion erkannt: {fullPath}");
+        if (string.IsNullOrEmpty(targetTabId))
+        {
+            Log.Warn("call: kein targetTabId angegeben");
+            return;
+        }
 
-        Log.Info("call: Rufe Flow auf: {0}", fullPath);
-        var flow = await FlowSerializer.LoadAsync(fullPath);
-        var child = ctx.CreateCallChild(fullPath);
+        if (ctx.CallStack.Contains(targetTabId))
+            throw new InvalidOperationException($"Rekursion erkannt: Tab {targetTabId}");
+
+        Log.Info("call: Rufe Tab auf: {0}", targetTabId);
+        var child = ctx.CreateCallChild(targetTabId);
 
         try
         {
-            await child.RunSubActions(flow.Actions);
-            Log.Info("call: Flow abgeschlossen: {0}", Path.GetFileName(fullPath));
+            await child.RunSubTab(targetTabId);
+            Log.Info("call: Tab abgeschlossen: {0}", targetTabId);
         }
         catch (QuitException) when (!allowQuit)
         {
@@ -216,11 +200,11 @@ public sealed class CallHandler : IActionHandler
 public sealed class NoopHandler : IActionHandler
 {
     public string Type => "noop";
-    public Task ExecuteAsync(ExecutionContext ctx, ActionNode node) => Task.CompletedTask;
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) => Task.CompletedTask;
 }
 
 public sealed class QuitHandler : IActionHandler
 {
     public string Type => "quit";
-    public Task ExecuteAsync(ExecutionContext ctx, ActionNode node) => throw new QuitException();
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) => throw new QuitException();
 }

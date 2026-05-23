@@ -7,7 +7,7 @@ using WebExStudio.UI.ViewModels;
 namespace WebExStudio.UI.Controls;
 
 /// <summary>
-/// Zoomable/pannable canvas that renders nodes and bezier connections.
+/// Zoomable/pannable canvas that renders nodes and wire connections.
 /// Nodes are placed as child controls; the grid is drawn by the GridOverlay below.
 /// </summary>
 public sealed class NodeCanvas : Canvas
@@ -26,12 +26,21 @@ public sealed class NodeCanvas : Canvas
     private readonly ScaleTransform _zoom = new();
     private readonly TranslateTransform _pan = new();
 
-    // ── Drag state for nodes ─────────────────────────────────────────────
+    // ── Node drag state ──────────────────────────────────────────────────────
     private NodeViewModel? _draggingNode;
     private Point _dragStart;
     private Point _nodeStartPos;
 
+    // ── Wire drag state ──────────────────────────────────────────────────────
+    private NodeViewModel? _wireDragSource;
+    private int _wireDragOutputPort;
+    private Point _wireDragStartWorld;
+
     public GridOverlay? GridOverlay { get; set; }
+    public ConnectionRenderer? ConnectionRenderer { get; set; }
+
+    /// <summary>Fired when the user completes a wire drag from source → target node.</summary>
+    public event EventHandler<WireDropEventArgs>? WireDropped;
 
     /// <summary>The shared zoom+pan transform — assign to ConnectionRenderer.RenderTransform so both stay in sync.</summary>
     public TransformGroup WorldTransform => (TransformGroup)RenderTransform!;
@@ -60,12 +69,31 @@ public sealed class NodeCanvas : Canvas
     public Point CanvasToWorld(Point screen) =>
         new((screen.X - _panOffsetX) / _scale, (screen.Y - _panOffsetY) / _scale);
 
+    public Point WorldToCanvas(Point world) =>
+        new(world.X * _scale + _panOffsetX, world.Y * _scale + _panOffsetY);
+
     internal void BeginNodeDrag(NodeViewModel node, Point canvasPos, PointerPressedEventArgs e)
     {
         _draggingNode = node;
         _dragStart = CanvasToWorld(canvasPos);
         _nodeStartPos = new Point(node.X, node.Y);
         e.Pointer.Capture(this);
+    }
+
+    internal void BeginWireDrag(NodeViewModel source, int outputPort, PointerPressedEventArgs e)
+    {
+        _wireDragSource = source;
+        _wireDragOutputPort = outputPort;
+        _wireDragStartWorld = source.OutputPortPosition;
+        e.Pointer.Capture(this);
+    }
+
+    public bool IsWireDragging => _wireDragSource is not null;
+
+    public void CancelWireDrag()
+    {
+        _wireDragSource = null;
+        ConnectionRenderer?.ClearDragPreview();
     }
 
     public void FitToView(IEnumerable<Rect> nodeBounds)
@@ -108,6 +136,7 @@ public sealed class NodeCanvas : Canvas
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
         var pos = e.GetCurrentPoint(this).Position;
+
         if (_isPanning)
         {
             _panOffsetX += pos.X - _panStart.X;
@@ -117,19 +146,40 @@ public sealed class NodeCanvas : Canvas
             e.Handled = true;
             return;
         }
+
         if (_draggingNode is not null)
         {
             var world = CanvasToWorld(pos);
             _draggingNode.X = _nodeStartPos.X + (world.X - _dragStart.X);
             _draggingNode.Y = _nodeStartPos.Y + (world.Y - _dragStart.Y);
             e.Handled = true;
+            return;
+        }
+
+        if (_wireDragSource is not null && ConnectionRenderer is not null)
+        {
+            var worldPos = CanvasToWorld(pos);
+            ConnectionRenderer.SetDragPreview(_wireDragStartWorld, worldPos);
+            e.Handled = true;
         }
     }
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (_isPanning || _draggingNode is not null)
+        if (_wireDragSource is not null)
+        {
             e.Pointer.Capture(null);
+            var worldPos = CanvasToWorld(e.GetPosition(this));
+            WireDropped?.Invoke(this, new WireDropEventArgs(_wireDragSource, _wireDragOutputPort, worldPos));
+            _wireDragSource = null;
+            ConnectionRenderer?.ClearDragPreview();
+            e.Handled = true;
+        }
+        else if (_isPanning || _draggingNode is not null)
+        {
+            e.Pointer.Capture(null);
+        }
+
         _isPanning = false;
         _draggingNode = null;
     }
@@ -166,6 +216,13 @@ public sealed class NodeCanvas : Canvas
         _pan.Y = _panOffsetY;
         GridOverlay?.UpdateOffset(_panOffsetX, _panOffsetY, _scale);
     }
+}
+
+public sealed class WireDropEventArgs(NodeViewModel source, int outputPort, Point worldPos) : EventArgs
+{
+    public NodeViewModel Source { get; } = source;
+    public int OutputPort { get; } = outputPort;
+    public Point WorldPos { get; } = worldPos;
 }
 
 /// <summary>Draws the background dot-grid behind the canvas (not transformed, just offset).</summary>

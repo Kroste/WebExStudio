@@ -1,7 +1,7 @@
-using System;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -12,31 +12,33 @@ namespace WebExStudio.UI.Controls;
 
 /// <summary>
 /// Visual representation of a single node on the canvas.
-/// Renders as a rounded rectangle with icon, title, status indicator,
-/// and an expand/collapse button for nodes that have sub-actions.
+/// Extends Panel so that port circles can be positioned partly outside the node border.
 /// </summary>
-public sealed class NodeControl : Border
+public sealed class NodeControl : Panel
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    private const double PortRadius = 6;
+
     public NodeViewModel ViewModel { get; }
     public event EventHandler<NodeViewModel>? DeleteRequested;
+    public event EventHandler<(NodeViewModel vm, string slot)>? OpenSubTabRequested;
 
+    private readonly Border _border;
     private readonly Border _statusIndicator;
     private readonly TextBlock _titleLabel;
     private readonly Border _header;
-    private readonly Button? _expandBtn;
+    private readonly Ellipse? _inputPort;
+    private readonly Ellipse? _outputPort;
 
     public NodeControl(NodeViewModel vm)
     {
         ViewModel = vm;
         Width = vm.Width;
         Height = vm.Height;
-        CornerRadius = new CornerRadius(8);
-        BorderThickness = new Thickness(2);
         Cursor = new Cursor(StandardCursorType.SizeAll);
+        ClipToBounds = false;
 
-        // ── Status indicator (left strip) ───────────────────────────────────
         _statusIndicator = new Border
         {
             Width = 4,
@@ -44,35 +46,6 @@ public sealed class NodeControl : Border
             CornerRadius = new CornerRadius(6, 0, 0, 6),
         };
 
-        // ── Expand/collapse button (only for nodes with sub-actions) ─────────
-        if (vm.HasSubActions)
-        {
-            _expandBtn = new Button
-            {
-                Content = vm.IsExpanded ? "▼" : "▶",
-                Width = 22,
-                Height = 22,
-                Padding = new Thickness(0),
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontSize = 10,
-                Background = new SolidColorBrush(Color.Parse("#00000040")),
-                Foreground = Brushes.White,
-                BorderThickness = new Thickness(0),
-                CornerRadius = new CornerRadius(4),
-                Cursor = new Cursor(StandardCursorType.Hand),
-            };
-            _expandBtn.Click += (_, e) =>
-            {
-                vm.IsExpanded = !vm.IsExpanded;
-                Log.Info("Expand-Button geklickt: {0} ({1}) → IsExpanded={2}", vm.Id, vm.ActionType, vm.IsExpanded);
-                _expandBtn.Content = vm.IsExpanded ? "▼" : "▶";
-                e.Handled = true;
-            };
-        }
-
-        // ── Title label ──────────────────────────────────────────────────────
         _titleLabel = new TextBlock
         {
             VerticalAlignment = VerticalAlignment.Center,
@@ -82,78 +55,153 @@ public sealed class NodeControl : Border
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
 
-        // ── Header with icon + title (+ optional expand button) ──────────────
-        var headerContent = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-        };
-        var iconAndTitle = new StackPanel
-        {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            Spacing = 6,
-            VerticalAlignment = VerticalAlignment.Center,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = vm.Icon,
-                    FontSize = 16,
-                    VerticalAlignment = VerticalAlignment.Center,
-                },
-                _titleLabel,
-            }
-        };
-        Grid.SetColumn(iconAndTitle, 0);
-        headerContent.Children.Add(iconAndTitle);
-
-        if (_expandBtn is not null)
-        {
-            Grid.SetColumn(_expandBtn, 1);
-            headerContent.Children.Add(_expandBtn);
-        }
-
         _header = new Border
         {
             CornerRadius = new CornerRadius(6, 6, 0, 0),
             Padding = new Thickness(8, 0, 4, 0),
-            Child = headerContent,
+            Child = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 6,
+                VerticalAlignment = VerticalAlignment.Center,
+                Children =
+                {
+                    new TextBlock { Text = vm.Icon, FontSize = 16, VerticalAlignment = VerticalAlignment.Center },
+                    _titleLabel,
+                }
+            }
         };
 
-        Child = new Grid
+        _border = new Border
         {
-            ColumnDefinitions = new ColumnDefinitions("4,*"),
-            Children =
+            CornerRadius = new CornerRadius(8),
+            BorderThickness = new Thickness(2),
+            Child = new Grid
             {
-                _statusIndicator,
-                new DockPanel
+                ColumnDefinitions = new ColumnDefinitions("4,*"),
+                Children =
                 {
-                    [Grid.ColumnProperty] = 1,
-                    Children =
+                    _statusIndicator,
+                    new DockPanel
                     {
-                        _header,
-                        new TextBlock
+                        [Grid.ColumnProperty] = 1,
+                        Children =
                         {
-                            [DockPanel.DockProperty] = Dock.Bottom,
-                            Text = vm.ActionType,
-                            FontSize = 10,
-                            Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
-                            Margin = new Thickness(8, 2, 8, 4),
+                            _header,
+                            new TextBlock
+                            {
+                                [DockPanel.DockProperty] = Dock.Bottom,
+                                Text = vm.ActionType,
+                                FontSize = 10,
+                                Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
+                                Margin = new Thickness(8, 2, 8, 4),
+                            }
                         }
                     }
                 }
             }
         };
+        Children.Add(_border);
 
-        ContextMenu = BuildContextMenu();
+        // Input port circle (top-center)
+        if (vm.Definition.InputPorts > 0)
+        {
+            _inputPort = MakePortEllipse();
+            Children.Add(_inputPort);
+        }
+
+        // Output port circle (bottom-center)
+        if (vm.Definition.OutputPorts > 0)
+        {
+            _outputPort = MakePortEllipse();
+            Children.Add(_outputPort);
+        }
+
+        ContextMenu = BuildContextMenu(vm);
         vm.PropertyChanged += OnVmPropertyChanged;
+        PointerMoved += OnPointerMoved;
+        PointerExited += OnPointerExited;
         UpdateVisuals();
     }
 
-    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private static Ellipse MakePortEllipse() => new()
     {
-        if (e.PropertyName == nameof(NodeViewModel.IsExpanded) && _expandBtn is not null)
-            _expandBtn.Content = ViewModel.IsExpanded ? "▼" : "▶";
-        else if (e.PropertyName is nameof(NodeViewModel.IsSelected)
+        Width = PortRadius * 2,
+        Height = PortRadius * 2,
+        Fill = new SolidColorBrush(Color.Parse("#90A4AE")),
+        Stroke = Brushes.DarkGray,
+        StrokeThickness = 1.5,
+        IsHitTestVisible = false,
+    };
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        _border.Measure(availableSize);
+        _inputPort?.Measure(availableSize);
+        _outputPort?.Measure(availableSize);
+        return new Size(Width, Height);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        _border.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
+
+        var cx = finalSize.Width / 2 - PortRadius;
+        if (_inputPort is not null)
+            _inputPort.Arrange(new Rect(cx, -PortRadius, PortRadius * 2, PortRadius * 2));
+        if (_outputPort is not null)
+            _outputPort.Arrange(new Rect(cx, finalSize.Height - PortRadius, PortRadius * 2, PortRadius * 2));
+
+        return finalSize;
+    }
+
+    // ── Port hit-test ─────────────────────────────────────────────────────────
+
+    public bool IsOnOutputPort(Point localPos)
+    {
+        var cx = Width / 2;
+        var cy = Height;
+        return Distance(localPos, cx, cy) <= PortRadius + 3;
+    }
+
+    public bool IsOnInputPort(Point localPos)
+    {
+        var cx = Width / 2;
+        const double cy = 0;
+        return Distance(localPos, cx, cy) <= PortRadius + 3;
+    }
+
+    private static double Distance(Point p, double x, double y) =>
+        Math.Sqrt(Math.Pow(p.X - x, 2) + Math.Pow(p.Y - y, 2));
+
+    // ── Events ────────────────────────────────────────────────────────────────
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        var pos = e.GetPosition(this);
+        var onPort = IsOnOutputPort(pos) || IsOnInputPort(pos);
+        Cursor = onPort ? new Cursor(StandardCursorType.Cross) : new Cursor(StandardCursorType.SizeAll);
+
+        if (_outputPort is not null)
+            _outputPort.Fill = IsOnOutputPort(pos)
+                ? Brushes.White
+                : new SolidColorBrush(Color.Parse("#90A4AE"));
+        if (_inputPort is not null)
+            _inputPort.Fill = IsOnInputPort(pos)
+                ? Brushes.White
+                : new SolidColorBrush(Color.Parse("#90A4AE"));
+    }
+
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        Cursor = new Cursor(StandardCursorType.SizeAll);
+        if (_outputPort is not null) _outputPort.Fill = new SolidColorBrush(Color.Parse("#90A4AE"));
+        if (_inputPort is not null) _inputPort.Fill = new SolidColorBrush(Color.Parse("#90A4AE"));
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(NodeViewModel.IsSelected)
             or nameof(NodeViewModel.IsActive)
             or nameof(NodeViewModel.Status)
             or nameof(NodeViewModel.StatusColor)
@@ -168,7 +216,7 @@ public sealed class NodeControl : Border
         var baseColor = Color.Parse(ViewModel.Color);
         var statusColor = Color.Parse(ViewModel.StatusColor);
 
-        Background = new SolidColorBrush(Color.FromArgb(220,
+        _border.Background = new SolidColorBrush(Color.FromArgb(220,
             (byte)(baseColor.R / 3),
             (byte)(baseColor.G / 3),
             (byte)(baseColor.B / 3)));
@@ -181,34 +229,48 @@ public sealed class NodeControl : Border
 
         if (ViewModel.IsActive)
         {
-            BorderBrush = new SolidColorBrush(Color.Parse("#FFC107"));
-            BoxShadow = new BoxShadows(new BoxShadow
-            {
-                Blur = 12, Color = Color.Parse("#FFC107"),
-                OffsetX = 0, OffsetY = 0, IsInset = false,
-            });
+            _border.BorderBrush = new SolidColorBrush(Color.Parse("#FFC107"));
+            _border.BoxShadow = new BoxShadows(new BoxShadow { Blur = 12, Color = Color.Parse("#FFC107") });
         }
         else if (ViewModel.IsSelected)
         {
-            BorderBrush = new SolidColorBrush(Colors.White);
-            BoxShadow = BoxShadows.Parse("0 0 8 #FFFFFF44");
+            _border.BorderBrush = new SolidColorBrush(Colors.White);
+            _border.BoxShadow = BoxShadows.Parse("0 0 8 #FFFFFF44");
         }
         else
         {
-            BorderBrush = new SolidColorBrush(Color.Parse(ViewModel.Color));
-            BoxShadow = BoxShadows.Parse("0 2 6 #00000066");
+            _border.BorderBrush = new SolidColorBrush(Color.Parse(ViewModel.Color));
+            _border.BoxShadow = BoxShadows.Parse("0 2 6 #00000066");
         }
     }
 
-    private ContextMenu BuildContextMenu()
+    private ContextMenu BuildContextMenu(NodeViewModel vm)
     {
         var menu = new ContextMenu();
+
+        foreach (var slot in vm.Definition.SubFlowSlots)
+        {
+            var s = slot;
+            var label = s switch
+            {
+                "then" => "Then-Tab öffnen",
+                "else" => "Else-Tab öffnen",
+                "body" => "Body-Tab öffnen",
+                _ => $"{s}-Tab öffnen",
+            };
+            var item = new MenuItem { Header = $"📂 {label}" };
+            item.Click += (_, _) => OpenSubTabRequested?.Invoke(this, (vm, s));
+            menu.Items.Add(item);
+        }
+
+        if (vm.Definition.SubFlowSlots.Length > 0)
+            menu.Items.Add(new Separator());
 
         var deleteItem = new MenuItem { Header = "🗑 Node löschen" };
         deleteItem.Click += (_, _) =>
         {
-            Log.Info("Node-Kontextmenü: Löschen {0} ({1})", ViewModel.Id, ViewModel.ActionType);
-            DeleteRequested?.Invoke(this, ViewModel);
+            Log.Info("Node löschen: {0} ({1})", vm.Id, vm.ActionType);
+            DeleteRequested?.Invoke(this, vm);
         };
         menu.Items.Add(deleteItem);
 

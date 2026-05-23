@@ -9,12 +9,12 @@ public sealed class ClickHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "click";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var selector = ctx.Fmt(node.GetString("selector"));
+        var selector = ctx.Fmt(node.Get("selector"));
         if (string.IsNullOrEmpty(selector))
-            selector = ctx.Fmt(node.GetString("xpath"));
-        var text = ctx.Fmt(node.GetString("text"));
+            selector = ctx.Fmt(node.Get("xpath"));
+        var text = ctx.Fmt(node.Get("text"));
         var scroll = node.GetBool("scroll", true);
 
         ILocator locator;
@@ -41,15 +41,15 @@ public sealed class SendKeysHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "send_keys";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var selector = ctx.Fmt(node.GetString("selector"));
+        var selector = ctx.Fmt(node.Get("selector"));
         if (string.IsNullOrEmpty(selector))
         {
-            var name = ctx.Fmt(node.GetString("name"));
+            var name = ctx.Fmt(node.Get("name"));
             if (!string.IsNullOrEmpty(name)) selector = $"[name=\"{name}\"]";
         }
-        var value = ctx.Fmt(node.GetString("value"));
+        var value = ctx.Fmt(node.Get("value"));
         var clear = node.GetBool("clear", true);
         var append = node.GetBool("append", false);
 
@@ -68,11 +68,11 @@ public sealed class WaitForHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "wait_for";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var selector = ctx.Fmt(node.GetString("selector"));
-        var timeoutMs = int.TryParse(node.GetString("timeout_ms"), out var t) ? t : ctx.Config.TimeoutMs;
-        var stateStr = node.GetString("state", "visible");
+        var selector = ctx.Fmt(node.Get("selector"));
+        var timeoutMs = int.TryParse(node.Get("timeout_ms"), out var t) ? t : ctx.Config.TimeoutMs;
+        var stateStr = node.Get("state", "visible");
 
         var state = stateStr.ToLowerInvariant() switch
         {
@@ -92,9 +92,9 @@ public sealed class SleepHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "sleep";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var secStr = ctx.Fmt(node.GetString("seconds", "1"));
+        var secStr = ctx.Fmt(node.Get("seconds", "1"));
         if (double.TryParse(secStr, System.Globalization.NumberStyles.Any,
                 System.Globalization.CultureInfo.InvariantCulture, out var sec))
         {
@@ -109,15 +109,15 @@ public sealed class MenuPathHandler : IActionHandler
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public string Type => "menu_path";
 
-    public async Task ExecuteAsync(ExecutionContext ctx, ActionNode node)
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var pathStr = ctx.Fmt(node.GetString("path"));
-        var prefix = ctx.Fmt(node.GetString("selector_prefix", ""));
+        var pathStr = ctx.Fmt(node.Get("path"));
+        var prefix = ctx.Fmt(node.Get("selector_prefix", ""));
         string[] parts;
         if (!string.IsNullOrEmpty(pathStr))
             parts = pathStr.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         else
-            parts = node.GetStringArray("items").Select(ctx.Fmt).ToArray();
+            parts = node.GetStringList("items").Select(ctx.Fmt).ToArray();
         if (parts.Length == 0) return;
 
         Log.Debug("Menüpfad: {0}", string.Join(" > ", parts));
