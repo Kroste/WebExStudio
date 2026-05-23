@@ -91,6 +91,37 @@ public sealed class SetPayloadHandler : IActionHandler
     }
 }
 
+public sealed class DebugHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "debug";
+
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var source = node.Get("source", "payload").ToLowerInvariant();
+        var key = node.Get("key");
+        var label = node.Get("label");
+
+        string Render(IReadOnlyDictionary<string, string> d) =>
+            !string.IsNullOrEmpty(key)
+                ? $"{key}={(d.TryGetValue(key, out var v) ? v : "")}"
+                : System.Text.Json.JsonSerializer.Serialize(d);
+
+        var body = source switch
+        {
+            "ctx" => "ctx " + Render(ctx.ContextSnapshot()),
+            "both" => "payload " + Render(ctx.Payload) + " | ctx " + Render(ctx.ContextSnapshot()),
+            _ => "payload " + Render(ctx.Payload),
+        };
+        var msg = string.IsNullOrEmpty(label) ? body : $"{label}: {body}";
+
+        Log.Info("debug: {0}", msg);
+        ctx.Report(new TraceEntry(node.Id, "debug", ExecutionStatus.Success,
+            DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), Message: msg));
+        return Task.CompletedTask;
+    }
+}
+
 public sealed class ReadFileHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();

@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -9,7 +10,15 @@ namespace WebExStudio.UI.Views;
 
 public partial class NodePaletteView : UserControl
 {
+    /// <summary>DataObject format used to carry a node type from the palette to the canvas.</summary>
+    public const string NodeTypeFormat = "webex/node-type";
+
     private string _search = string.Empty;
+
+    // Drag-gesture state (only one palette item is interacted with at a time)
+    private NodeDefinition? _dragDef;
+    private Point _dragStart;
+    private bool _dragging;
 
     public NodePaletteView()
     {
@@ -50,11 +59,37 @@ public partial class NodePaletteView : UserControl
             {
                 var d = def;
                 var item = BuildPaletteItem(d);
+
                 item.PointerPressed += (_, e) =>
                 {
-                    if (e.GetCurrentPoint(item).Properties.IsLeftButtonPressed)
-                        MainVm?.FlowEditor.AddNode(d.Type, 200, 80 + MainVm.FlowEditor.Nodes.Count * 90.0);
+                    if (!e.GetCurrentPoint(item).Properties.IsLeftButtonPressed) return;
+                    _dragDef = d;
+                    _dragStart = e.GetPosition(item);
+                    _dragging = false;
                 };
+
+                item.PointerMoved += async (_, e) =>
+                {
+                    if (_dragDef != d || _dragging) return;
+                    if (!e.GetCurrentPoint(item).Properties.IsLeftButtonPressed) return;
+                    var p = e.GetPosition(item);
+                    if (Math.Abs(p.X - _dragStart.X) < 4 && Math.Abs(p.Y - _dragStart.Y) < 4) return;
+
+                    _dragging = true;
+                    var data = new DataObject();
+                    data.Set(NodeTypeFormat, d.Type);
+                    await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
+                    _dragDef = null;
+                };
+
+                item.PointerReleased += (_, _) =>
+                {
+                    // Plain click (no drag) → add at a cascading default position
+                    if (_dragDef == d && !_dragging)
+                        MainVm?.FlowEditor.AddNode(d.Type, 200, 80 + MainVm.FlowEditor.Nodes.Count * 90.0);
+                    if (_dragDef == d) { _dragDef = null; _dragging = false; }
+                };
+
                 PaletteContent.Children.Add(item);
             }
         }

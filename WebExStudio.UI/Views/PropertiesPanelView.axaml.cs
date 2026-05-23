@@ -157,24 +157,27 @@ public partial class PropertiesPanelView : UserControl
         {
             tb.TextChanged += (_, _) =>
             {
-                if (_currentNode is not null)
-                    _currentNode.Model.Config[key] = tb.Text ?? string.Empty;
+                if (_currentNode is null) return;
+                _currentNode.Model.Config[key] = tb.Text ?? string.Empty;
+                _flowEditor?.MarkDirty();
             };
         }
         else if (editor is CheckBox cb)
         {
             cb.IsCheckedChanged += (_, _) =>
             {
-                if (_currentNode is not null)
-                    _currentNode.Model.Config[key] = (cb.IsChecked == true).ToString().ToLowerInvariant();
+                if (_currentNode is null) return;
+                _currentNode.Model.Config[key] = (cb.IsChecked == true).ToString().ToLowerInvariant();
+                _flowEditor?.MarkDirty();
             };
         }
         else if (editor is NumericUpDown nud)
         {
             nud.ValueChanged += (_, _) =>
             {
-                if (_currentNode is not null)
-                    _currentNode.Model.Config[key] = ((long)(nud.Value ?? 0)).ToString();
+                if (_currentNode is null) return;
+                _currentNode.Model.Config[key] = ((long)(nud.Value ?? 0)).ToString();
+                _flowEditor?.MarkDirty();
             };
         }
     }

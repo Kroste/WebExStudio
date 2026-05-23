@@ -22,6 +22,15 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public RunConfig RunConfig { get; } = new();
 
+    public MainWindowViewModel()
+    {
+        FlowEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(FlowEditorViewModel.Document) or nameof(FlowEditorViewModel.CanSave))
+                this.RaisePropertyChanged(nameof(CanRun));
+        };
+    }
+
     public bool IsRunning
     {
         get => _isRunning;
@@ -33,7 +42,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public bool CanRun => !IsRunning && Targets.Any(t => t.Enabled);
+    public bool CanRun => !IsRunning && (Targets.Any(t => t.Enabled) || FlowEditor.Document is not null);
     public bool CanStop => IsRunning;
 
     public string StatusText
@@ -97,8 +106,20 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var targetConfigs = Targets.Where(t => t.Enabled).Select(t => t.Model).ToList();
-            await executor.RunProjectAsync(RunConfig, targetConfigs, progress, _runCts.Token);
+            var enabled = Targets.Where(t => t.Enabled).Select(t => t.Model).ToList();
+            if (enabled.Count > 0)
+            {
+                await executor.RunProjectAsync(RunConfig, enabled, progress, _runCts.Token);
+            }
+            else if (FlowEditor.Document is { } doc)
+            {
+                if (string.IsNullOrEmpty(RunConfig.ProjectDir))
+                    RunConfig.ProjectDir = doc.FilePath is { } fp
+                        ? Path.GetDirectoryName(fp) ?? Environment.CurrentDirectory
+                        : Environment.CurrentDirectory;
+                var target = new TargetConfig { Name = "Lokal", Enabled = true };
+                await executor.RunDocumentAsync(doc, RunConfig, target, progress, _runCts.Token);
+            }
             StatusText = "Ausführung abgeschlossen";
         }
         catch (OperationCanceledException)

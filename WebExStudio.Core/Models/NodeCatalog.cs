@@ -210,6 +210,18 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "debug", DisplayName = "Debug-Ausgabe", Category = "Daten",
+            Description = "Gibt Payload/Kontext im Ausführungsprotokoll aus.",
+            Color = "#00838F", Icon = "🐞",
+            Properties =
+            [
+                new() { Key = "source", Label = "Quelle (payload/ctx/both)", Kind = PropertyKind.Dropdown, DefaultValue = "payload" },
+                new() { Key = "key", Label = "Nur Schlüssel (optional)", Kind = PropertyKind.Text },
+                new() { Key = "label", Label = "Label (optional)", Kind = PropertyKind.Text },
+            ]
+        },
+        new()
+        {
             Type = "set_payload", DisplayName = "Payload setzen", Category = "Daten",
             Description = "Setzt einen Schlüssel im Payload-Objekt, das durch Verbindungen fließt.",
             Color = "#00695C", Icon = "📦",

@@ -63,6 +63,39 @@ public sealed class FlowExecutor
     }
 
     /// <summary>
+    /// Runs an in-memory document directly (no project/targets), opening its own browser.
+    /// Used to execute the flow currently open in the editor against a default target.
+    /// </summary>
+    public async Task RunDocumentAsync(
+        FlowDocument2 doc,
+        RunConfig config,
+        TargetConfig target,
+        IProgress<TraceEntry>? progress = null,
+        CancellationToken ct = default)
+    {
+        using var playwright = await Playwright.CreateAsync();
+        var browser = await LaunchBrowserAsync(playwright, config);
+        try
+        {
+            var page = await browser.NewPageAsync();
+            try
+            {
+                var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct);
+                await ExecuteWiredAsync(doc, mainTab.Id, ctx);
+            }
+            finally
+            {
+                await page.CloseAsync();
+            }
+        }
+        finally
+        {
+            await browser.CloseAsync();
+        }
+    }
+
+    /// <summary>
     /// Executes nodes on a wired (main canvas) tab in topological order.
     /// Entry nodes are those with no incoming wires.
     /// </summary>

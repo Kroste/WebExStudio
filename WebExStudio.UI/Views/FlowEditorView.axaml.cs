@@ -13,16 +13,29 @@ public partial class FlowEditorView : UserControl
 
     private FlowEditorViewModel? Vm => DataContext as FlowEditorViewModel;
     private readonly Dictionary<string, NodeControl> _nodeControls = [];
+    private WireViewModel? _selectedWire;
 
     public FlowEditorView()
     {
         InitializeComponent();
+        Focusable = true;
         Canvas.GridOverlay = GridOverlay;
         Canvas.ConnectionRenderer = ConnectionRenderer;
         ConnectionRenderer.RenderTransform = Canvas.WorldTransform;
         Canvas.WireDropped += OnWireDropped;
         DataContextChanged += OnDataContextChanged;
         PointerPressed += OnCanvasPointerPressed;
+
+        // Palette drag-and-drop target
+        DragDrop.SetAllowDrop(Canvas, true);
+        Canvas.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        Canvas.AddHandler(DragDrop.DropEvent, OnDrop);
+    }
+
+    private void SelectWire(WireViewModel? wire)
+    {
+        _selectedWire = wire;
+        ConnectionRenderer.SelectedWire = wire;
     }
 
     public void ResetView() => Canvas.ResetView();
@@ -51,8 +64,17 @@ public partial class FlowEditorView : UserControl
             RefreshConnections();
     }
 
+    // The Nodes collection we're currently observing for add/remove (palette + right-click).
+    private System.Collections.Specialized.INotifyCollectionChanged? _observedNodes;
+
     private void RebuildCanvas()
     {
+        // Stop observing the previous tab's collection
+        if (_observedNodes is not null)
+            _observedNodes.CollectionChanged -= OnNodesCollectionChanged;
+        _observedNodes = null;
+
+        SelectWire(null);
         Canvas.Children.Clear();
         _nodeControls.Clear();
 
@@ -64,9 +86,37 @@ public partial class FlowEditorView : UserControl
             AddNodeControl(nodeVm);
 
         RefreshConnections();
-
-        // Rebuild tab bar button styles
         UpdateTabButtonStyles();
+
+        // Observe the active tab's node collection so additions from any source render
+        _observedNodes = Vm.ActiveTab.Nodes;
+        _observedNodes.CollectionChanged += OnNodesCollectionChanged;
+    }
+
+    private void OnNodesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case System.Collections.Specialized.NotifyCollectionChangedAction.Add when e.NewItems is not null:
+                foreach (NodeViewModel vm in e.NewItems)
+                    if (!_nodeControls.ContainsKey(vm.Id))
+                        AddNodeControl(vm);
+                break;
+            case System.Collections.Specialized.NotifyCollectionChangedAction.Remove when e.OldItems is not null:
+                foreach (NodeViewModel vm in e.OldItems)
+                    if (_nodeControls.Remove(vm.Id, out var ctrl))
+                        Canvas.Children.Remove(ctrl);
+                break;
+            default:
+                // Reset / Replace / Move — rebuild controls without touching the subscription
+                Canvas.Children.Clear();
+                _nodeControls.Clear();
+                if (Vm?.ActiveTab is not null)
+                    foreach (var vm in Vm.ActiveTab.Nodes)
+                        AddNodeControl(vm);
+                break;
+        }
+        RefreshConnections();
     }
 
     private void AddNodeControl(NodeViewModel nodeVm)
@@ -99,6 +149,8 @@ public partial class FlowEditorView : UserControl
         if (sender is not NodeControl ctrl || Vm is null) return;
         Log.Debug("Node ausgewählt: {0} ({1})", ctrl.ViewModel.Id, ctrl.ViewModel.ActionType);
         Vm.SelectedNode = ctrl.ViewModel;
+        SelectWire(null);
+        Focus();
 
         var pos = e.GetPosition(ctrl);
 
@@ -175,8 +227,9 @@ public partial class FlowEditorView : UserControl
 
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!e.GetCurrentPoint(this).Properties.IsRightButtonPressed) return;
+        if (Vm is null) return;
 
+        // Ignore clicks that originated on a node (handled in OnNodePointerPressed)
         var elem = e.Source as Avalonia.StyledElement;
         while (elem is not null)
         {
@@ -184,8 +237,79 @@ public partial class FlowEditorView : UserControl
             elem = elem.Parent;
         }
 
-        ShowAddNodeMenu(e.GetPosition(Canvas));
-        e.Handled = true;
+        Focus();
+        var props = e.GetCurrentPoint(this).Properties;
+        var canvasPos = e.GetPosition(Canvas);
+        var hitWire = ConnectionRenderer.HitTest(Canvas.CanvasToWorld(canvasPos));
+
+        if (props.IsRightButtonPressed)
+        {
+            if (hitWire is not null)
+                ShowWireMenu(hitWire);
+            else
+                ShowAddNodeMenu(canvasPos);
+            e.Handled = true;
+        }
+        else if (props.IsLeftButtonPressed)
+        {
+            SelectWire(hitWire);
+            if (hitWire is not null) e.Handled = true;
+        }
+    }
+
+    private void ShowWireMenu(WireViewModel wire)
+    {
+        SelectWire(wire);
+        var menu = new ContextMenu();
+        var del = new MenuItem { Header = "🗑 Verbindung löschen" };
+        del.Click += (_, _) =>
+        {
+            Log.Info("Verbindung löschen: {0} → {1}", wire.SourceNodeId, wire.TargetNodeId);
+            Vm?.RemoveWire(wire);
+            SelectWire(null);
+            RefreshConnections();
+        };
+        menu.Items.Add(del);
+        menu.Open(this);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key is Key.Delete or Key.Back)
+        {
+            if (_selectedWire is not null)
+            {
+                Log.Info("Verbindung löschen (Taste): {0} → {1}", _selectedWire.SourceNodeId, _selectedWire.TargetNodeId);
+                Vm?.RemoveWire(_selectedWire);
+                SelectWire(null);
+                RefreshConnections();
+                e.Handled = true;
+            }
+            else if (Vm?.SelectedNode is { } node)
+            {
+                Log.Info("Node löschen (Taste): {0} ({1})", node.Id, node.ActionType);
+                Vm.DeleteNode(node);
+                RebuildCanvas();
+                e.Handled = true;
+            }
+        }
+        base.OnKeyDown(e);
+    }
+
+    // ── Palette drag-and-drop ─────────────────────────────────────────────────
+
+    private void OnDragOver(object? sender, DragEventArgs e) =>
+        e.DragEffects = e.Data.Contains(NodePaletteView.NodeTypeFormat)
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        if (Vm is null) return;
+        if (e.Data.Get(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
+        var world = Canvas.CanvasToWorld(e.GetPosition(Canvas));
+        Log.Info("Node per Drag&Drop hinzufügen: {0} @ ({1:F0},{2:F0})", type, world.X, world.Y);
+        Vm.AddNode(type, world.X - 100, world.Y - 30); // center node on cursor
     }
 
     private void ShowAddNodeMenu(Point canvasPos)
@@ -204,12 +328,8 @@ public partial class FlowEditorView : UserControl
                 item.Click += (_, _) =>
                 {
                     Log.Info("Node hinzufügen: {0} @ ({1:F0},{2:F0})", d.Type, worldPos.X, worldPos.Y);
-                    var vm = Vm?.AddNode(d.Type, worldPos.X, worldPos.Y);
-                    if (vm is not null)
-                    {
-                        AddNodeControl(vm);
-                        RefreshConnections();
-                    }
+                    // AddNode raises CollectionChanged → OnNodesCollectionChanged renders the control.
+                    Vm?.AddNode(d.Type, worldPos.X, worldPos.Y);
                 };
                 header.Items.Add(item);
             }

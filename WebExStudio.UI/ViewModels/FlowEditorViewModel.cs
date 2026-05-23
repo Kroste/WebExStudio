@@ -18,8 +18,15 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public FlowDocument2? Document
     {
         get => _document;
-        private set => this.RaiseAndSetIfChanged(ref _document, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _document, value);
+            this.RaisePropertyChanged(nameof(CanSave));
+        }
     }
+
+    /// <summary>True when there's a document that can be saved.</summary>
+    public bool CanSave => Document is not null;
 
     public ObservableCollection<FlowTabViewModel> Tabs { get; } = [];
 
@@ -249,6 +256,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
         Document.Nodes.Add(node);
         var vm = new NodeViewModel(node);
         _activeTab.Nodes.Add(vm);
+        SelectedNode = vm;
         MarkDirty();
         Log.Debug("Node hinzugefügt: {0} @ ({1:F0},{2:F0})", type, x, y);
         return vm;
@@ -321,7 +329,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
             }
     }
 
-    private void MarkDirty()
+    public void MarkDirty()
     {
         IsDirty = true;
         this.RaisePropertyChanged(nameof(Title));

@@ -39,6 +39,7 @@ public sealed class ActionRegistry
         r.Register(new GetValueHandler());
         r.Register(new SetCtxHandler());
         r.Register(new SetPayloadHandler());
+        r.Register(new DebugHandler());
         r.Register(new ReadFileHandler());
         r.Register(new WriteFileHandler());
         r.Register(new DownloadUrlHandler());

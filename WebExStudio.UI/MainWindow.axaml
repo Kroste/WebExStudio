@@ -21,7 +21,7 @@
         <Button Content="📂 Projekt öffnen" Click="OnOpenProject" Padding="8,4"/>
         <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
         <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
-                IsEnabled="{Binding FlowEditor.IsDirty}"/>
+                IsEnabled="{Binding FlowEditor.CanSave}"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 

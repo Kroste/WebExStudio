@@ -15,6 +15,71 @@ public sealed class ConnectionRenderer : Control
     private Dictionary<string, NodeViewModel> _nodeMap = new();
     private Point? _dragFrom;
     private Point? _dragTo;
+    private WireViewModel? _selectedWire;
+
+    public WireViewModel? SelectedWire
+    {
+        get => _selectedWire;
+        set { _selectedWire = value; InvalidateVisual(); }
+    }
+
+    /// <summary>Returns the wire nearest to <paramref name="world"/> within the threshold, or null.</summary>
+    public WireViewModel? HitTest(Point world, double threshold = 10)
+    {
+        foreach (var wire in _wires)
+        {
+            if (!_nodeMap.TryGetValue(wire.SourceNodeId, out var src)) continue;
+            if (!_nodeMap.TryGetValue(wire.TargetNodeId, out var tgt)) continue;
+            if (DistanceToWire(world, src.OutputPortPosition, tgt.InputPortPosition) <= threshold)
+                return wire;
+        }
+        return null;
+    }
+
+    private static double DistanceToWire(Point p, Point from, Point to)
+    {
+        var dy = Math.Abs(to.Y - from.Y) * 0.6 + 30;
+        var c1 = new Point(from.X, from.Y + dy);
+        var c2 = new Point(to.X, to.Y - dy);
+
+        const int steps = 20;
+        var best = double.MaxValue;
+        var prev = from;
+        for (var i = 1; i <= steps; i++)
+        {
+            var t = (double)i / steps;
+            var pt = CubicBezier(from, c1, c2, to, t);
+            best = Math.Min(best, DistanceToSegment(p, prev, pt));
+            prev = pt;
+        }
+        return best;
+    }
+
+    private static Point CubicBezier(Point p0, Point p1, Point p2, Point p3, double t)
+    {
+        var u = 1 - t;
+        var w0 = u * u * u;
+        var w1 = 3 * u * u * t;
+        var w2 = 3 * u * t * t;
+        var w3 = t * t * t;
+        return new Point(
+            w0 * p0.X + w1 * p1.X + w2 * p2.X + w3 * p3.X,
+            w0 * p0.Y + w1 * p1.Y + w2 * p2.Y + w3 * p3.Y);
+    }
+
+    private static double DistanceToSegment(Point p, Point a, Point b)
+    {
+        var dx = b.X - a.X;
+        var dy = b.Y - a.Y;
+        var lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-6) return Distance(p, a);
+        var t = Math.Clamp(((p.X - a.X) * dx + (p.Y - a.Y) * dy) / lenSq, 0, 1);
+        var proj = new Point(a.X + t * dx, a.Y + t * dy);
+        return Distance(p, proj);
+    }
+
+    private static double Distance(Point a, Point b) =>
+        Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
 
     public void Update(IEnumerable<WireViewModel> wires, IEnumerable<NodeViewModel> nodes)
     {
@@ -44,15 +109,15 @@ public sealed class ConnectionRenderer : Control
         {
             if (!_nodeMap.TryGetValue(wire.SourceNodeId, out var src)) continue;
             if (!_nodeMap.TryGetValue(wire.TargetNodeId, out var tgt)) continue;
-            DrawWire(ctx, src.OutputPortPosition, tgt.InputPortPosition, false);
+            DrawWire(ctx, src.OutputPortPosition, tgt.InputPortPosition, false, wire == _selectedWire);
         }
 
         // Draw drag preview
         if (_dragFrom.HasValue && _dragTo.HasValue)
-            DrawWire(ctx, _dragFrom.Value, _dragTo.Value, true);
+            DrawWire(ctx, _dragFrom.Value, _dragTo.Value, true, false);
     }
 
-    private static void DrawWire(DrawingContext ctx, Point from, Point to, bool isPreview)
+    private static void DrawWire(DrawingContext ctx, Point from, Point to, bool isPreview, bool isSelected)
     {
         var dy = Math.Abs(to.Y - from.Y) * 0.6 + 30;
         var c1 = new Point(from.X, from.Y + dy);
@@ -63,8 +128,10 @@ public sealed class ConnectionRenderer : Control
         (figure.Segments ??= []).Add(new BezierSegment { Point1 = c1, Point2 = c2, Point3 = to });
         (geo.Figures ??= []).Add(figure);
 
-        var color = isPreview ? Color.Parse("#FFFFFF88") : Color.Parse("#90A4AE");
-        var pen = new Pen(new SolidColorBrush(color), 2.0)
+        var color = isPreview ? Color.Parse("#FFFFFF88")
+                  : isSelected ? Color.Parse("#FF5252")
+                  : Color.Parse("#90A4AE");
+        var pen = new Pen(new SolidColorBrush(color), isSelected ? 3.0 : 2.0)
         {
             DashStyle = isPreview ? new DashStyle([6, 3], 0) : null,
         };
