@@ -45,16 +45,8 @@ public partial class MainWindow : Window
         if (dlg.Saved) AppSettings.Save(Vm.RunConfig);
     }
 
-    private async void OnOpenProject(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-        {
-            Title = "Projektordner öffnen",
-            AllowMultiple = false,
-        });
-        if (folders.Count > 0)
-            await Vm.OpenProjectAsync(folders[0].Path.LocalPath);
-    }
+    private void OnNewFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.NewFlow();
 
     private async void OnOpenFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {

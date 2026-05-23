@@ -53,7 +53,7 @@
             BorderThickness="0,0,0,1" Padding="8,4">
       <StackPanel Orientation="Horizontal" Spacing="6">
 
-        <Button Content="📂 Projekt öffnen" Click="OnOpenProject" Padding="8,4"/>
+        <Button Content="✨ Neuer Flow"     Click="OnNewFlow"     Padding="8,4"/>
         <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
         <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
                 IsEnabled="{Binding FlowEditor.CanSave}"/>

@@ -66,16 +66,10 @@ public sealed class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _projectDir, value);
     }
 
-    public async Task OpenProjectAsync(string projectDir)
+    public void NewFlow()
     {
-        ProjectDir = projectDir;
-        RunConfig.ProjectDir = projectDir;
-
-        var defaultFlow = Path.Combine(projectDir, "actions", "start.json");
-        if (File.Exists(defaultFlow))
-            await FlowEditor.LoadAsync(defaultFlow);
-
-        StatusText = $"Projekt geladen: {projectDir}";
+        FlowEditor.NewDocument();
+        StatusText = "Neuer Flow";
     }
 
     public async Task OpenFlowAsync(string path)

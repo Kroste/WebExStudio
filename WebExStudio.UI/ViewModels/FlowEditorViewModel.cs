@@ -89,6 +89,13 @@ public sealed class FlowEditorViewModel : ViewModelBase
         LoadDocument(doc);
     }
 
+    /// <summary>Replaces the current document with a fresh, empty flow (Main tab only).</summary>
+    public void NewDocument()
+    {
+        Log.Info("Neuer Flow");
+        LoadDocument(FlowSerializer2.CreateEmpty());
+    }
+
     public void LoadDocument(FlowDocument2 doc)
     {
         Log.Info("Lade Dokument: {0} Tabs, {1} Nodes", doc.Tabs.Count, doc.Nodes.Count);
