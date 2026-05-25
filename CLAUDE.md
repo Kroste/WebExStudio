@@ -57,7 +57,15 @@ Version nicht anheben.
 
 - MVVM einhalten: Logik in ViewModels/Core/Engine, Views möglichst dünn.
 - Bestehenden Stil übernehmen (Namensgebung, Kommentardichte, Idiome der Umgebung).
-- Logging über NLog (`LogManager.GetCurrentClassLogger()`), Meldungen auf Deutsch.
+- **Logging-Pflicht:** Jede nennenswerte Aktion wird über NLog protokolliert
+  (`LogManager.GetCurrentClassLogger()`, Meldungen auf Deutsch) — inkl. KI-Chat
+  (Anfrage/Antwort), Flow-Generierung, Ausführung, Laden/Speichern.
+- **Secrets maskieren:** Vor dem Loggen von Inhalten, die Geheimnisse enthalten können
+  (KI-Chat-Texte, Flow-/Config-JSON, Proxy/Anbieter-Daten), immer
+  `WebExStudio.Core.Logging.SecretMasker.Mask(...)` verwenden und konkrete Geheimwerte
+  (API-Key, Proxy-Passwort) als `literalSecrets` mitgeben. Nie API-Key/Passwörter im Klartext loggen.
+- NLog-Layouts: literale `:` in Renderer-Parametern als `\:` escapen (sonst scheitert der
+  Config-Load und es wird gar nichts mehr geloggt) — durch `NLogConfigTests` abgesichert.
 
 ## Nützliche Befehle
 

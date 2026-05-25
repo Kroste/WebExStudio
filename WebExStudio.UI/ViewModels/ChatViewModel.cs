@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using NLog;
 using ReactiveUI;
 using WebExStudio.AI;
+using WebExStudio.Core.Logging;
 using WebExStudio.Core.Serialization;
 
 namespace WebExStudio.UI.ViewModels;
@@ -21,6 +22,10 @@ public sealed class ChatViewModel : ViewModelBase
     public ObservableCollection<ChatTurnViewModel> Messages { get; } = [];
 
     public ChatViewModel(MainWindowViewModel main) => _main = main;
+
+    /// <summary>Maskiert Geheimnisse (API-Key, Proxy-Passwort, sensible JSON-Felder) fürs Log.</summary>
+    private string MaskSecrets(string text) =>
+        SecretMasker.Mask(text, _main.AiOptions.ApiKey, _main.RunConfig.ProxyPassword);
 
     private string _input = string.Empty;
     public string Input
@@ -58,6 +63,7 @@ public sealed class ChatViewModel : ViewModelBase
         Input = string.Empty;
         Messages.Add(new ChatTurnViewModel(ChatRole.User, text));
         _history.Add(new ChatMessage(ChatRole.User, text));
+        Log.Info("KI-Chat Anfrage ({0}): {1}", _main.AiOptions.Provider, MaskSecrets(text));
 
         // Aktuellen Flow mitgeben, damit die KI auf dem echten Stand arbeitet (auch nach Edits).
         var flowJson = _main.FlowEditor.Document is { } doc ? FlowSerializer2.Serialize(doc) : null;
@@ -87,6 +93,7 @@ public sealed class ChatViewModel : ViewModelBase
         }
 
         Messages.Add(new ChatTurnViewModel(ChatRole.User, "Bitte erkläre den aktuellen Flow."));
+        Log.Info("KI-Chat: Flow erklären angefordert ({0} Nodes)", doc.Nodes.Count);
         // Dem Modell den vollständigen Flow mitgeben (nicht sichtbar im Chat).
         var json = FlowSerializer2.Serialize(doc);
         _history.Add(new ChatMessage(ChatRole.User,
@@ -115,6 +122,9 @@ public sealed class ChatViewModel : ViewModelBase
             reply.Content = answer;
             reply.DetectFlow();
             if (reply.HasFlow) LatestFlowTurn = reply;
+            Log.Info("KI-Chat Antwort ({0}, {1} Zeichen, Flow erkannt={2})",
+                client.Name, answer.Length, reply.HasFlow);
+            Log.Debug("KI-Chat Antwort-Inhalt: {0}", MaskSecrets(answer));
         }
         catch (Exception ex)
         {
@@ -153,6 +163,7 @@ public sealed class ChatViewModel : ViewModelBase
     public void LoadFlow(ChatTurnViewModel turn)
     {
         if (turn.Flow is null) return;
+        Log.Info("Flow aus KI-Chat in Editor geladen ({0} Nodes)", turn.Flow.Nodes.Count);
         _main.FlowEditor.LoadDocument(turn.Flow);
         _main.FlowEditor.MarkDirty();
         Messages.Add(ChatTurnViewModel.Notice("Flow in den Editor geladen — bitte prüfen und speichern."));
