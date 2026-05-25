@@ -81,12 +81,45 @@ public partial class PropertiesPanelView : UserControl
             }
         });
 
+        // Free-text display name (shown on the node), available for every node type.
+        PropertiesPanel.Children.Add(BuildLabelField());
+
         // Property fields from definition
         foreach (var prop in _currentNode.Definition.Properties)
             PropertiesPanel.Children.Add(BuildField(prop));
 
         // Description + example box (under the properties)
         PropertiesPanel.Children.Add(BuildInfoBox(_currentNode.Definition));
+    }
+
+    private Control BuildLabelField()
+    {
+        var label = new TextBlock
+        {
+            Text = "Bezeichnung (Anzeige am Node)",
+            FontSize = 12,
+            Foreground = new SolidColorBrush(Color.Parse("#B0BEC5")),
+            Margin = new Avalonia.Thickness(0, 0, 0, 2),
+        };
+        var box = new TextBox
+        {
+            Text = _currentNode?.Label ?? string.Empty,
+            Watermark = "z. B. Login-Button",
+        };
+        box.TextChanged += (_, _) =>
+        {
+            if (_currentNode is not null)
+            {
+                _currentNode.Label = box.Text ?? string.Empty;
+                _flowEditor?.MarkDirty();
+            }
+        };
+        return new StackPanel
+        {
+            Spacing = 2,
+            Margin = new Avalonia.Thickness(0, 0, 0, 4),
+            Children = { label, box }
+        };
     }
 
     private static Control BuildInfoBox(WebExStudio.Core.Models.NodeDefinition def)

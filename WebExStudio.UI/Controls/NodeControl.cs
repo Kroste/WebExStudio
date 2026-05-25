@@ -26,6 +26,7 @@ public sealed class NodeControl : Panel
     private readonly Border _border;
     private readonly Border _statusIndicator;
     private readonly TextBlock _titleLabel;
+    private readonly TextBlock _labelText;
     private readonly Border _header;
     private readonly Ellipse? _inputPort;
     private readonly List<Ellipse> _outputPorts = [];
@@ -56,8 +57,20 @@ public sealed class NodeControl : Panel
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
 
+        // User-defined free-text name shown under the title.
+        _labelText = new TextBlock
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.Parse("#E0E0E0")),
+            FontSize = 12,
+            FontStyle = FontStyle.Italic,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(8, 0, 8, 0),
+        };
+
         _header = new Border
         {
+            [DockPanel.DockProperty] = Dock.Top,
             CornerRadius = new CornerRadius(6, 6, 0, 0),
             Padding = new Thickness(8, 0, 4, 0),
             Child = new StackPanel
@@ -88,7 +101,7 @@ public sealed class NodeControl : Panel
                         [Grid.ColumnProperty] = 1,
                         Children =
                         {
-                            _header,
+                            _header, // Dock.Top set below
                             new TextBlock
                             {
                                 [DockPanel.DockProperty] = Dock.Bottom,
@@ -96,7 +109,8 @@ public sealed class NodeControl : Panel
                                 FontSize = 10,
                                 Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
                                 Margin = new Thickness(8, 2, 8, 4),
-                            }
+                            },
+                            _labelText, // fills the middle (LastChildFill)
                         }
                     }
                 }
@@ -270,7 +284,8 @@ public sealed class NodeControl : Panel
             or nameof(NodeViewModel.Status)
             or nameof(NodeViewModel.StatusColor)
             or nameof(NodeViewModel.Color)
-            or nameof(NodeViewModel.Title))
+            or nameof(NodeViewModel.Title)
+            or nameof(NodeViewModel.Label))
         {
             UpdateVisuals();
         }
@@ -291,6 +306,8 @@ public sealed class NodeControl : Panel
 
         _statusIndicator.Background = new SolidColorBrush(statusColor);
         _titleLabel.Text = ViewModel.Title;
+        _labelText.Text = ViewModel.Label;
+        _labelText.IsVisible = ViewModel.HasLabel;
 
         if (ViewModel.IsActive)
         {

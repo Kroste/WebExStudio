@@ -10,6 +10,10 @@ public sealed class FlowNode
     public string Id { get; set; } = Guid.NewGuid().ToString("N")[..8];
     public string Type { get; set; } = string.Empty;
     public string TabId { get; set; } = string.Empty;
+
+    /// <summary>Optional free-text name shown on the node (under the type title).</summary>
+    public string Label { get; set; } = string.Empty;
+
     public double X { get; set; }
     public double Y { get; set; }
     public Dictionary<string, string> Config { get; set; } = new();

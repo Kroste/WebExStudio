@@ -16,6 +16,21 @@ public sealed class NodeViewModel : ViewModelBase
     public string Id => Model.Id;
     public string ActionType => Model.Type;
 
+    /// <summary>User-defined display name shown on the node (under the title).</summary>
+    public string Label
+    {
+        get => Model.Label;
+        set
+        {
+            if (Model.Label == value) return;
+            Model.Label = value;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(HasLabel));
+        }
+    }
+
+    public bool HasLabel => !string.IsNullOrWhiteSpace(Model.Label);
+
     public NodeDefinition Definition { get; }
 
     public double X
