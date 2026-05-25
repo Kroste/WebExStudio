@@ -352,8 +352,8 @@ public partial class FlowEditorView : UserControl
     // ── Palette drag-and-drop ─────────────────────────────────────────────────
 
     private void OnDragOver(object? sender, DragEventArgs e) =>
-        e.DragEffects = e.Data.Contains(NodePaletteView.NodeTypeFormat)
-                     || e.Data.Contains(SubnodePanelView.SubnodeNameFormat)
+        e.DragEffects = e.DataTransfer.Contains(NodePaletteView.NodeTypeFormat)
+                     || e.DataTransfer.Contains(SubnodePanelView.SubnodeNameFormat)
             ? DragDropEffects.Copy
             : DragDropEffects.None;
 
@@ -363,7 +363,7 @@ public partial class FlowEditorView : UserControl
         var world = Canvas.CanvasToWorld(e.GetPosition(Canvas));
 
         // Subnode dragged from the list → create a call node targeting it.
-        if (e.Data.Get(SubnodePanelView.SubnodeNameFormat) is string subnode && !string.IsNullOrEmpty(subnode))
+        if (e.DataTransfer.TryGetValue(SubnodePanelView.SubnodeNameFormat) is string subnode && !string.IsNullOrEmpty(subnode))
         {
             Log.Info("Subnode per Drag&Drop einfügen: {0}", subnode);
             var vm = Vm.AddNode("call", world.X - 100, world.Y - 30);
@@ -372,7 +372,7 @@ public partial class FlowEditorView : UserControl
             return;
         }
 
-        if (e.Data.Get(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
+        if (e.DataTransfer.TryGetValue(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
         Log.Info("Node per Drag&Drop hinzufügen: {0} @ ({1:F0},{2:F0})", type, world.X, world.Y);
         Vm.AddNode(type, world.X - 100, world.Y - 30); // center node on cursor
     }

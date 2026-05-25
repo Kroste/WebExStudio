@@ -8,8 +8,9 @@ namespace WebExStudio.UI.Views;
 
 public partial class SubnodePanelView : UserControl
 {
-    /// <summary>DataObject format carrying a subnode name when dragged onto the canvas.</summary>
-    public const string SubnodeNameFormat = "webex/subnode-name";
+    /// <summary>Datenformat, das einen Subnode-Namen beim Ziehen auf den Canvas trägt.</summary>
+    public static readonly DataFormat<string> SubnodeNameFormat =
+        DataFormat.CreateStringApplicationFormat("webex-subnode-name");
 
     private MainWindowViewModel? MainVm => DataContext as MainWindowViewModel;
     private FlowEditorViewModel? Editor => MainVm?.FlowEditor;
@@ -52,9 +53,9 @@ public partial class SubnodePanelView : UserControl
         if (System.Math.Abs(p.X - _dragStart.X) < 4 && System.Math.Abs(p.Y - _dragStart.Y) < 4) return;
 
         _dragging = true;
-        var data = new DataObject();
-        data.Set(SubnodeNameFormat, _dragSubnode.Name ?? string.Empty);
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.Create(SubnodeNameFormat, _dragSubnode.Name ?? string.Empty));
+        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Copy);
         _dragSubnode = null;
     }
 

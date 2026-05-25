@@ -10,8 +10,9 @@ namespace WebExStudio.UI.Views;
 
 public partial class NodePaletteView : UserControl
 {
-    /// <summary>DataObject format used to carry a node type from the palette to the canvas.</summary>
-    public const string NodeTypeFormat = "webex/node-type";
+    /// <summary>Datenformat, das einen Node-Typ von der Palette auf den Canvas trägt.</summary>
+    public static readonly DataFormat<string> NodeTypeFormat =
+        DataFormat.CreateStringApplicationFormat("webex-node-type");
 
     private string _search = string.Empty;
 
@@ -76,9 +77,9 @@ public partial class NodePaletteView : UserControl
                     if (Math.Abs(p.X - _dragStart.X) < 4 && Math.Abs(p.Y - _dragStart.Y) < 4) return;
 
                     _dragging = true;
-                    var data = new DataObject();
-                    data.Set(NodeTypeFormat, d.Type);
-                    await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
+                    var data = new DataTransfer();
+                    data.Add(DataTransferItem.Create(NodeTypeFormat, d.Type));
+                    await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Copy);
                     _dragDef = null;
                 };
 
