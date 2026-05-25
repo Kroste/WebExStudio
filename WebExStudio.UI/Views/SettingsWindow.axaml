@@ -80,6 +80,15 @@
                   <TextBox Grid.Column="0" x:Name="DriverPathBox" Watermark="Ordner der .playwright/node-Installation"/>
                   <Button Grid.Column="1" Content="…" Click="OnBrowseDriver" Padding="12,0"/>
                 </Grid>
+                <StackPanel Spacing="2" Margin="0,2,0,0">
+                  <TextBlock FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"
+                             Text="Treiber/Browser lassen sich nicht automatisch laden? Anleitung zur manuellen/Offline-Installation:"/>
+                  <Button Content="playwright.dev/dotnet/docs/browsers ↗" Click="OnOpenDriverHelp"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          Foreground="#4FC3F7" Cursor="Hand" FontSize="11" HorizontalAlignment="Left"/>
+                  <TextBlock FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"
+                             Text="Hinter einem Proxy: Proxy im Tab „Netzwerk“ setzen (gilt auch für den Download-Host)."/>
+                </StackPanel>
               </StackPanel>
 
               <StackPanel Spacing="4">

@@ -81,6 +81,12 @@ public partial class SettingsWindow : Window
         if (folders.Count > 0) DriverPathBox.Text = folders[0].Path.LocalPath;
     }
 
+    private async void OnOpenDriverHelp(object? sender, RoutedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is { } top)
+            await top.Launcher.LaunchUriAsync(new Uri("https://playwright.dev/dotnet/docs/browsers"));
+    }
+
     private async void OnBrowseDownload(object? sender, RoutedEventArgs e)
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions

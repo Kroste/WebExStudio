@@ -416,7 +416,7 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 | **Browser-Typ** | `chromium` (Standard), `firefox`, `webkit`. |
 | **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. |
 | **Browser-Programmpfad** | leer = automatisch; sonst Pfad zur Browser-EXE (`ExecutablePath`). |
-| **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). |
+| **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). Darunter ein Link zur manuellen/Offline-Installation der Browser (z. B. hinter Firmen-Proxy). |
 | **Standard-Downloadpfad** | Zielordner für Browser-Downloads (`DownloadsPath`); leer = Standard des Browsers. |
 | **Headless** | Browser ohne sichtbares Fenster ausführen. |
 
