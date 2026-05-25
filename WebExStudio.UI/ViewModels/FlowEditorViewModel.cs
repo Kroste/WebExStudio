@@ -59,15 +59,67 @@ public sealed class FlowEditorViewModel : ViewModelBase
     /// <summary>Wires visible on the current tab (populated only for main-canvas tabs).</summary>
     public ObservableCollection<WireViewModel> Wires { get; } = [];
 
+    /// <summary>Groups (visual boxes) on the active tab.</summary>
+    public ObservableCollection<GroupViewModel> Groups { get; } = [];
+
+    /// <summary>All currently multi-selected nodes (the primary is also <see cref="SelectedNode"/>).</summary>
+    public ObservableCollection<NodeViewModel> SelectedNodes { get; } = [];
+
+    /// <summary>The primary selected node (drives the properties panel). Visual selection
+    /// (IsSelected) is managed via the selection set in <see cref="SelectNode"/>.</summary>
     public NodeViewModel? SelectedNode
     {
         get => _selectedNode;
-        set
+        set => this.RaiseAndSetIfChanged(ref _selectedNode, value);
+    }
+
+    // ── Selection ──────────────────────────────────────────────────────────────
+
+    public void ClearSelection()
+    {
+        foreach (var n in SelectedNodes) n.IsSelected = false;
+        SelectedNodes.Clear();
+        SelectedNode = null;
+    }
+
+    /// <summary>Selects a node. With <paramref name="additive"/> (Ctrl) it toggles membership.</summary>
+    public void SelectNode(NodeViewModel? node, bool additive = false)
+    {
+        if (node is null) { if (!additive) ClearSelection(); return; }
+
+        if (additive)
         {
-            if (_selectedNode != null) _selectedNode.IsSelected = false;
-            this.RaiseAndSetIfChanged(ref _selectedNode, value);
-            if (value != null) value.IsSelected = true;
+            if (SelectedNodes.Contains(node)) { SelectedNodes.Remove(node); node.IsSelected = false; }
+            else { SelectedNodes.Add(node); node.IsSelected = true; }
+            SelectedNode = SelectedNodes.LastOrDefault();
         }
+        else
+        {
+            if (!(SelectedNodes.Count == 1 && SelectedNodes[0] == node))
+            {
+                ClearSelection();
+                SelectedNodes.Add(node);
+                node.IsSelected = true;
+            }
+            SelectedNode = node;
+        }
+    }
+
+    /// <summary>Selects all nodes on the active tab whose bounds intersect the (world) rectangle.</summary>
+    public void SelectInRect(Avalonia.Rect rect)
+    {
+        if (_activeTab is null) return;
+        ClearSelection();
+        foreach (var n in _activeTab.Nodes)
+        {
+            var nb = new Avalonia.Rect(n.X, n.Y, n.Width, n.Height);
+            if (rect.Intersects(nb))
+            {
+                SelectedNodes.Add(n);
+                n.IsSelected = true;
+            }
+        }
+        SelectedNode = SelectedNodes.LastOrDefault();
     }
 
     public bool IsDirty
@@ -146,10 +198,21 @@ public sealed class FlowEditorViewModel : ViewModelBase
     {
         if (tab is null || tab == _activeTab) return;
         Log.Debug("Tab wechseln: {0}", tab.Label);
+        ClearSelection();
         _activeTab = tab;
         this.RaisePropertyChanged(nameof(ActiveTab));
         this.RaisePropertyChanged(nameof(Nodes));
         RefreshWires();
+        RefreshGroups();
+    }
+
+    public void RefreshGroups()
+    {
+        Groups.Clear();
+        if (_activeTab is not null && Document is not null)
+            foreach (var g in Document.GetGroups(_activeTab.Id))
+                Groups.Add(new GroupViewModel(g));
+        this.RaisePropertyChanged(nameof(Groups));
     }
 
     /// <summary>Opens a tab in the tab bar (if not already) and switches to it.</summary>
@@ -178,6 +241,114 @@ public sealed class FlowEditorViewModel : ViewModelBase
     /// </summary>
     public FlowTabViewModel? FindTabOfNode(string nodeId) =>
         Tabs.FirstOrDefault(t => t.Nodes.Any(n => n.Id == nodeId));
+
+    // ── Groups ─────────────────────────────────────────────────────────────────
+
+    /// <summary>Groups the currently selected nodes into a visual group on the active tab.</summary>
+    public GroupViewModel? CreateGroupFromSelection(string label = "Gruppe")
+    {
+        if (Document is null || _activeTab is null || SelectedNodes.Count == 0) return null;
+        var g = new FlowGroup
+        {
+            Id = NewId(), TabId = _activeTab.Id, Label = label,
+            NodeIds = SelectedNodes.Select(n => n.Id).ToList(),
+        };
+        Document.Groups.Add(g);
+        Groups.Add(new GroupViewModel(g));
+        MarkDirty();
+        this.RaisePropertyChanged(nameof(Groups));
+        return Groups[^1];
+    }
+
+    public void Ungroup(GroupViewModel group)
+    {
+        if (Document is null) return;
+        Document.Groups.Remove(group.Model);
+        Groups.Remove(group);
+        MarkDirty();
+        this.RaisePropertyChanged(nameof(Groups));
+    }
+
+    public void RenameGroup(GroupViewModel group, string label)
+    {
+        if (string.IsNullOrWhiteSpace(label)) return;
+        group.Model.Label = label.Trim();
+        group.NotifyLabelChanged();
+        MarkDirty();
+    }
+
+    /// <summary>
+    /// Moves all of a group's nodes into a new named subnode and replaces them on the
+    /// original tab with a single <c>call</c> node. External wires are re-routed to/from the
+    /// call node (incoming → call input, outgoing → call output). Returns the new subnode tab.
+    /// </summary>
+    public FlowTabViewModel? ExtractGroupToSubnode(GroupViewModel group, string subnodeName, string label)
+    {
+        if (Document is null) return null;
+        subnodeName = subnodeName.Trim();
+        if (string.IsNullOrEmpty(subnodeName) || Document.GetTabByName(subnodeName) is not null)
+        {
+            Log.Warn("ExtractGroupToSubnode: Name leer oder vergeben: {0}", subnodeName);
+            return null;
+        }
+
+        var tabId = group.Model.TabId;
+        var memberIds = group.Model.NodeIds.ToHashSet();
+        var members = Document.Nodes.Where(n => n.TabId == tabId && memberIds.Contains(n.Id)).ToList();
+        if (members.Count == 0) return null;
+
+        // New subnode tab.
+        var sub = new FlowTab
+        {
+            Id = NewId(), Name = subnodeName,
+            Label = string.IsNullOrWhiteSpace(label) ? subnodeName : label.Trim(),
+            IsSubFlow = true,
+        };
+        Document.Tabs.Add(sub);
+
+        // Call node placed at the group's top-left.
+        var call = new FlowNode
+        {
+            Id = NewId(), Type = "call", TabId = tabId,
+            X = members.Min(m => m.X), Y = members.Min(m => m.Y),
+            Config = new() { ["target"] = subnodeName }, Wires = [[]],
+        };
+
+        // External incoming wires (outside → member) now point at the call node.
+        foreach (var ext in Document.Nodes.Where(n => n.TabId == tabId && !memberIds.Contains(n.Id)))
+            foreach (var port in ext.Wires)
+                for (int i = 0; i < port.Count; i++)
+                    if (memberIds.Contains(port[i])) port[i] = call.Id;
+
+        // External outgoing wires (member → outside) now emit from the call node's output.
+        foreach (var m in members)
+            foreach (var port in m.Wires)
+                foreach (var t in port.Where(t => !memberIds.Contains(t)).ToList())
+                {
+                    port.Remove(t);
+                    if (!call.Wires[0].Contains(t)) call.Wires[0].Add(t);
+                }
+
+        // Move members into the subnode; add the call node; drop the group.
+        foreach (var m in members) m.TabId = sub.Id;
+        Document.Nodes.Add(call);
+        Document.Groups.Remove(group.Model);
+
+        // De-duplicate any wire lists touched above.
+        foreach (var n in Document.Nodes)
+            for (int p = 0; p < n.Wires.Count; p++)
+                n.Wires[p] = n.Wires[p].Distinct().ToList();
+
+        MarkDirty();
+
+        // Rebuild the view, return to the original tab (call node now visible), expose the subnode.
+        LoadDocument(Document);
+        var orig = Tabs.FirstOrDefault(t => t.Id == tabId);
+        if (orig is not null) OpenTab(orig);
+        return Tabs.FirstOrDefault(t => t.Id == sub.Id);
+    }
+
+    private static string NewId() => Guid.NewGuid().ToString("N")[..8];
 
     // ── Subnode management (Node-RED style) ────────────────────────────────────
 
@@ -330,7 +501,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
         Document.Nodes.Add(node);
         var vm = new NodeViewModel(node);
         _activeTab.Nodes.Add(vm);
-        SelectedNode = vm;
+        SelectNode(vm);
         MarkDirty();
         Log.Debug("Node hinzugefügt: {0} @ ({1:F0},{2:F0})", type, x, y);
         return vm;
@@ -349,7 +520,8 @@ public sealed class FlowEditorViewModel : ViewModelBase
         Document.Nodes.Remove(vm.Model);
         _activeTab.Nodes.Remove(vm);
 
-        if (SelectedNode == vm) SelectedNode = null;
+        SelectedNodes.Remove(vm);
+        if (SelectedNode == vm) SelectedNode = SelectedNodes.LastOrDefault();
         MarkDirty();
     }
 

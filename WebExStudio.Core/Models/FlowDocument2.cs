@@ -6,7 +6,12 @@ public sealed class FlowDocument2
     public int Version { get; set; } = 2;
     public List<FlowTab> Tabs { get; set; } = [];
     public List<FlowNode> Nodes { get; set; } = [];
+    public List<FlowGroup> Groups { get; set; } = [];
     public string? FilePath { get; set; }
+
+    /// <summary>Visual groups on the given tab.</summary>
+    public IEnumerable<FlowGroup> GetGroups(string tabId) =>
+        Groups.Where(g => g.TabId == tabId);
 
     /// <summary>Returns nodes belonging to the given tab, sorted by seqIndex for sub-flow tabs.</summary>
     public IEnumerable<FlowNode> GetNodes(string tabId) =>

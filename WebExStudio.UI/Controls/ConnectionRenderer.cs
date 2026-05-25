@@ -15,6 +15,7 @@ public sealed class ConnectionRenderer : Control
     private Dictionary<string, NodeViewModel> _nodeMap = new();
     private Point? _dragFrom;
     private Point? _dragTo;
+    private Rect? _selectionRect;
     private WireViewModel? _selectedWire;
 
     public WireViewModel? SelectedWire
@@ -102,6 +103,18 @@ public sealed class ConnectionRenderer : Control
         InvalidateVisual();
     }
 
+    public void SetSelectionRect(Rect world)
+    {
+        _selectionRect = world;
+        InvalidateVisual();
+    }
+
+    public void ClearSelectionRect()
+    {
+        _selectionRect = null;
+        InvalidateVisual();
+    }
+
     public override void Render(DrawingContext ctx)
     {
         // Draw all wires
@@ -115,6 +128,17 @@ public sealed class ConnectionRenderer : Control
         // Draw drag preview
         if (_dragFrom.HasValue && _dragTo.HasValue)
             DrawWire(ctx, _dragFrom.Value, _dragTo.Value, true, false);
+
+        // Draw rubber-band selection rectangle
+        if (_selectionRect is { } sel)
+        {
+            var fill = new SolidColorBrush(Color.Parse("#4FC3F7"), 0.15);
+            var pen = new Pen(new SolidColorBrush(Color.Parse("#4FC3F7")), 1)
+            {
+                DashStyle = new DashStyle([4, 3], 0),
+            };
+            ctx.DrawRectangle(fill, pen, sel);
+        }
     }
 
     private static void DrawWire(DrawingContext ctx, Point from, Point to, bool isPreview, bool isSelected)

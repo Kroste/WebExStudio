@@ -26,15 +26,25 @@ public sealed class NodeCanvas : Canvas
     private readonly ScaleTransform _zoom = new();
     private readonly TranslateTransform _pan = new();
 
-    // ── Node drag state ──────────────────────────────────────────────────────
+    // ── Node drag state (supports moving a whole selection together) ──────────
     private NodeViewModel? _draggingNode;
     private Point _dragStart;
-    private Point _nodeStartPos;
+    private readonly List<NodeViewModel> _dragNodes = [];
+    private readonly List<Point> _dragNodeStarts = [];
 
     // ── Wire drag state ──────────────────────────────────────────────────────
     private NodeViewModel? _wireDragSource;
     private int _wireDragOutputPort;
     private Point _wireDragStartWorld;
+
+    // ── Rubber-band selection state ───────────────────────────────────────────
+    private bool _rubberPending;
+    private bool _rubberActive;
+    private Point _rubberStartWorld;
+    private const double RubberThreshold = 4;
+
+    /// <summary>Fired when a rubber-band drag finishes, with the selected (world) rectangle.</summary>
+    public event EventHandler<Rect>? SelectionCompleted;
 
     public GridOverlay? GridOverlay { get; set; }
     public ConnectionRenderer? ConnectionRenderer { get; set; }
@@ -72,11 +82,20 @@ public sealed class NodeCanvas : Canvas
     public Point WorldToCanvas(Point world) =>
         new(world.X * _scale + _panOffsetX, world.Y * _scale + _panOffsetY);
 
-    internal void BeginNodeDrag(NodeViewModel node, Point canvasPos, PointerPressedEventArgs e)
+    internal void BeginNodeDrag(NodeViewModel node, IEnumerable<NodeViewModel> alsoMove, Point canvasPos, PointerPressedEventArgs e)
     {
         _draggingNode = node;
         _dragStart = CanvasToWorld(canvasPos);
-        _nodeStartPos = new Point(node.X, node.Y);
+
+        _dragNodes.Clear();
+        _dragNodeStarts.Clear();
+        var set = new List<NodeViewModel>(alsoMove);
+        if (!set.Contains(node)) set.Add(node);
+        foreach (var n in set)
+        {
+            _dragNodes.Add(n);
+            _dragNodeStarts.Add(new Point(n.X, n.Y));
+        }
         e.Pointer.Capture(this);
     }
 
@@ -131,6 +150,13 @@ public sealed class NodeCanvas : Canvas
             e.Pointer.Capture(this);
             e.Handled = true;
         }
+        else if (pt.Properties.IsLeftButtonPressed)
+        {
+            // Plain left press on empty canvas: arm a rubber-band. We don't capture or handle
+            // yet so the view still gets the click for wire selection; a drag promotes it.
+            _rubberPending = true;
+            _rubberStartWorld = CanvasToWorld(pt.Position);
+        }
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
@@ -150,8 +176,13 @@ public sealed class NodeCanvas : Canvas
         if (_draggingNode is not null)
         {
             var world = CanvasToWorld(pos);
-            _draggingNode.X = _nodeStartPos.X + (world.X - _dragStart.X);
-            _draggingNode.Y = _nodeStartPos.Y + (world.Y - _dragStart.Y);
+            var dx = world.X - _dragStart.X;
+            var dy = world.Y - _dragStart.Y;
+            for (var i = 0; i < _dragNodes.Count; i++)
+            {
+                _dragNodes[i].X = _dragNodeStarts[i].X + dx;
+                _dragNodes[i].Y = _dragNodeStarts[i].Y + dy;
+            }
             e.Handled = true;
             return;
         }
@@ -161,8 +192,27 @@ public sealed class NodeCanvas : Canvas
             var worldPos = CanvasToWorld(pos);
             ConnectionRenderer.SetDragPreview(_wireDragStartWorld, worldPos);
             e.Handled = true;
+            return;
+        }
+
+        if (_rubberPending || _rubberActive)
+        {
+            var world = CanvasToWorld(pos);
+            if (!_rubberActive)
+            {
+                if (Math.Abs(world.X - _rubberStartWorld.X) < RubberThreshold &&
+                    Math.Abs(world.Y - _rubberStartWorld.Y) < RubberThreshold) return;
+                _rubberActive = true;
+                _rubberPending = false;
+                e.Pointer.Capture(this);
+            }
+            ConnectionRenderer?.SetSelectionRect(Normalize(_rubberStartWorld, world));
+            e.Handled = true;
         }
     }
+
+    private static Rect Normalize(Point a, Point b) =>
+        new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
@@ -175,6 +225,14 @@ public sealed class NodeCanvas : Canvas
             ConnectionRenderer?.ClearDragPreview();
             e.Handled = true;
         }
+        else if (_rubberActive)
+        {
+            e.Pointer.Capture(null);
+            var rect = Normalize(_rubberStartWorld, CanvasToWorld(e.GetPosition(this)));
+            ConnectionRenderer?.ClearSelectionRect();
+            SelectionCompleted?.Invoke(this, rect);
+            e.Handled = true;
+        }
         else if (_isPanning || _draggingNode is not null)
         {
             e.Pointer.Capture(null);
@@ -182,6 +240,10 @@ public sealed class NodeCanvas : Canvas
 
         _isPanning = false;
         _draggingNode = null;
+        _dragNodes.Clear();
+        _dragNodeStarts.Clear();
+        _rubberPending = false;
+        _rubberActive = false;
     }
 
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)

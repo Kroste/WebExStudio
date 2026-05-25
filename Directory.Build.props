@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    Zentrale Versionsnummer für alle Projekte (SemVer: MAJOR.MINOR.PATCH).
+    Wird bei jeder inhaltlichen Änderung angepasst (siehe CLAUDE.md).
+    Das About-Fenster liest diesen Wert zur Laufzeit aus.
+    CI überschreibt die Version bei Releases per -p:Version aus dem Git-Tag.
+  -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>

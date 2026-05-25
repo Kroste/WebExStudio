@@ -13,6 +13,7 @@ public partial class FlowEditorView : UserControl
 
     private FlowEditorViewModel? Vm => DataContext as FlowEditorViewModel;
     private readonly Dictionary<string, NodeControl> _nodeControls = [];
+    private readonly Dictionary<string, GroupControl> _groupControls = [];
     private WireViewModel? _selectedWire;
 
     public FlowEditorView()
@@ -23,6 +24,7 @@ public partial class FlowEditorView : UserControl
         Canvas.ConnectionRenderer = ConnectionRenderer;
         ConnectionRenderer.RenderTransform = Canvas.WorldTransform;
         Canvas.WireDropped += OnWireDropped;
+        Canvas.SelectionCompleted += OnSelectionCompleted;
         DataContextChanged += OnDataContextChanged;
         PointerPressed += OnCanvasPointerPressed;
 
@@ -62,7 +64,11 @@ public partial class FlowEditorView : UserControl
             RebuildCanvas();
         else if (e.PropertyName == nameof(FlowEditorViewModel.Wires))
             RefreshConnections();
+        else if (e.PropertyName == nameof(FlowEditorViewModel.Groups))
+            RebuildGroups();
     }
+
+    private void OnSelectionCompleted(object? sender, Rect worldRect) => Vm?.SelectInRect(worldRect);
 
     // The Nodes collection we're currently observing for add/remove (palette + right-click).
     private System.Collections.Specialized.INotifyCollectionChanged? _observedNodes;
@@ -77,6 +83,7 @@ public partial class FlowEditorView : UserControl
         SelectWire(null);
         Canvas.Children.Clear();
         _nodeControls.Clear();
+        _groupControls.Clear();
 
         if (Vm?.ActiveTab is null) return;
 
@@ -85,6 +92,7 @@ public partial class FlowEditorView : UserControl
         foreach (var nodeVm in Vm.ActiveTab.Nodes)
             AddNodeControl(nodeVm);
 
+        RebuildGroups();
         RefreshConnections();
         UpdateTabButtonStyles();
 
@@ -139,6 +147,7 @@ public partial class FlowEditorView : UserControl
                     Avalonia.Controls.Canvas.SetTop(currentCtrl, nodeVm.Y);
                 }
                 RefreshConnections();
+                RepositionGroups();
             }
         };
     }
@@ -147,7 +156,15 @@ public partial class FlowEditorView : UserControl
     {
         if (sender is not NodeControl ctrl || Vm is null) return;
         Log.Debug("Node ausgewählt: {0} ({1})", ctrl.ViewModel.Id, ctrl.ViewModel.ActionType);
-        Vm.SelectedNode = ctrl.ViewModel;
+
+        var ctrlKey = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        if (ctrlKey)
+            Vm.SelectNode(ctrl.ViewModel, additive: true);
+        else if (!Vm.SelectedNodes.Contains(ctrl.ViewModel))
+            Vm.SelectNode(ctrl.ViewModel); // keep existing multi-selection when dragging a member
+        else
+            Vm.SelectedNode = ctrl.ViewModel; // primary follows the pressed node
+
         SelectWire(null);
         Focus();
 
@@ -162,13 +179,13 @@ public partial class FlowEditorView : UserControl
             return;
         }
 
-        // Node drag: left button, not on port, not Alt
+        // Node drag: left button, not on port, not Alt — move the whole selection together.
         if (e.GetCurrentPoint(Canvas).Properties.IsLeftButtonPressed
             && !e.KeyModifiers.HasFlag(KeyModifiers.Alt)
             && outPort < 0
             && !ctrl.IsOnInputPort(pos))
         {
-            Canvas.BeginNodeDrag(ctrl.ViewModel, e.GetPosition(Canvas), e);
+            Canvas.BeginNodeDrag(ctrl.ViewModel, Vm.SelectedNodes.ToList(), e.GetPosition(Canvas), e);
             e.Handled = true;
         }
     }
@@ -215,6 +232,51 @@ public partial class FlowEditorView : UserControl
         ConnectionRenderer.Update(Vm.Wires, _nodeControls.Values.Select(c => c.ViewModel));
         ConnectionRenderer.InvalidateVisual();
     }
+
+    // ── Group boxes ────────────────────────────────────────────────────────────
+
+    private void RebuildGroups()
+    {
+        foreach (var ctrl in _groupControls.Values)
+            Canvas.Children.Remove(ctrl);
+        _groupControls.Clear();
+
+        if (Vm is null) return;
+        foreach (var g in Vm.Groups)
+        {
+            var ctrl = new GroupControl(g);
+            ctrl.MenuRequested += (_, group) => ShowGroupMenu(group);
+            ctrl.RenameRequested += async (_, group) => await RenameGroupAsync(group);
+            ctrl.MoveStarted += (_, t) =>
+            {
+                var members = MembersOf(t.Group);
+                if (members.Count > 0)
+                    Canvas.BeginNodeDrag(members[0], members, t.Args.GetPosition(Canvas), t.Args);
+            };
+            _groupControls[g.Id] = ctrl;
+            Canvas.Children.Add(ctrl);
+        }
+        RepositionGroups();
+    }
+
+    private void RepositionGroups()
+    {
+        if (Vm is null || _groupControls.Count == 0) return;
+        var map = _nodeControls.Values.ToDictionary(c => c.ViewModel.Id, c => c.ViewModel);
+        foreach (var (id, ctrl) in _groupControls)
+        {
+            var b = ctrl.Group.Bounds(map);
+            if (b == default) { ctrl.IsVisible = false; continue; }
+            ctrl.IsVisible = true;
+            // Pad sides; extend the top to host the header strip above the nodes.
+            ctrl.SetBounds(new Rect(b.X - 14, b.Y - 30, b.Width + 28, b.Height + 44));
+        }
+    }
+
+    private List<NodeViewModel> MembersOf(GroupViewModel group) =>
+        group.NodeIds
+            .Select(nid => _nodeControls.TryGetValue(nid, out var c) ? c.ViewModel : null)
+            .Where(n => n is not null).Select(n => n!).ToList();
 
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -321,6 +383,19 @@ public partial class FlowEditorView : UserControl
         Log.Debug("Kontext-Menü @ ({0:F0},{1:F0})", worldPos.X, worldPos.Y);
         var menu = new ContextMenu();
 
+        // Group the current multi-selection.
+        if (Vm is { SelectedNodes.Count: >= 2 })
+        {
+            var groupItem = new MenuItem { Header = "📦  Gruppieren" };
+            groupItem.Click += (_, _) =>
+            {
+                Log.Info("Gruppieren: {0} Nodes", Vm.SelectedNodes.Count);
+                Vm.CreateGroupFromSelection();
+            };
+            menu.Items.Add(groupItem);
+            menu.Items.Add(new Separator());
+        }
+
         foreach (var category in Core.Models.NodeCatalog.Categories)
         {
             var header = new MenuItem { Header = category };
@@ -340,6 +415,61 @@ public partial class FlowEditorView : UserControl
         }
 
         menu.Open(this);
+    }
+
+    // ── Group context menu ─────────────────────────────────────────────────────
+
+    private void ShowGroupMenu(GroupViewModel group)
+    {
+        if (Vm is null) return;
+        var menu = new ContextMenu();
+
+        var extract = new MenuItem { Header = "📦  Subnode einrichten" };
+        extract.Click += async (_, _) => await ExtractGroupAsync(group);
+
+        var rename = new MenuItem { Header = "✎  Umbenennen" };
+        rename.Click += async (_, _) => await RenameGroupAsync(group);
+
+        var ungroup = new MenuItem { Header = "✖  Gruppe lösen" };
+        ungroup.Click += (_, _) => Vm.Ungroup(group);
+
+        menu.Items.Add(extract);
+        menu.Items.Add(rename);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(ungroup);
+        menu.Open(this);
+    }
+
+    private async Task ExtractGroupAsync(GroupViewModel group)
+    {
+        if (Vm is null) return;
+        var dlg = new SubnodeDialog("Subnode aus Gruppe", "", group.Label);
+        await ShowDialogOverOwner(dlg);
+        if (!dlg.Confirmed) return;
+
+        var sub = Vm.ExtractGroupToSubnode(group, dlg.SubnodeName, dlg.SubnodeLabel);
+        if (sub is null)
+            Log.Warn("Subnode konnte nicht erstellt werden (Name leer oder vergeben): {0}", dlg.SubnodeName);
+        else
+            Log.Info("Gruppe '{0}' → Subnode '{1}'", group.Label, dlg.SubnodeName);
+    }
+
+    private async Task RenameGroupAsync(GroupViewModel group)
+    {
+        if (Vm is null) return;
+        var dlg = new SubnodeDialog("Gruppe umbenennen", group.Label, "");
+        await ShowDialogOverOwner(dlg);
+        if (!dlg.Confirmed) return;
+        Vm.RenameGroup(group, dlg.SubnodeName);
+        if (_groupControls.TryGetValue(group.Id, out var ctrl)) ctrl.RefreshLabel();
+    }
+
+    private async Task ShowDialogOverOwner(Window dlg)
+    {
+        if (TopLevel.GetTopLevel(this) is Window owner)
+            await dlg.ShowDialog(owner);
+        else
+            dlg.Show();
     }
 
     private void UpdateTabButtonStyles() { /* active-tab highlight handled by binding */ }
