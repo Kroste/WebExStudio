@@ -17,6 +17,32 @@ public class FlowSerializer2Tests
     }
 
     [Fact]
+    public void Serialize_Deserialize_RoundTrips()
+    {
+        var doc = new FlowDocument2
+        {
+            Tabs = [new FlowTab { Id = "main", Label = "Main", IsSubFlow = false }],
+            Nodes =
+            [
+                new FlowNode { Id = "a", Type = "goto", TabId = "main", Label = "Start",
+                    Config = new() { ["url"] = "https://example.com" }, Wires = [["b"]] },
+                new FlowNode { Id = "b", Type = "click", TabId = "main",
+                    Config = new() { ["selector"] = "#go" }, Wires = [[]] },
+            ],
+        };
+
+        var json = FlowSerializer2.Serialize(doc);
+        var back = FlowSerializer2.Deserialize(json);
+
+        Assert.Equal(2, back.Nodes.Count);
+        var a = back.GetNode("a")!;
+        Assert.Equal("goto", a.Type);
+        Assert.Equal("Start", a.Label);
+        Assert.Equal("https://example.com", a.Get("url"));
+        Assert.Contains("b", a.Wires[0]);
+    }
+
+    [Fact]
     public async Task SaveLoad_RoundTrips_Nodes_Wires_Config_Label()
     {
         var doc = new FlowDocument2

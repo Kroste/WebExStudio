@@ -482,6 +482,13 @@ entwickeln. Enthält eine Antwort einen Flow, erscheint darunter ein Button **�
 laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Chat
 nutzt dieselben Anbieter- und Proxy-Einstellungen.
 
+### Flow erklären
+
+Der Toolbar-Button **🧾 Erklären** lässt den **aktuellen Flow** von der KI in verständlicher
+Sprache zusammenfassen (Überblick, Schritt-für-Schritt entlang der Verbindungen, mögliche
+Risiken). Die Erklärung erscheint im Chat-Fenster; der Flow wird dem Modell dabei im
+Hintergrund mitgegeben, sodass man direkt Rückfragen stellen kann.
+
 ---
 
 ## Legacy-Projekte importieren

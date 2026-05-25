@@ -85,4 +85,20 @@ public static class PromptBuilder
         VERFÜGBARE NODE-TYPEN (Katalog):
         {{NodeSchemaExporter.ToJson()}}
         """;
+
+    /// <summary>Systemkontext zum Erklären eines bestehenden Flows in verständlicher Prosa.</summary>
+    public static string BuildExplainSystemPrompt() =>
+        $$"""
+        Du erklärst Web-Automatisierungs-Flows der Anwendung „WebExStudio“ verständlich auf Deutsch.
+        Der Nutzer schickt dir einen Flow als JSON. Erkläre:
+        1. was der Flow insgesamt tut (1–2 Sätze Überblick),
+        2. den Ablauf Schritt für Schritt entlang der Verbindungen (wires), inkl. Verzweigungen
+           (if then/else) und Schleifen (foreach/for_range) sowie aufgerufener Subnodes (call),
+        3. auffällige Risiken oder fehlende Schritte, falls vorhanden.
+        Nutze die Bezeichnungen (label) der Nodes, wenn vorhanden. Antworte als Fließtext/Aufzählung,
+        NICHT als JSON. Beziehe dich auf den Node-Katalog für die Bedeutung der Typen.
+
+        NODE-KATALOG:
+        {{NodeSchemaExporter.ToJson()}}
+        """;
 }

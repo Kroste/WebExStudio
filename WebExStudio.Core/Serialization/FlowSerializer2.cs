@@ -77,6 +77,10 @@ public static class FlowSerializer2
         return doc;
     }
 
+    /// <summary>Serialisiert ein Flow-Dokument als JSON-String (z. B. für KI-Prompts).</summary>
+    public static string Serialize(FlowDocument2 doc) =>
+        JsonSerializer.Serialize(doc, Options);
+
     /// <summary>Creates a fresh empty document with a single Main tab.</summary>
     public static FlowDocument2 CreateEmpty()
     {

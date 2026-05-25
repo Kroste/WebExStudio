@@ -57,9 +57,17 @@ public partial class MainWindow : Window
 
     private ChatWindow? _chatWindow;
 
-    private void OnChat(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnChat(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => ShowChat();
+
+    private async void OnExplainFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Nicht-modal, eine Instanz; Verlauf lebt im ViewModel und bleibt erhalten.
+        ShowChat();
+        await Vm.Chat.ExplainCurrentFlowAsync();
+    }
+
+    /// <summary>Öffnet (oder aktiviert) das nicht-modale Chat-Fenster; Verlauf lebt im ViewModel.</summary>
+    private void ShowChat()
+    {
         if (_chatWindow is null)
         {
             _chatWindow = new ChatWindow(Vm.Chat);

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using NLog;
 using ReactiveUI;
 using WebExStudio.AI;
+using WebExStudio.Core.Serialization;
 
 namespace WebExStudio.UI.ViewModels;
 
@@ -58,6 +59,43 @@ public sealed class ChatViewModel : ViewModelBase
         Messages.Add(new ChatTurnViewModel(ChatRole.User, text));
         _history.Add(new ChatMessage(ChatRole.User, text));
 
+        await RunAssistantTurnAsync(PromptBuilder.BuildChatSystemPrompt());
+    }
+
+    /// <summary>
+    /// Erklärt den aktuellen Flow: zeigt eine kurze Nutzer-Nachricht an, schickt aber den
+    /// serialisierten Flow an das Modell und hängt die Erklärung als Antwort an.
+    /// </summary>
+    public async Task ExplainCurrentFlowAsync()
+    {
+        if (IsBusy) return;
+
+        var doc = _main.FlowEditor.Document;
+        if (doc is null)
+        {
+            Messages.Add(ChatTurnViewModel.Notice("Kein Flow geöffnet."));
+            return;
+        }
+        if (!_main.AiOptions.IsConfigured)
+        {
+            Messages.Add(ChatTurnViewModel.Notice(
+                "Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen (Tab „KI“) einen "
+                + "API-Schlüssel hinterlegen oder Ollama als Anbieter wählen."));
+            return;
+        }
+
+        Messages.Add(new ChatTurnViewModel(ChatRole.User, "Bitte erkläre den aktuellen Flow."));
+        // Dem Modell den vollständigen Flow mitgeben (nicht sichtbar im Chat).
+        var json = FlowSerializer2.Serialize(doc);
+        _history.Add(new ChatMessage(ChatRole.User,
+            $"Erkläre den folgenden Flow:\n\n{json}"));
+
+        await RunAssistantTurnAsync(PromptBuilder.BuildExplainSystemPrompt());
+    }
+
+    /// <summary>Ruft das Modell mit dem aktuellen Verlauf auf und hängt die Antwort als Turn an.</summary>
+    private async Task RunAssistantTurnAsync(string systemPrompt)
+    {
         var reply = new ChatTurnViewModel(ChatRole.Assistant, "…");
         Messages.Add(reply);
         IsBusy = true;
@@ -70,7 +108,7 @@ public sealed class ChatViewModel : ViewModelBase
                 TimeSpan.FromMinutes(2));
             var client = LlmClientFactory.Create(_main.AiOptions, http);
 
-            var answer = await client.ChatAsync(PromptBuilder.BuildChatSystemPrompt(), _history);
+            var answer = await client.ChatAsync(systemPrompt, _history);
             _history.Add(new ChatMessage(ChatRole.Assistant, answer));
             reply.Content = answer;
             reply.DetectFlow();
