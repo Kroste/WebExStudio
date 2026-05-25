@@ -69,7 +69,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             TimeSpan.FromMinutes(2));
         var client = LlmClientFactory.Create(AiOptions, http);
         var generator = new FlowGenerator(client);
-        var result = await generator.GenerateAsync(description, ct);
+        var result = await generator.GenerateAsync(description, AiOptions.ActiveHints, ct);
 
         if (result.Success && result.Document is not null)
         {
@@ -91,7 +91,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             TimeSpan.FromMinutes(2));
         var suggester = new NodeSuggester(LlmClientFactory.Create(AiOptions, http));
         var flowJson = FlowSerializer2.Serialize(FlowEditor.Document);
-        return await suggester.SuggestAsync(flowJson, anchor.Id, anchor.ActionType, ct);
+        return await suggester.SuggestAsync(flowJson, anchor.Id, anchor.ActionType, AiOptions.ActiveHints, ct);
     }
 
     /// <summary>Übernimmt einen Vorschlag: neuer Node hinter dem Anker, verbunden.</summary>

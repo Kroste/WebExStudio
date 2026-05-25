@@ -170,6 +170,18 @@
                 <TextBlock Text="Basis-URL (optional, z. B. lokale Ollama-Instanz)" FontSize="12" Foreground="#B0BEC5"/>
                 <TextBox x:Name="AiBaseUrlBox" PlaceholderText="leer = Standard"/>
               </StackPanel>
+
+              <Border Background="#2E2E4E" Height="1" Margin="0,4"/>
+
+              <CheckBox x:Name="AiSendHintsBox" Content="Hinweise / Problemlösungen an die KI mitsenden"
+                        Foreground="#B0BEC5"/>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Bekannte Probleme &amp; Lösungen (eine pro Zeile, kurz halten — die KI bekommt sie mit jeder Anfrage)"
+                           FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
+                <TextBox x:Name="AiHintsBox" AcceptsReturn="True" TextWrapping="Wrap"
+                         Height="140" VerticalContentAlignment="Top"
+                         PlaceholderText="- Kurzer Hinweis / gelöstes Problem …"/>
+              </StackPanel>
             </StackPanel>
           </ScrollViewer>
         </TabItem>

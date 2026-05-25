@@ -20,14 +20,14 @@ public sealed class NodeSuggester(ILlmClient client)
     };
 
     public async Task<NodeSuggestionResult> SuggestAsync(
-        string flowJson, string anchorId, string anchorType, CancellationToken ct = default)
+        string flowJson, string anchorId, string anchorType, string? hints = null, CancellationToken ct = default)
     {
         string raw;
         try
         {
             Log.Info("Node-Vorschlag via {0} (nach {1})…", client.Name, anchorId);
             raw = await client.CompleteAsync(
-                PromptBuilder.BuildSuggestSystemPrompt(),
+                PromptBuilder.BuildSuggestSystemPrompt(hints),
                 PromptBuilder.BuildSuggestUserPrompt(flowJson, anchorId, anchorType),
                 ct);
         }

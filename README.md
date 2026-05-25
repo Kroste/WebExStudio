@@ -511,6 +511,14 @@ unter dem ausgewählten Node angelegt und automatisch von dessen Ausgang verbund
 ein-/ausschalten (Einstellung wird gespeichert). Die Statusleiste zeigt außerdem den aktuellen
 Status, den Flow-Namen, den aktiven Tab, die Node-Anzahl und den KI-Anbieter.
 
+### KI-Hinweise (bekannte Probleme & Lösungen)
+
+Im Einstellungen-Tab **„KI"** gibt es ein Feld **„Bekannte Probleme & Lösungen"** — eine kurze,
+selbst gepflegte Liste (eine Zeile pro Hinweis). Ist der Schalter **„Hinweise an die KI
+mitsenden"** aktiv, werden diese Hinweise **jeder** KI-Anfrage (Flow erstellen, Chat, erklären,
+Vorschlag) zusätzlich zum Flow mitgegeben. So lassen sich einmal gelöste Probleme festhalten und
+künftig automatisch berücksichtigen. Hinweise kurz halten, damit die KI sie gut nutzen kann.
+
 ---
 
 ## Legacy-Projekte importieren

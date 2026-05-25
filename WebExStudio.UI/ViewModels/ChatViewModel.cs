@@ -67,7 +67,7 @@ public sealed class ChatViewModel : ViewModelBase
 
         // Aktuellen Flow mitgeben, damit die KI auf dem echten Stand arbeitet (auch nach Edits).
         var flowJson = _main.FlowEditor.Document is { } doc ? FlowSerializer2.Serialize(doc) : null;
-        await RunAssistantTurnAsync(PromptBuilder.BuildChatSystemPrompt(flowJson));
+        await RunAssistantTurnAsync(PromptBuilder.BuildChatSystemPrompt(flowJson, _main.AiOptions.ActiveHints));
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public sealed class ChatViewModel : ViewModelBase
         _history.Add(new ChatMessage(ChatRole.User,
             $"Erkläre den folgenden Flow:\n\n{json}"));
 
-        await RunAssistantTurnAsync(PromptBuilder.BuildExplainSystemPrompt());
+        await RunAssistantTurnAsync(PromptBuilder.BuildExplainSystemPrompt(_main.AiOptions.ActiveHints));
     }
 
     /// <summary>Ruft das Modell mit dem aktuellen Verlauf auf und hängt die Antwort als Turn an.</summary>

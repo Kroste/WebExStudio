@@ -14,7 +14,8 @@ public sealed class FlowGenerator(ILlmClient client)
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public async Task<FlowGenerationResult> GenerateAsync(string description, CancellationToken ct = default)
+    public async Task<FlowGenerationResult> GenerateAsync(
+        string description, string? hints = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(description))
             return FlowGenerationResult.Failed("Keine Beschreibung angegeben.");
@@ -24,7 +25,7 @@ public sealed class FlowGenerator(ILlmClient client)
         {
             Log.Info("Generiere Flow via {0}…", client.Name);
             raw = await client.CompleteAsync(
-                PromptBuilder.BuildSystemPrompt(),
+                PromptBuilder.BuildSystemPrompt(hints),
                 PromptBuilder.BuildUserPrompt(description),
                 ct);
         }

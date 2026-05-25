@@ -2,52 +2,65 @@ using WebExStudio.Core.Ai;
 
 namespace WebExStudio.AI;
 
-/// <summary>Baut System- und Benutzer-Prompt für die Flow-Generierung.</summary>
+/// <summary>Baut System- und Benutzer-Prompt für die KI-Funktionen.</summary>
 public static class PromptBuilder
 {
+    /// <summary>Hängt — falls vorhanden — die vom Nutzer gepflegten Hinweise/Problemlösungen an.</summary>
+    private static string WithHints(string prompt, string? hints) =>
+        string.IsNullOrWhiteSpace(hints)
+            ? prompt
+            : prompt + $$"""
+
+
+
+                BEKANNTE HINWEISE / PROBLEMLÖSUNGEN (unbedingt beachten):
+                {{hints!.Trim()}}
+                """;
+
     /// <summary>
     /// Systemkontext: Aufgabe, Flow-JSON-Format, Node-Katalog (aus dem Schema) und harte Regeln.
     /// </summary>
-    public static string BuildSystemPrompt() =>
-        $$"""
-        Du bist ein Assistent, der Web-Automatisierungs-Flows für die Anwendung „WebExStudio“
-        erzeugt. Ein Flow ist EIN JSON-Objekt im folgenden Format (Version 2):
+    public static string BuildSystemPrompt(string? hints = null) =>
+        WithHints(
+            $$"""
+            Du bist ein Assistent, der Web-Automatisierungs-Flows für die Anwendung „WebExStudio“
+            erzeugt. Ein Flow ist EIN JSON-Objekt im folgenden Format (Version 2):
 
-        {
-          "version": 2,
-          "tabs": [
-            { "id": "main", "label": "Main", "isSubFlow": false }
-          ],
-          "nodes": [
             {
-              "id": "<eindeutige kurze id>",
-              "type": "<einer der unten gelisteten Typen>",
-              "tabId": "main",
-              "label": "<frei wählbare Bezeichnung, optional>",
-              "config": { "<schlüssel>": "<wert als string>" },
-              "wires": [ ["<ziel-node-id>"] ]
+              "version": 2,
+              "tabs": [
+                { "id": "main", "label": "Main", "isSubFlow": false }
+              ],
+              "nodes": [
+                {
+                  "id": "<eindeutige kurze id>",
+                  "type": "<einer der unten gelisteten Typen>",
+                  "tabId": "main",
+                  "label": "<frei wählbare Bezeichnung, optional>",
+                  "config": { "<schlüssel>": "<wert als string>" },
+                  "wires": [ ["<ziel-node-id>"] ]
+                }
+              ]
             }
-          ]
-        }
 
-        REGELN (zwingend):
-        - Antworte AUSSCHLIESSLICH mit dem JSON-Objekt, ohne Erklärtext, ohne Markdown.
-        - Verwende NUR Node-Typen aus dem Katalog unten. Erfinde keine Typen oder config-Schlüssel.
-        - Setze alle als "required" markierten config-Felder. Alle config-Werte sind Strings
-          (auch Zahlen/Booleans, z. B. "true", "5").
-        - "wires[portIndex]" ist die Liste der Ziel-Node-IDs an diesem Ausgang. Verzweigungen
-          (if_then_else) nutzen wires[0]=then, wires[1]=else; Schleifen (foreach, for_range,
-          get_links) nutzen wires[0]=Schleifenkörper, wires[1]=danach. Siehe "outputs" je Typ.
-        - Verbindungen bleiben innerhalb eines Tabs. Wiederverwendbare Teilabläufe als benannte
-          Subnodes (eigener Tab mit "isSubFlow": true und eindeutigem "name") und per "call"
-          (config.target = subnode-name) aufrufen.
-        - Verkette Schritte über "wires"; nutze {payload.schlüssel} bzw. {schlüssel} als Platzhalter.
-        - Lass x/y weg — die Anordnung passiert automatisch.
-        - Beginne sinnvoll mit einem "function"- oder "goto"-Node.
+            REGELN (zwingend):
+            - Antworte AUSSCHLIESSLICH mit dem JSON-Objekt, ohne Erklärtext, ohne Markdown.
+            - Verwende NUR Node-Typen aus dem Katalog unten. Erfinde keine Typen oder config-Schlüssel.
+            - Setze alle als "required" markierten config-Felder. Alle config-Werte sind Strings
+              (auch Zahlen/Booleans, z. B. "true", "5").
+            - "wires[portIndex]" ist die Liste der Ziel-Node-IDs an diesem Ausgang. Verzweigungen
+              (if_then_else) nutzen wires[0]=then, wires[1]=else; Schleifen (foreach, for_range,
+              get_links) nutzen wires[0]=Schleifenkörper, wires[1]=danach. Siehe "outputs" je Typ.
+            - Verbindungen bleiben innerhalb eines Tabs. Wiederverwendbare Teilabläufe als benannte
+              Subnodes (eigener Tab mit "isSubFlow": true und eindeutigem "name") und per "call"
+              (config.target = subnode-name) aufrufen.
+            - Verkette Schritte über "wires"; nutze {payload.schlüssel} bzw. {schlüssel} als Platzhalter.
+            - Lass x/y weg — die Anordnung passiert automatisch.
+            - Beginne sinnvoll mit einem "function"- oder "goto"-Node.
 
-        VERFÜGBARE NODE-TYPEN (Katalog):
-        {{NodeSchemaExporter.ToJson()}}
-        """;
+            VERFÜGBARE NODE-TYPEN (Katalog):
+            {{NodeSchemaExporter.ToJson()}}
+            """, hints);
 
     /// <summary>Benutzer-Prompt: die natürliche Beschreibung des gewünschten Flows.</summary>
     public static string BuildUserPrompt(string description) =>
@@ -63,7 +76,7 @@ public static class PromptBuilder
     /// erkennen und in den Editor laden kann). Ist <paramref name="currentFlowJson"/> gesetzt,
     /// wird der aktuelle Stand des Editors mitgegeben, damit Änderungen darauf aufbauen.
     /// </summary>
-    public static string BuildChatSystemPrompt(string? currentFlowJson = null)
+    public static string BuildChatSystemPrompt(string? currentFlowJson = null, string? hints = null)
     {
         var prompt =
             $$"""
@@ -90,48 +103,50 @@ public static class PromptBuilder
             {{NodeSchemaExporter.ToJson()}}
             """;
 
-        if (string.IsNullOrWhiteSpace(currentFlowJson))
-            return prompt;
-
-        return prompt + $$"""
+        if (!string.IsNullOrWhiteSpace(currentFlowJson))
+            prompt += $$"""
 
 
-            AKTUELLER FLOW IM EDITOR (aktueller Stand — beziehe dich hierauf; bei Änderungen den
-            VOLLSTÄNDIGEN geänderten Flow zurückgeben):
-            {{currentFlowJson}}
-            """;
+                AKTUELLER FLOW IM EDITOR (aktueller Stand — beziehe dich hierauf; bei Änderungen den
+                VOLLSTÄNDIGEN geänderten Flow zurückgeben):
+                {{currentFlowJson}}
+                """;
+
+        return WithHints(prompt, hints);
     }
 
     /// <summary>Systemkontext zum Erklären eines bestehenden Flows in verständlicher Prosa.</summary>
-    public static string BuildExplainSystemPrompt() =>
-        $$"""
-        Du erklärst Web-Automatisierungs-Flows der Anwendung „WebExStudio“ verständlich auf Deutsch.
-        Der Nutzer schickt dir einen Flow als JSON. Erkläre:
-        1. was der Flow insgesamt tut (1–2 Sätze Überblick),
-        2. den Ablauf Schritt für Schritt entlang der Verbindungen (wires), inkl. Verzweigungen
-           (if then/else) und Schleifen (foreach/for_range) sowie aufgerufener Subnodes (call),
-        3. auffällige Risiken oder fehlende Schritte, falls vorhanden.
-        Nutze die Bezeichnungen (label) der Nodes, wenn vorhanden. Antworte als Fließtext/Aufzählung,
-        NICHT als JSON. Beziehe dich auf den Node-Katalog für die Bedeutung der Typen.
+    public static string BuildExplainSystemPrompt(string? hints = null) =>
+        WithHints(
+            $$"""
+            Du erklärst Web-Automatisierungs-Flows der Anwendung „WebExStudio“ verständlich auf Deutsch.
+            Der Nutzer schickt dir einen Flow als JSON. Erkläre:
+            1. was der Flow insgesamt tut (1–2 Sätze Überblick),
+            2. den Ablauf Schritt für Schritt entlang der Verbindungen (wires), inkl. Verzweigungen
+               (if then/else) und Schleifen (foreach/for_range) sowie aufgerufener Subnodes (call),
+            3. auffällige Risiken oder fehlende Schritte, falls vorhanden.
+            Nutze die Bezeichnungen (label) der Nodes, wenn vorhanden. Antworte als Fließtext/Aufzählung,
+            NICHT als JSON. Beziehe dich auf den Node-Katalog für die Bedeutung der Typen.
 
-        NODE-KATALOG:
-        {{NodeSchemaExporter.ToJson()}}
-        """;
+            NODE-KATALOG:
+            {{NodeSchemaExporter.ToJson()}}
+            """, hints);
 
     /// <summary>Systemkontext für den Vorschlag des nächsten Nodes (striktes JSON-Objekt).</summary>
-    public static string BuildSuggestSystemPrompt() =>
-        $$"""
-        Du schlägst den NÄCHSTEN sinnvollen Node für einen WebExStudio-Flow vor.
-        Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt in genau dieser Form:
-        { "type": "<node-typ aus dem Katalog>", "label": "<kurze Bezeichnung>",
-          "config": { "<schlüssel>": "<wert>" }, "reason": "<kurze Begründung auf Deutsch>" }
+    public static string BuildSuggestSystemPrompt(string? hints = null) =>
+        WithHints(
+            $$"""
+            Du schlägst den NÄCHSTEN sinnvollen Node für einen WebExStudio-Flow vor.
+            Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt in genau dieser Form:
+            { "type": "<node-typ aus dem Katalog>", "label": "<kurze Bezeichnung>",
+              "config": { "<schlüssel>": "<wert>" }, "reason": "<kurze Begründung auf Deutsch>" }
 
-        Regeln: nur Typen aus dem Katalog; setze sinnvolle Pflicht-config-Werte (alle als String);
-        genau EIN Node; keine Erklärung außerhalb des JSON.
+            Regeln: nur Typen aus dem Katalog; setze sinnvolle Pflicht-config-Werte (alle als String);
+            genau EIN Node; keine Erklärung außerhalb des JSON.
 
-        NODE-KATALOG:
-        {{NodeSchemaExporter.ToJson()}}
-        """;
+            NODE-KATALOG:
+            {{NodeSchemaExporter.ToJson()}}
+            """, hints);
 
     /// <summary>Benutzer-Prompt für den Node-Vorschlag: Flow + Anker-Node.</summary>
     public static string BuildSuggestUserPrompt(string flowJson, string anchorId, string anchorType) =>

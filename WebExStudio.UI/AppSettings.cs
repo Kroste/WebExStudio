@@ -47,6 +47,8 @@ public static class AppSettings
         public string AiApiKey { get; set; } = "";
         public string AiModel { get; set; } = "";
         public string AiBaseUrl { get; set; } = "";
+        public string AiHints { get; set; } = AiOptions.DefaultHints;
+        public bool AiSendHints { get; set; } = true;
 
         // Oberfläche
         public bool SuggestionsEnabled { get; set; } = true;
@@ -118,6 +120,8 @@ public static class AppSettings
         ai.ApiKey = m.AiApiKey;
         ai.Model = m.AiModel;
         ai.BaseUrl = m.AiBaseUrl;
+        ai.Hints = m.AiHints;
+        ai.SendHints = m.AiSendHints;
     }
 
     public static void SaveAi(AiOptions ai)
@@ -128,6 +132,8 @@ public static class AppSettings
         m.AiApiKey = ai.ApiKey;
         m.AiModel = ai.Model;
         m.AiBaseUrl = ai.BaseUrl;
+        m.AiHints = ai.Hints;
+        m.AiSendHints = ai.SendHints;
         WriteModel(m);
     }
 

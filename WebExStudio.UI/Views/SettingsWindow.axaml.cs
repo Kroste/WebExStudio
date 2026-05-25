@@ -38,6 +38,8 @@ public partial class SettingsWindow : Window
         AiApiKeyBox.Text = _ai.ApiKey;
         AiModelBox.Text = _ai.Model;
         AiBaseUrlBox.Text = _ai.BaseUrl;
+        AiSendHintsBox.IsChecked = _ai.SendHints;
+        AiHintsBox.Text = _ai.Hints;
     }
 
     private static void SelectCombo(ComboBox box, string value)
@@ -115,6 +117,8 @@ public partial class SettingsWindow : Window
         _ai.ApiKey = AiApiKeyBox.Text ?? string.Empty;
         _ai.Model = AiModelBox.Text ?? string.Empty;
         _ai.BaseUrl = AiBaseUrlBox.Text ?? string.Empty;
+        _ai.SendHints = AiSendHintsBox.IsChecked == true;
+        _ai.Hints = AiHintsBox.Text ?? string.Empty;
 
         Saved = true;
         Close();
