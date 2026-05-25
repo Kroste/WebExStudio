@@ -55,6 +55,27 @@ public sealed class MainWindowViewModel : ViewModelBase
         return result;
     }
 
+    /// <summary>Fragt die KI nach dem nächsten Node hinter dem Anker-Node.</summary>
+    public async Task<NodeSuggestionResult> SuggestNextNodeAsync(NodeViewModel anchor, CancellationToken ct = default)
+    {
+        if (FlowEditor.Document is null)
+            return NodeSuggestionResult.Failed("Kein Flow geöffnet.");
+
+        using var http = ProxyFactory.CreateHttpClient(
+            RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
+            TimeSpan.FromMinutes(2));
+        var suggester = new NodeSuggester(LlmClientFactory.Create(AiOptions, http));
+        var flowJson = FlowSerializer2.Serialize(FlowEditor.Document);
+        return await suggester.SuggestAsync(flowJson, anchor.Id, anchor.ActionType, ct);
+    }
+
+    /// <summary>Übernimmt einen Vorschlag: neuer Node hinter dem Anker, verbunden.</summary>
+    public void ApplySuggestion(NodeViewModel anchor, NodeSuggestion suggestion)
+    {
+        FlowEditor.AddConnectedNode(anchor, suggestion.Type, suggestion.Config, suggestion.Label);
+        StatusText = $"Node '{suggestion.Type}' hinzugefügt";
+    }
+
     public MainWindowViewModel()
     {
         Chat = new ChatViewModel(this);

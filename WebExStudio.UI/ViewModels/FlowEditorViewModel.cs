@@ -507,6 +507,23 @@ public sealed class FlowEditorViewModel : ViewModelBase
         return vm;
     }
 
+    /// <summary>
+    /// Fügt unterhalb von <paramref name="anchor"/> einen neuen Node hinzu, übernimmt
+    /// Config/Bezeichnung und verbindet ihn vom Ausgang 0 des Ankers. Für KI-Vorschläge.
+    /// </summary>
+    public NodeViewModel AddConnectedNode(NodeViewModel anchor, string type,
+        IReadOnlyDictionary<string, string> config, string label)
+    {
+        var vm = AddNode(type, anchor.X, anchor.Y + 120);
+        foreach (var kv in config)
+            vm.Model.Config[kv.Key] = kv.Value;
+        vm.Label = label;
+        vm.RaiseTitleChanged();
+        AddWire(anchor.Id, 0, vm.Id);
+        this.RaisePropertyChanged(nameof(Wires)); // View → Verbindungen neu zeichnen
+        return vm;
+    }
+
     public void DeleteNode(NodeViewModel vm)
     {
         if (Document is null || _activeTab is null) return;

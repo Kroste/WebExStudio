@@ -65,6 +65,16 @@ public partial class MainWindow : Window
         await Vm.Chat.ExplainCurrentFlowAsync();
     }
 
+    private async void OnSuggestNode(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (Vm.FlowEditor.SelectedNode is not { } anchor)
+        {
+            Vm.StatusText = "Bitte zuerst einen Node auswählen (Anker für den Vorschlag).";
+            return;
+        }
+        await new NodeSuggestionDialog(Vm, anchor).ShowDialog(this);
+    }
+
     /// <summary>Öffnet (oder aktiviert) das nicht-modale Chat-Fenster; Verlauf lebt im ViewModel.</summary>
     private void ShowChat()
     {

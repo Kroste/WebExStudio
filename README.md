@@ -489,6 +489,13 @@ Sprache zusammenfassen (Überblick, Schritt-für-Schritt entlang der Verbindunge
 Risiken). Die Erklärung erscheint im Chat-Fenster; der Flow wird dem Modell dabei im
 Hintergrund mitgegeben, sodass man direkt Rückfragen stellen kann.
 
+### Node-Vorschlag
+
+Einen Node auswählen und **💡 Vorschlag** klicken: Die KI schlägt — basierend auf dem
+gesamten Flow — den **nächsten sinnvollen Node** vor (Typ, Bezeichnung, Konfiguration,
+Begründung). Der Vorschlag wird gegen den Node-Katalog geprüft; per **Hinzufügen** wird er
+unter dem ausgewählten Node angelegt und automatisch von dessen Ausgang verbunden.
+
 ---
 
 ## Legacy-Projekte importieren

@@ -63,6 +63,8 @@
                 ToolTip.Tip="Chat-Fenster mit der KI öffnen"/>
         <Button Content="🧾 Erklären"       Click="OnExplainFlow" Padding="8,4"
                 ToolTip.Tip="Den aktuellen Flow von der KI erklären lassen"/>
+        <Button Content="💡 Vorschlag"      Click="OnSuggestNode" Padding="8,4"
+                ToolTip.Tip="Nächsten Node nach dem ausgewählten von der KI vorschlagen lassen"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 

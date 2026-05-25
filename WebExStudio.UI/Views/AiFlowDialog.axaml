@@ -45,7 +45,7 @@
         <TextBox Grid.Row="1" x:Name="PromptBox"
                  Height="150" AcceptsReturn="True" TextWrapping="Wrap"
                  VerticalContentAlignment="Top"
-                 Watermark="z. B.: Öffne https://example.com, klicke auf den Login-Button, gib Benutzer und Passwort aus dem Payload ein und speichere die Seitenüberschrift in eine Datei."/>
+                 PlaceholderText="z. B.: Öffne https://example.com, klicke auf den Login-Button, gib Benutzer und Passwort aus dem Payload ein und speichere die Seitenüberschrift in eine Datei."/>
 
         <Border Grid.Row="2" Margin="0,12,0,0" Background="#0E0E18"
                 BorderBrush="#2E2E4E" BorderThickness="1" CornerRadius="4"

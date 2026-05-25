@@ -11,7 +11,7 @@
 
     <TextBox DockPanel.Dock="Top"
              x:Name="SearchBox"
-             Watermark="Suchen…"
+             PlaceholderText="Suchen…"
              Margin="6" Padding="6,4"
              TextChanged="OnSearchChanged"/>
 

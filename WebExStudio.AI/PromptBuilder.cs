@@ -101,4 +101,29 @@ public static class PromptBuilder
         NODE-KATALOG:
         {{NodeSchemaExporter.ToJson()}}
         """;
+
+    /// <summary>Systemkontext für den Vorschlag des nächsten Nodes (striktes JSON-Objekt).</summary>
+    public static string BuildSuggestSystemPrompt() =>
+        $$"""
+        Du schlägst den NÄCHSTEN sinnvollen Node für einen WebExStudio-Flow vor.
+        Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt in genau dieser Form:
+        { "type": "<node-typ aus dem Katalog>", "label": "<kurze Bezeichnung>",
+          "config": { "<schlüssel>": "<wert>" }, "reason": "<kurze Begründung auf Deutsch>" }
+
+        Regeln: nur Typen aus dem Katalog; setze sinnvolle Pflicht-config-Werte (alle als String);
+        genau EIN Node; keine Erklärung außerhalb des JSON.
+
+        NODE-KATALOG:
+        {{NodeSchemaExporter.ToJson()}}
+        """;
+
+    /// <summary>Benutzer-Prompt für den Node-Vorschlag: Flow + Anker-Node.</summary>
+    public static string BuildSuggestUserPrompt(string flowJson, string anchorId, string anchorType) =>
+        $"""
+        Aktueller Flow:
+        {flowJson}
+
+        Schlage den nächsten Node vor, der NACH dem Node mit id="{anchorId}" (Typ {anchorType})
+        angehängt werden soll.
+        """;
 }

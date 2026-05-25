@@ -35,7 +35,7 @@
                    AcceptsReturn="True" TextWrapping="Wrap"
                    MinHeight="44" MaxHeight="120"
                    VerticalContentAlignment="Center"
-                   Watermark="Frage stellen oder einen Flow beschreiben…  (Enter = senden, Umschalt+Enter = neue Zeile)"
+                   PlaceholderText="Frage stellen oder einen Flow beschreiben…  (Enter = senden, Umschalt+Enter = neue Zeile)"
                    KeyDown="OnInputKeyDown"/>
           <Button Grid.Column="1" Content="Senden" Click="OnSend"
                   IsEnabled="{Binding CanSend}" Padding="16,8"
