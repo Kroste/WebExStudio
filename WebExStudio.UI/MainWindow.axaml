@@ -75,9 +75,12 @@
         <Button Content="⏹ Stopp"    Click="OnStop" Padding="8,4"
                 IsEnabled="{Binding CanStop}"
                 Background="#B71C1C" Foreground="White"/>
+        <Button Content="⏸ Pause"    Click="OnPause" Padding="8,4"
+                IsVisible="{Binding CanPause}"
+                Background="#F57F17" Foreground="White"/>
         <Button Content="⏭ Weiter"   Click="OnResume" Padding="8,4"
                 IsVisible="{Binding IsPaused}"
-                Background="#F57F17" Foreground="White"/>
+                Background="#2E7D32" Foreground="White"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 

@@ -79,6 +79,12 @@
                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                           Padding="12,9" FontSize="13" Margin="0,4,0,0"
                           ToolTip.Tip="Diesen Flow in den Editor übernehmen"/>
+                  <Button Content="📌 Als Hinweis merken" Click="OnRememberHint"
+                          IsVisible="{Binding CanRemember}"
+                          Background="Transparent" Foreground="#90A4AE"
+                          BorderBrush="#455A64" BorderThickness="1" CornerRadius="6"
+                          HorizontalAlignment="Left" Padding="8,3" FontSize="11" Margin="0,4,0,0"
+                          ToolTip.Tip="Diese Antwort (gekürzt) als KI-Hinweis speichern"/>
                 </StackPanel>
               </Border>
             </DataTemplate>

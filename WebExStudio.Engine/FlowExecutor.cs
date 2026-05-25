@@ -80,7 +80,8 @@ public sealed class FlowExecutor
         TargetConfig target,
         IProgress<TraceEntry>? progress = null,
         CancellationToken ct = default,
-        Func<string, Task>? onPause = null)
+        Func<string, Task>? onPause = null,
+        Func<Task>? pauseGate = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
         ApplyDriverPath(config);
@@ -94,7 +95,7 @@ public sealed class FlowExecutor
             try
             {
                 var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
-                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
             finally
@@ -153,6 +154,8 @@ public sealed class FlowExecutor
     private async Task RunNode(FlowNode node, HashSet<string> visited, ExecutionContext ctx)
     {
         if (!visited.Add(node.Id)) return;
+        ctx.CancellationToken.ThrowIfCancellationRequested();
+        await ctx.CheckPauseAsync(); // manuelles Pausieren: hält vor dem Node
         ctx.CancellationToken.ThrowIfCancellationRequested();
 
         Log.Info("Node startet: {0} ({1})", node.Type, node.Id);
@@ -216,7 +219,7 @@ public sealed class FlowExecutor
         IPage page, TargetConfig target, RunConfig config,
         string projectDir, FlowDocument2 doc,
         IProgress<TraceEntry>? progress, CancellationToken ct,
-        Func<string, Task>? onPause = null)
+        Func<string, Task>? onPause = null, Func<Task>? pauseGate = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
@@ -230,6 +233,7 @@ public sealed class FlowExecutor
             FollowOutputCallback = (node, port, c) =>
                 TraverseFrom(node.Wires.ElementAtOrDefault(port) ?? [], c),
             PauseCallback = onPause,
+            PauseGate = pauseGate,
         };
     }
 

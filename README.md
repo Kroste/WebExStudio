@@ -81,7 +81,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  🌐 WebExStudio                                              ⚙  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✨ Neuer Flow  📄 Flow öffnen  💾 Speichern │ ▶ Ausführen ⏹ Stopp ⏭ Weiter │ ⊞ Fit 🔍 Reset │ ← Toolbar
+│ ✨ Neuer Flow  📄 Flow öffnen  💾 Speichern │ ▶ Ausführen ⏹ Stopp ⏸ Pause ⏭ Weiter │ ⊞ Fit 🔍 Reset │ ← Toolbar
 ├───────────────┬──────────────────────────────────────────────┬───────────────┤
 │ Node-Palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Eigenschaften │
 │  Suchen…      │                                              │               │
@@ -104,7 +104,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | Bereich | Zweck |
 |---|---|
 | **Titelleiste** | Eigene Fensterleiste (rahmenlos): ⚙ Einstellungen, ℹ Über, — Minimieren, ▢ Max/Restore, ✕ Schließen. Doppelklick = maximieren. |
-| **Toolbar** | Neuer/öffnen/speichern, Ausführen/Stopp/Weiter, Fit/Reset-View, Statustext. |
+| **Toolbar** | Neuer/öffnen/speichern, KI-Funktionen, Ausführen/Stopp/Pause/Weiter, Fit/Reset-View. |
 | **Node-Palette** (links oben) | Alle Node-Typen nach Kategorie, durchsuchbar. Klick = einfügen, Ziehen = an Position ablegen. |
 | **Subnodes** (links unten) | Liste aller benannten Subnodes. Doppelklick öffnet sie als Tab; ＋ neu, ✎ umbenennen, 🗑 löschen; auf den Canvas ziehen erzeugt einen `call`-Node. |
 | **Tab-Leiste** | Offene Tabs (Main + geöffnete Subnodes). Jeder Tab außer Main hat ein ✕. |
@@ -357,6 +357,8 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
 
 `debug` mit `pause = true` schreibt das Payload ins Protokoll und **hält an**. In der Toolbar erscheint **⏭ Weiter** — erst auf Klick läuft es weiter. So kannst du den Payload-Inhalt in Ruhe ansehen.
 
+Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen.
+
 ![Beispiel 5](docs/images/example-5.png)
 
 ```json
@@ -518,6 +520,9 @@ selbst gepflegte Liste (eine Zeile pro Hinweis). Ist der Schalter **„Hinweise 
 mitsenden"** aktiv, werden diese Hinweise **jeder** KI-Anfrage (Flow erstellen, Chat, erklären,
 Vorschlag) zusätzlich zum Flow mitgegeben. So lassen sich einmal gelöste Probleme festhalten und
 künftig automatisch berücksichtigen. Hinweise kurz halten, damit die KI sie gut nutzen kann.
+
+Im **KI-Chat** hat jede Antwort einen Knopf **„📌 Als Hinweis merken"** — er übernimmt die
+(gekürzte) Antwort direkt in die Hinweisliste (danach in den Einstellungen editierbar).
 
 ---
 

@@ -44,6 +44,9 @@ public sealed class ChatTurnViewModel : ViewModelBase
     /// <summary>Hinweise etwas größer/fetter darstellen.</summary>
     public bool IsNotice => _notice;
 
+    /// <summary>Echte KI-Antwort (nicht Nutzer, kein System-Hinweis) — kann als Hinweis gemerkt werden.</summary>
+    public bool CanRemember => Role == ChatRole.Assistant && !_notice;
+
     // ── Erkannter Flow (falls die Antwort einen enthält) ───────────────────────
     private bool _hasFlow;
     public bool HasFlow

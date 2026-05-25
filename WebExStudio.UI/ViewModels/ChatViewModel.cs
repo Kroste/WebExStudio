@@ -159,6 +159,29 @@ public sealed class ChatViewModel : ViewModelBase
         if (_latestFlowTurn is not null) LoadFlow(_latestFlowTurn);
     }
 
+    /// <summary>Übernimmt eine (gekürzte) KI-Antwort als neuen Hinweis und speichert sie.</summary>
+    public void RememberAsHint(ChatTurnViewModel turn)
+    {
+        var hint = ShortenForHint(turn.Content);
+        if (string.IsNullOrWhiteSpace(hint)) return;
+
+        var ai = _main.AiOptions;
+        ai.Hints = string.IsNullOrWhiteSpace(ai.Hints) ? hint : ai.Hints.TrimEnd() + "\n" + hint;
+        AppSettings.SaveAi(ai);
+        _main.NotifyAiSettingsChanged();
+        Log.Info("KI-Hinweis gemerkt: {0}", MaskSecrets(hint));
+        Messages.Add(ChatTurnViewModel.Notice(
+            "Als KI-Hinweis gespeichert — in den Einstellungen (Tab „KI“) editierbar."));
+    }
+
+    private static string ShortenForHint(string text)
+    {
+        var collapsed = System.Text.RegularExpressions.Regex.Replace(text.Trim(), @"\s+", " ");
+        const int max = 240;
+        if (collapsed.Length > max) collapsed = collapsed[..max].TrimEnd() + "…";
+        return collapsed.StartsWith('-') ? collapsed : "- " + collapsed;
+    }
+
     /// <summary>Lädt einen in einer Antwort erkannten Flow in den Editor.</summary>
     public void LoadFlow(ChatTurnViewModel turn)
     {

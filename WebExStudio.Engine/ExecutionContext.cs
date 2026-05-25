@@ -47,6 +47,12 @@ public sealed class ExecutionContext
     /// <summary>Pauses the flow (if a pause callback is wired) until the user resumes.</summary>
     public Task Pause(string message) => PauseCallback?.Invoke(message) ?? Task.CompletedTask;
 
+    /// <summary>Gate, das der Executor vor jedem Node abwartet — für manuelles Pausieren.</summary>
+    public Func<Task>? PauseGate { get; init; }
+
+    /// <summary>Wartet, solange manuell pausiert wurde (sonst kehrt es sofort zurück).</summary>
+    public Task CheckPauseAsync() => PauseGate?.Invoke() ?? Task.CompletedTask;
+
     public ExecutionContext(
         IPage page,
         TargetConfig target,
@@ -106,6 +112,7 @@ public sealed class ExecutionContext
             RunSubTabCallback = RunSubTabCallback,
             FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
+            PauseGate = PauseGate,
         };
 
     /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
@@ -117,6 +124,7 @@ public sealed class ExecutionContext
             RunSubTabCallback = RunSubTabCallback,
             FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
+            PauseGate = PauseGate,
         };
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);

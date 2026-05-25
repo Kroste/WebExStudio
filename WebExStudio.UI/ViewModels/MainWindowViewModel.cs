@@ -119,18 +119,24 @@ public sealed class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isRunning, value);
             this.RaisePropertyChanged(nameof(CanRun));
             this.RaisePropertyChanged(nameof(CanStop));
+            this.RaisePropertyChanged(nameof(CanPause));
         }
     }
 
-    /// <summary>True while the flow is paused at a debug node, waiting for the user to resume.</summary>
+    /// <summary>True while the flow is paused (manuell oder an einem Debug-Node).</summary>
     public bool IsPaused
     {
         get => _isPaused;
-        private set => this.RaiseAndSetIfChanged(ref _isPaused, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isPaused, value);
+            this.RaisePropertyChanged(nameof(CanPause));
+        }
     }
 
     public bool CanRun => !IsRunning && FlowEditor.Document is not null;
     public bool CanStop => IsRunning;
+    public bool CanPause => IsRunning && !IsPaused;
 
     public string StatusText
     {
@@ -210,7 +216,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             await Task.Run(() =>
                 executor.RunDocumentAsync(doc, RunConfig,
                     new TargetConfig { Name = "Lokal", Enabled = true },
-                    progress, ct, OnPauseRequested), ct);
+                    progress, ct, OnPauseRequested, PauseGateAsync), ct);
             StatusText = "Ausführung abgeschlossen";
         }
         catch (OperationCanceledException)
@@ -266,7 +272,19 @@ public sealed class MainWindowViewModel : ViewModelBase
         return tcs.Task;
     }
 
-    /// <summary>Resumes a flow paused at a debug node.</summary>
+    /// <summary>Manuelles Pausieren: hält die Ausführung vor dem nächsten Node an.</summary>
+    public void Pause()
+    {
+        if (!IsRunning || IsPaused) return;
+        _pauseTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        IsPaused = true;
+        StatusText = "Pausiert — auf „Weiter“ warten…";
+    }
+
+    /// <summary>Gate für den Executor: wartet, solange pausiert ist (vor jedem Node geprüft).</summary>
+    private Task PauseGateAsync() => _pauseTcs?.Task ?? Task.CompletedTask;
+
+    /// <summary>Resumes a flow paused at a debug node or manually.</summary>
     public void Resume()
     {
         IsPaused = false;

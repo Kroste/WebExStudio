@@ -60,5 +60,11 @@ public partial class ChatWindow : Window
 
     private void OnLoadLatestFlow(object? sender, RoutedEventArgs e) => Vm?.LoadLatestFlow();
 
+    private void OnRememberHint(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not null && sender is Control { DataContext: ChatTurnViewModel turn })
+            Vm.RememberAsHint(turn);
+    }
+
     private void ScrollToEnd() => Dispatcher.UIThread.Post(() => Scroller.ScrollToEnd());
 }
