@@ -97,7 +97,11 @@ public sealed class FlowExecutor
             // An JEDE Seite hängen — auch an Popups/neue Tabs, die die Seite selbst öffnet
             // (z. B. pixeldrain) und die nicht über den open_tab-Node laufen.
             var downloads = new DownloadCollector(ResolveDownloadDir(config));
-            context.Page += (_, p) => downloads.Attach(p);
+            context.Page += (_, p) =>
+            {
+                Log.Debug("Neue Seite im Kontext: {0}", p.Url);
+                downloads.Attach(p);
+            };
             downloads.Attach(page);
 
             try
