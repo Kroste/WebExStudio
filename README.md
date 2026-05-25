@@ -18,7 +18,7 @@
 - [Node-Referenz](#node-referenz)
 - [Beispiele](#beispiele)
 - [Payload & Platzhalter](#payload--platzhalter)
-- [Browser-Einstellungen](#browser-einstellungen)
+- [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
 - [Logging](#logging)
 - [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
 - [Legacy-Projekte importieren](#legacy-projekte-importieren)
@@ -401,11 +401,15 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
 
 ---
 
-## Browser-Einstellungen
+## Einstellungen
 
-Über **⚙** in der Titelleiste. Gespeichert in `~/.config/WebExStudio/settings.json` und beim Start geladen.
+Über **⚙** in der Titelleiste. Gespeichert in `~/.config/WebExStudio/settings.json`
+(unter Windows `%AppData%\WebExStudio\settings.json`) und beim Start geladen. Das Fenster
+ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 
 ![Einstellungen](docs/images/settings.png)
+
+**Tab „Browser"**
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -413,7 +417,18 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
 | **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. |
 | **Browser-Programmpfad** | leer = automatisch; sonst Pfad zur Browser-EXE (`ExecutablePath`). |
 | **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). |
+| **Standard-Downloadpfad** | Zielordner für Browser-Downloads (`DownloadsPath`); leer = Standard des Browsers. |
 | **Headless** | Browser ohne sichtbares Fenster ausführen. |
+
+**Tab „Netzwerk" (Proxy)** — gilt **für den Browser und für KI-Anfragen**:
+
+| Einstellung | Bedeutung |
+|---|---|
+| **Proxy-Server** | z. B. `http://proxy.firma.de:8080`; leer = kein Proxy / Systemstandard. |
+| **Ausnahmen / Bypass** | kommagetrennte Hosts ohne Proxy (`localhost, 127.0.0.1, *.intern`). |
+| **Benutzer / Passwort** | optional, für authentifizierte Proxys. |
+
+**Tab „KI"** — siehe [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung).
 
 ---
 

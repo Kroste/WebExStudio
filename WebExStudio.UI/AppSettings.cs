@@ -34,6 +34,13 @@ public static class AppSettings
         public string BrowserExecutablePath { get; set; } = "";
         public string DriverPath { get; set; } = "";
         public bool Headless { get; set; }
+        public string DownloadDir { get; set; } = "";
+
+        // Netzwerk / Proxy
+        public string ProxyServer { get; set; } = "";
+        public string ProxyBypass { get; set; } = "";
+        public string ProxyUsername { get; set; } = "";
+        public string ProxyPassword { get; set; } = "";
 
         // KI-Anbindung
         public string AiProvider { get; set; } = "anthropic";
@@ -77,6 +84,11 @@ public static class AppSettings
         config.BrowserExecutablePath = m.BrowserExecutablePath;
         config.DriverPath = m.DriverPath;
         config.Headless = m.Headless;
+        config.DownloadDir = m.DownloadDir;
+        config.ProxyServer = m.ProxyServer;
+        config.ProxyBypass = m.ProxyBypass;
+        config.ProxyUsername = m.ProxyUsername;
+        config.ProxyPassword = m.ProxyPassword;
     }
 
     public static void Save(RunConfig config)
@@ -88,6 +100,11 @@ public static class AppSettings
         m.BrowserExecutablePath = config.BrowserExecutablePath;
         m.DriverPath = config.DriverPath;
         m.Headless = config.Headless;
+        m.DownloadDir = config.DownloadDir;
+        m.ProxyServer = config.ProxyServer;
+        m.ProxyBypass = config.ProxyBypass;
+        m.ProxyUsername = config.ProxyUsername;
+        m.ProxyPassword = config.ProxyPassword;
         WriteModel(m);
     }
 

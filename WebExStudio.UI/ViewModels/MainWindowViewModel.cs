@@ -29,15 +29,17 @@ public sealed class MainWindowViewModel : ViewModelBase
     /// <summary>KI-Anbindung (Anbieter/Key/Modell) — aus den Einstellungen befüllt.</summary>
     public AiOptions AiOptions { get; } = new();
 
-    private static readonly HttpClient AiHttp = new() { Timeout = TimeSpan.FromMinutes(2) };
-
     /// <summary>
     /// Erzeugt per KI einen Flow aus einer Beschreibung und lädt ihn bei Erfolg in den Editor.
     /// Liefert das Ergebnis zurück, damit der Aufrufer Fehler/Validierung anzeigen kann.
+    /// Nutzt denselben Proxy wie der Browser (aus <see cref="RunConfig"/>).
     /// </summary>
     public async Task<FlowGenerationResult> GenerateFlowAsync(string description, CancellationToken ct = default)
     {
-        var client = LlmClientFactory.Create(AiOptions, AiHttp);
+        using var http = ProxyFactory.CreateHttpClient(
+            RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
+            TimeSpan.FromMinutes(2));
+        var client = LlmClientFactory.Create(AiOptions, http);
         var generator = new FlowGenerator(client);
         var result = await generator.GenerateAsync(description, ct);
 

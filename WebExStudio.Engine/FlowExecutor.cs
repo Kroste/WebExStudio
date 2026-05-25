@@ -258,6 +258,17 @@ public sealed class FlowExecutor
             options.Channel = config.BrowserChannel;
         if (!string.IsNullOrWhiteSpace(config.BrowserExecutablePath))
             options.ExecutablePath = config.BrowserExecutablePath;
+        if (!string.IsNullOrWhiteSpace(config.ProxyServer))
+        {
+            options.Proxy = new Proxy
+            {
+                Server = config.ProxyServer,
+                Bypass = string.IsNullOrWhiteSpace(config.ProxyBypass) ? null : config.ProxyBypass,
+                Username = string.IsNullOrWhiteSpace(config.ProxyUsername) ? null : config.ProxyUsername,
+                Password = string.IsNullOrWhiteSpace(config.ProxyPassword) ? null : config.ProxyPassword,
+            };
+            Log.Info("Proxy aktiv: {0}", config.ProxyServer);
+        }
 
         Log.Info("Browser starten: {0}{1}{2}", config.Browser,
             string.IsNullOrWhiteSpace(config.BrowserChannel) ? "" : $" (Channel {config.BrowserChannel})",

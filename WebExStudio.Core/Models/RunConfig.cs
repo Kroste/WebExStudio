@@ -31,6 +31,20 @@ public sealed class RunConfig
     [JsonPropertyName("download_dir")]
     public string DownloadDir { get; set; } = string.Empty;
 
+    /// <summary>Proxy-Server (z. B. "http://proxy:8080"). Leer = kein Proxy / Systemstandard.</summary>
+    [JsonPropertyName("proxy_server")]
+    public string ProxyServer { get; set; } = string.Empty;
+
+    /// <summary>Hosts ohne Proxy, kommagetrennt (z. B. "localhost,127.0.0.1,*.intern").</summary>
+    [JsonPropertyName("proxy_bypass")]
+    public string ProxyBypass { get; set; } = string.Empty;
+
+    [JsonPropertyName("proxy_username")]
+    public string ProxyUsername { get; set; } = string.Empty;
+
+    [JsonPropertyName("proxy_password")]
+    public string ProxyPassword { get; set; } = string.Empty;
+
     [JsonPropertyName("project_dir")]
     public string ProjectDir { get; set; } = string.Empty;
 

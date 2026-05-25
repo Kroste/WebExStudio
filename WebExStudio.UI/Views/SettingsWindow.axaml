@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="WebExStudio.UI.Views.SettingsWindow"
         Title="Einstellungen"
-        Width="560" Height="640"
+        Width="560" Height="560"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         SystemDecorations="None"
@@ -35,85 +35,136 @@
         </StackPanel>
       </Border>
 
-      <!-- Body -->
-      <ScrollViewer>
-      <StackPanel Margin="20" Spacing="14">
+      <!-- Body: thematisch getrennte Tabs -->
+      <TabControl Margin="8">
 
-        <TextBlock Text="Browser" FontWeight="Bold" Foreground="#90A4AE" FontSize="13"/>
+        <!-- ── Browser ───────────────────────────────────────────────── -->
+        <TabItem Header="Browser">
+          <ScrollViewer>
+            <StackPanel Margin="14" Spacing="14">
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Browser-Typ" FontSize="12" Foreground="#B0BEC5"/>
-          <ComboBox x:Name="BrowserBox" HorizontalAlignment="Stretch">
-            <ComboBoxItem>chromium</ComboBoxItem>
-            <ComboBoxItem>firefox</ComboBoxItem>
-            <ComboBoxItem>webkit</ComboBoxItem>
-          </ComboBox>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Browser-Typ" FontSize="12" Foreground="#B0BEC5"/>
+                <ComboBox x:Name="BrowserBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem>chromium</ComboBoxItem>
+                  <ComboBoxItem>firefox</ComboBoxItem>
+                  <ComboBoxItem>webkit</ComboBoxItem>
+                </ComboBox>
+              </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="System-Browser (Channel) — leer = Standard/Bundled"
-                     FontSize="12" Foreground="#B0BEC5"/>
-          <ComboBox x:Name="ChannelBox" HorizontalAlignment="Stretch">
-            <ComboBoxItem Content=""/>
-            <ComboBoxItem Content="chrome"/>
-            <ComboBoxItem Content="msedge"/>
-            <ComboBoxItem Content="chrome-beta"/>
-            <ComboBoxItem Content="msedge-beta"/>
-          </ComboBox>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="System-Browser (Channel) — leer = Standard/Bundled"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <ComboBox x:Name="ChannelBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content=""/>
+                  <ComboBoxItem Content="chrome"/>
+                  <ComboBoxItem Content="msedge"/>
+                  <ComboBoxItem Content="chrome-beta"/>
+                  <ComboBoxItem Content="msedge-beta"/>
+                </ComboBox>
+              </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Browser-Programmpfad (leer = System/Standard)"
-                     FontSize="12" Foreground="#B0BEC5"/>
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-            <TextBox Grid.Column="0" x:Name="ExePathBox" Watermark="z. B. /usr/bin/google-chrome"/>
-            <Button Grid.Column="1" Content="…" Click="OnBrowseExe" Padding="12,0"/>
-          </Grid>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Browser-Programmpfad (leer = System/Standard)"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0" x:Name="ExePathBox" Watermark="z. B. /usr/bin/google-chrome"/>
+                  <Button Grid.Column="1" Content="…" Click="OnBrowseExe" Padding="12,0"/>
+                </Grid>
+              </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Playwright-Treiberpfad (nur falls nicht automatisch gefunden)"
-                     FontSize="12" Foreground="#B0BEC5"/>
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-            <TextBox Grid.Column="0" x:Name="DriverPathBox" Watermark="Ordner der .playwright/node-Installation"/>
-            <Button Grid.Column="1" Content="…" Click="OnBrowseDriver" Padding="12,0"/>
-          </Grid>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Playwright-Treiberpfad (nur falls nicht automatisch gefunden)"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0" x:Name="DriverPathBox" Watermark="Ordner der .playwright/node-Installation"/>
+                  <Button Grid.Column="1" Content="…" Click="OnBrowseDriver" Padding="12,0"/>
+                </Grid>
+              </StackPanel>
 
-        <CheckBox x:Name="HeadlessBox" Content="Headless (ohne sichtbares Browserfenster)"
-                  Foreground="#B0BEC5"/>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Standard-Downloadpfad (leer = Standard des Browsers)"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0" x:Name="DownloadDirBox" Watermark="z. B. /home/user/Downloads"/>
+                  <Button Grid.Column="1" Content="…" Click="OnBrowseDownload" Padding="12,0"/>
+                </Grid>
+              </StackPanel>
 
-        <Border Background="#2E2E4E" Height="1" Margin="0,4"/>
+              <CheckBox x:Name="HeadlessBox" Content="Headless (ohne sichtbares Browserfenster)"
+                        Foreground="#B0BEC5"/>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
 
-        <TextBlock Text="KI-Anbindung (Flow aus Beschreibung)" FontWeight="Bold"
-                   Foreground="#90A4AE" FontSize="13"/>
+        <!-- ── Netzwerk / Proxy ──────────────────────────────────────── -->
+        <TabItem Header="Netzwerk">
+          <ScrollViewer>
+            <StackPanel Margin="14" Spacing="14">
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Anbieter" FontSize="12" Foreground="#B0BEC5"/>
-          <ComboBox x:Name="AiProviderBox" HorizontalAlignment="Stretch">
-            <ComboBoxItem Content="anthropic"/>
-            <ComboBoxItem Content="openai"/>
-            <ComboBoxItem Content="ollama"/>
-          </ComboBox>
-        </StackPanel>
+              <TextBlock Text="Proxy — gilt für den Browser und für KI-Anfragen."
+                         FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="API-Schlüssel (bei Ollama nicht nötig)" FontSize="12" Foreground="#B0BEC5"/>
-          <TextBox x:Name="AiApiKeyBox" PasswordChar="•" Watermark="sk-…"/>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Proxy-Server (leer = kein Proxy / Systemstandard)"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="ProxyServerBox" Watermark="http://proxy.firma.de:8080"/>
+              </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Modell (leer = Standard des Anbieters)" FontSize="12" Foreground="#B0BEC5"/>
-          <TextBox x:Name="AiModelBox" Watermark="z. B. claude-sonnet-4-6 / gpt-4o / llama3.1"/>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Ausnahmen / Bypass (kommagetrennt)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="ProxyBypassBox" Watermark="localhost, 127.0.0.1, *.intern"/>
+              </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Text="Basis-URL (optional, z. B. lokale Ollama-Instanz)" FontSize="12" Foreground="#B0BEC5"/>
-          <TextBox x:Name="AiBaseUrlBox" Watermark="leer = Standard"/>
-        </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Proxy-Benutzer (optional)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="ProxyUserBox"/>
+              </StackPanel>
 
-      </StackPanel>
-      </ScrollViewer>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Proxy-Passwort (optional)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="ProxyPassBox" PasswordChar="•"/>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- ── KI ────────────────────────────────────────────────────── -->
+        <TabItem Header="KI">
+          <ScrollViewer>
+            <StackPanel Margin="14" Spacing="14">
+
+              <TextBlock Text="Flow aus Beschreibung erzeugen (Toolbar: 🤖 KI-Flow)."
+                         FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="Anbieter" FontSize="12" Foreground="#B0BEC5"/>
+                <ComboBox x:Name="AiProviderBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content="anthropic"/>
+                  <ComboBoxItem Content="openai"/>
+                  <ComboBoxItem Content="ollama"/>
+                </ComboBox>
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="API-Schlüssel (bei Ollama nicht nötig)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiApiKeyBox" PasswordChar="•" Watermark="sk-ant-…"/>
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="Modell (leer = Standard des Anbieters)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiModelBox" Watermark="z. B. claude-sonnet-4-6 / gpt-4o / llama3.1"/>
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="Basis-URL (optional, z. B. lokale Ollama-Instanz)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiBaseUrlBox" Watermark="leer = Standard"/>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+      </TabControl>
     </DockPanel>
   </Border>
 </Window>
