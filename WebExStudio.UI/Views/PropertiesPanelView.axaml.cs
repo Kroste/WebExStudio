@@ -104,7 +104,7 @@ public partial class PropertiesPanelView : UserControl
         var box = new TextBox
         {
             Text = _currentNode?.Label ?? string.Empty,
-            Watermark = "z. B. Login-Button",
+            PlaceholderText  = "z. B. Login-Button",
         };
         box.TextChanged += (_, _) =>
         {
@@ -241,7 +241,7 @@ public partial class PropertiesPanelView : UserControl
                 AcceptsReturn = true,
                 MinHeight = 80,
                 FontFamily = prop.Kind == PropertyKind.Code ? new FontFamily("Monospace") : FontFamily.Default,
-                Watermark = prop.Placeholder,
+                PlaceholderText = prop.Placeholder,
             },
             PropertyKind.Number => new NumericUpDown
             {
@@ -251,7 +251,7 @@ public partial class PropertiesPanelView : UserControl
             _ => new TextBox
             {
                 Text = currentValue,
-                Watermark = prop.Placeholder,
+                PlaceholderText  = prop.Placeholder,
             }
         };
 
