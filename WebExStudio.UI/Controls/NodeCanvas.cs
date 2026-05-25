@@ -61,6 +61,9 @@ public sealed class NodeCanvas : Canvas
         group.Children.Add(_zoom);
         group.Children.Add(_pan);
         RenderTransform = group;
+        // Ursprung oben-links statt Mitte: passend zur CanvasToWorld-Mathematik und
+        // unabhängig von der Fenstergröße (sonst driften Nodes/Wires nach einem Resize).
+        RenderTransformOrigin = RelativePoint.TopLeft;
 
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;

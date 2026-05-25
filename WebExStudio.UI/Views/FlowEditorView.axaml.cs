@@ -23,6 +23,8 @@ public partial class FlowEditorView : UserControl
         Canvas.GridOverlay = GridOverlay;
         Canvas.ConnectionRenderer = ConnectionRenderer;
         ConnectionRenderer.RenderTransform = Canvas.WorldTransform;
+        // Gleicher Transform-Ursprung wie der Canvas, sonst driften Wires nach einem Resize.
+        ConnectionRenderer.RenderTransformOrigin = Avalonia.RelativePoint.TopLeft;
         Canvas.WireDropped += OnWireDropped;
         Canvas.SelectionCompleted += OnSelectionCompleted;
         DataContextChanged += OnDataContextChanged;
