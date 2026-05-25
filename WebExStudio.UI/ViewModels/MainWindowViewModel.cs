@@ -120,6 +120,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(CanRun));
             this.RaisePropertyChanged(nameof(CanStop));
             this.RaisePropertyChanged(nameof(CanPause));
+            this.RaisePropertyChanged(nameof(CanStep));
         }
     }
 
@@ -131,12 +132,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _isPaused, value);
             this.RaisePropertyChanged(nameof(CanPause));
+            this.RaisePropertyChanged(nameof(CanStep));
         }
     }
 
     public bool CanRun => !IsRunning && FlowEditor.Document is not null;
     public bool CanStop => IsRunning;
     public bool CanPause => IsRunning && !IsPaused;
+    public bool CanStep => IsRunning && IsPaused;
 
     public string StatusText
     {
@@ -283,6 +286,20 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     /// <summary>Gate für den Executor: wartet, solange pausiert ist (vor jedem Node geprüft).</summary>
     private Task PauseGateAsync() => _pauseTcs?.Task ?? Task.CompletedTask;
+
+    /// <summary>
+    /// Einzelschritt: lässt genau einen Node laufen und pausiert danach wieder. Nur sinnvoll,
+    /// wenn bereits pausiert. Setzt zuerst ein neues Gate für den nächsten Node, gibt dann den
+    /// aktuellen Node frei.
+    /// </summary>
+    public void Step()
+    {
+        if (!IsRunning || !IsPaused) return;
+        var current = _pauseTcs;
+        _pauseTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        StatusText = "Einzelschritt…";
+        current?.TrySetResult(); // genau den nächsten Node freigeben; danach greift das neue Gate
+    }
 
     /// <summary>Resumes a flow paused at a debug node or manually.</summary>
     public void Resume()

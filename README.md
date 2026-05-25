@@ -81,7 +81,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  🌐 WebExStudio                                              ⚙  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✨ Neuer Flow  📄 Flow öffnen  💾 Speichern │ ▶ Ausführen ⏹ Stopp ⏸ Pause ⏭ Weiter │ ⊞ Fit 🔍 Reset │ ← Toolbar
+│ ✨ Neuer Flow  📄 Flow öffnen  💾 Speichern │ ▶ Ausführen ⏹ Stopp ⏸ Pause 👣 Schritt ⏭ Weiter │ ⊞ Fit 🔍 Reset │ ← Toolbar
 ├───────────────┬──────────────────────────────────────────────┬───────────────┤
 │ Node-Palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Eigenschaften │
 │  Suchen…      │                                              │               │
@@ -357,7 +357,7 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
 
 `debug` mit `pause = true` schreibt das Payload ins Protokoll und **hält an**. In der Toolbar erscheint **⏭ Weiter** — erst auf Klick läuft es weiter. So kannst du den Payload-Inhalt in Ruhe ansehen.
 
-Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen.
+Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen. Im pausierten Zustand führt **👣 Schritt** genau **einen** Node aus und pausiert danach wieder (Einzelschritt-Debugging).
 
 ![Beispiel 5](docs/images/example-5.png)
 

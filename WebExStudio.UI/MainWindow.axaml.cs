@@ -166,6 +166,9 @@ public partial class MainWindow : Window
     private void OnPause(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.Pause();
 
+    private void OnStep(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.Step();
+
     private void OnResume(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.Resume();
 
