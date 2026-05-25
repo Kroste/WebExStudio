@@ -57,6 +57,8 @@
         <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
         <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
                 IsEnabled="{Binding FlowEditor.CanSave}"/>
+        <Button Content="🤖 KI-Flow"        Click="OnGenerateFlow" Padding="8,4"
+                ToolTip.Tip="Flow aus einer Beschreibung erzeugen"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 

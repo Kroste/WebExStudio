@@ -52,6 +52,9 @@ public partial class MainWindow : Window
     private void OnNewFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.NewFlow();
 
+    private async void OnGenerateFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await new AiFlowDialog(Vm).ShowDialog(this);
+
     private async void OnOpenFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions

@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WebExStudio.UI.Views.AiFlowDialog"
+        Title="KI-Flow"
+        Width="560" Height="460"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        Background="#12121F">
+
+  <Border BorderBrush="#2E2E4E" BorderThickness="1">
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Background="#1E1E2E"
+              BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
+              PointerPressed="OnTitleBarPointerPressed">
+        <Grid ColumnDefinitions="*,Auto" Height="36">
+          <TextBlock Grid.Column="0" Text="🤖 Flow aus Beschreibung erzeugen"
+                     FontSize="12" FontWeight="SemiBold" Foreground="#90A4AE"
+                     VerticalAlignment="Center" Margin="14,0" IsHitTestVisible="False"/>
+          <Button Grid.Column="1" Click="OnCancel" Content="&#x2715;" FontSize="13"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="40" Height="36" Padding="0"/>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom" Background="#16162A"
+              BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,8">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+          <TextBlock x:Name="StatusText" Grid.Column="0" Text=""
+                     Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+          <Button x:Name="LoadAnywayButton" Grid.Column="1" Content="Trotzdem laden"
+                  Click="OnLoadAnyway" Padding="12,6" Margin="0,0,8,0" IsVisible="False"/>
+          <Button Grid.Column="2" Content="Schließen" Click="OnCancel" Padding="14,6" Margin="0,0,8,0"/>
+          <Button x:Name="GenerateButton" Grid.Column="3" Content="Generieren"
+                  Click="OnGenerate" Padding="14,6"
+                  Background="#1B5E20" Foreground="White"/>
+        </Grid>
+      </Border>
+
+      <Grid Margin="20" RowDefinitions="Auto,Auto,*">
+        <TextBlock Grid.Row="0"
+                   Text="Beschreibe, was der Flow tun soll. Die KI erzeugt daraus einen Flow, der vor dem Laden validiert wird."
+                   FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+        <TextBox Grid.Row="1" x:Name="PromptBox"
+                 Height="150" AcceptsReturn="True" TextWrapping="Wrap"
+                 VerticalContentAlignment="Top"
+                 Watermark="z. B.: Öffne https://example.com, klicke auf den Login-Button, gib Benutzer und Passwort aus dem Payload ein und speichere die Seitenüberschrift in eine Datei."/>
+
+        <Border Grid.Row="2" Margin="0,12,0,0" Background="#0E0E18"
+                BorderBrush="#2E2E4E" BorderThickness="1" CornerRadius="4"
+                IsVisible="False" x:Name="ResultPanel">
+          <ScrollViewer>
+            <TextBlock x:Name="ResultText" Margin="10" FontSize="12"
+                       FontFamily="Cascadia Mono,Consolas,monospace"
+                       Foreground="#FF8A80" TextWrapping="Wrap"/>
+          </ScrollViewer>
+        </Border>
+      </Grid>
+    </DockPanel>
+  </Border>
+</Window>

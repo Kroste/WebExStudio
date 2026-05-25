@@ -20,8 +20,11 @@
 - [Payload & Platzhalter](#payload--platzhalter)
 - [Browser-Einstellungen](#browser-einstellungen)
 - [Logging](#logging)
+- [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
 - [Legacy-Projekte importieren](#legacy-projekte-importieren)
 - [Dateiformat (v2)](#dateiformat-v2)
+- [Flow-Validierung](#flow-validierung)
+- [Tests & Continuous Integration](#tests--continuous-integration)
 - [Projektstruktur](#projektstruktur)
 
 ---
@@ -428,6 +431,35 @@ Während der Ausführung erscheinen Node-Status und `debug`-Ausgaben außerdem l
 
 ---
 
+## KI: Flow aus Beschreibung
+
+Über den Toolbar-Button **🤖 KI-Flow** lässt sich aus einer natürlichsprachlichen
+Beschreibung ein kompletter Flow erzeugen. Ablauf:
+
+1. Beschreibung eingeben (z. B. „Öffne example.com, logge dich ein, lies die Überschrift
+   und schreib sie in eine Datei").
+2. Die KI bekommt den **Node-Katalog als Schema** mitgeliefert (abgeleitet aus
+   `NodeCatalog`) und antwortet mit einem Flow-JSON.
+3. Das Ergebnis wird mit dem **`FlowValidator` geprüft**, bevor es geladen wird. Ist es
+   gültig, landet es direkt auf dem Canvas (als ungespeicherter Flow zum Prüfen). Bei
+   Validierungsfehlern werden diese angezeigt; optional lässt sich der Flow per
+   **„Trotzdem laden"** zum manuellen Korrigieren öffnen.
+
+**Anbieter** (in den **Einstellungen ⚙** wählbar, Schlüssel wird in `settings.json`
+gespeichert):
+
+| Anbieter | Standardmodell | Hinweis |
+|---|---|---|
+| `anthropic` | `claude-sonnet-4-6` | Anthropic Messages API, API-Key nötig. |
+| `openai` | `gpt-4o` | OpenAI Chat-Completions, API-Key nötig. |
+| `ollama` | `llama3.1` | Lokale Instanz (Standard-URL `http://localhost:11434`), kein Key. |
+
+Modell und Basis-URL sind pro Anbieter überschreibbar. Die Anbindung ist im Projekt
+`WebExStudio.AI` über die Schnittstelle `ILlmClient` gekapselt — weitere Anbieter lassen
+sich dort ergänzen, ohne den Generator zu ändern.
+
+---
+
 ## Legacy-Projekte importieren
 
 Alte Python-WebEX-Projekte (Ordner mit `actions/*.json`, verschachtelten `call`/`then_actions_file`-Verweisen und `targets.json`) werden in ein einziges v2-Flow konvertiert:
@@ -531,6 +563,7 @@ dotnet test
 | `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter, **Flow-Validierung** (inkl. Prüfung der Beispiel-Flows). |
 | `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
 | `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs/Gruppen, ohne Rendering) und die **Validierungs-Blockade vor dem Lauf**. |
+| `WebExStudio.AI.Tests` | **KI-Flow-Generator** (Prompt → Parsen → Validieren) mit Fake-Client und die Anbieter-Auswahl der `LlmClientFactory` — ohne Netzwerk. |
 
 Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen.
 
@@ -551,5 +584,6 @@ Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, 
 | `WebExStudio.Core` | Datenmodelle (`FlowDocument2`, `FlowNode`, `FlowTab`, `NodeCatalog`), Serialisierung (`FlowSerializer2`), Legacy-Konverter (`LegacyImporter`). |
 | `WebExStudio.Engine` | Flow-Executor (Wire-Traversierung), Playwright-Integration, Action-Handler, Tracing. |
 | `WebExStudio.UI` | Avalonia-Desktop-App: Canvas, Node-/Wire-Rendering, Palette, Subnode-Panel, Eigenschaften, Trace, Einstellungen, About. |
+| `WebExStudio.AI` | KI-Anbindung: Node-Schema-Export, Prompt-Bau, `FlowGenerator` und Provider (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
 Technik: **.NET 10**, **Avalonia 11.3**, **Microsoft.Playwright 1.52**, **NLog 6**.
