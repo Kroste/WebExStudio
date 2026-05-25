@@ -64,6 +64,19 @@ public static class FlowSerializer2
         await JsonSerializer.SerializeAsync(stream, targets, FlowSerializerOptions.Default);
     }
 
+    /// <summary>
+    /// Deserialisiert ein Flow-Dokument aus einem JSON-String (z. B. von einer KI erzeugt).
+    /// Stellt einen Haupt-Tab sicher und legt Nodes ohne Koordinaten automatisch aus —
+    /// generierte Flows müssen daher keine x/y-Werte enthalten.
+    /// </summary>
+    public static FlowDocument2 Deserialize(string json)
+    {
+        var doc = JsonSerializer.Deserialize<FlowDocument2>(json, Options) ?? new FlowDocument2();
+        EnsureMainTab(doc);
+        AutoLayout(doc);
+        return doc;
+    }
+
     /// <summary>Creates a fresh empty document with a single Main tab.</summary>
     public static FlowDocument2 CreateEmpty()
     {
