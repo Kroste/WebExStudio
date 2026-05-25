@@ -76,6 +76,11 @@ public sealed class CaptchaGuardHandler : IActionHandler
 
         Log.Warn("captcha_guard: CAPTCHA erkannt, warte auf Lösung (timeout={0}s)", timeoutSec);
 
+        // Erste Checkbox („Ich bin kein Roboter") selbst anklicken — reicht oft schon aus;
+        // ein evtl. folgendes Bild-Rätsel löst der Nutzer dann im Wartefenster.
+        if (node.GetBool("auto_click", true))
+            await TryClickFirstCheckboxAsync(ctx);
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.CancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(timeoutSec));
 
@@ -102,5 +107,38 @@ public sealed class CaptchaGuardHandler : IActionHandler
         }
 
         Log.Warn("captcha_guard: Timeout abgelaufen");
+    }
+
+    // (iframe-Selektor, Checkbox-Selektor im iframe) für die gängigen CAPTCHA-Typen.
+    private static readonly (string Frame, string Box)[] CheckboxTargets =
+    [
+        ("iframe[title='reCAPTCHA']", "#recaptcha-anchor"),
+        ("iframe[src*='recaptcha'][src*='anchor']", "#recaptcha-anchor"),
+        ("iframe[src*='hcaptcha']", "#checkbox"),
+        ("iframe[src*='turnstile']", "input[type='checkbox']"),
+        ("iframe[src*='challenges.cloudflare.com']", "input[type='checkbox']"),
+    ];
+
+    /// <summary>Klickt – falls vorhanden – die erste CAPTCHA-Checkbox im jeweiligen iframe.</summary>
+    private static async Task<bool> TryClickFirstCheckboxAsync(ExecutionContext ctx)
+    {
+        foreach (var (frameSel, boxSel) in CheckboxTargets)
+        {
+            try
+            {
+                var box = ctx.Page.FrameLocator(frameSel).Locator(boxSel).First;
+                await box.ClickAsync(new Microsoft.Playwright.LocatorClickOptions { Timeout = 3000 });
+                Log.Info("captcha_guard: Checkbox geklickt ({0})", frameSel);
+                await Task.Delay(1500, ctx.CancellationToken);
+                return true;
+            }
+            catch (OperationCanceledException) { throw; }
+            catch
+            {
+                // Dieser Typ/Frame ist nicht vorhanden — nächsten versuchen.
+            }
+        }
+        Log.Debug("captcha_guard: keine klickbare Checkbox gefunden");
+        return false;
     }
 }
