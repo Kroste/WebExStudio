@@ -136,7 +136,10 @@ public static class NodeCatalog
         new()
         {
             Type = "if_then_else", DisplayName = "If / Then / Else", Category = "Kontrollfluss",
-            Description = "Bedingte Verzweigung. Verbinde die Ausgänge 'then' und 'else' mit den Folge-Nodes.",
+            Description = "Bedingte Verzweigung. Verbinde die Ausgänge 'then' und 'else' mit den Folge-Nodes. "
+                + "Gültige Bedingungen (condition): element_exists, element_visible, element_text, page_url, "
+                + "page_title, page_contains, page_matches, payload_equals, payload_contains. "
+                + "Vergleichswert in 'value'; DOM-Selektor (bzw. bei payload_* der Payload-Schlüssel) in 'selector'.",
             Color = "#6A1B9A", Icon = "❓",
             OutputPorts = 2, OutputLabels = ["then", "else"],
             Example = "condition = element_exists, selector = .fehler  →  Treffer: 'then'-Ausgang, sonst: 'else'-Ausgang.",

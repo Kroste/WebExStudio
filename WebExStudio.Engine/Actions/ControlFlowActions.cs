@@ -20,16 +20,30 @@ public sealed class IfThenElseHandler : IActionHandler
 
         var result = await EvaluateCondition(ctx, condition, selector, value, regex);
         if (negate) result = !result;
-        Log.Debug("if_then_else: {0} selector='{1}' → {2}", condition, selector, result);
+        Log.Debug("if_then_else: {0} value='{1}' selector='{2}' → {3}", condition, value, selector, result);
 
         // Route to output port 0 (then) or 1 (else); downstream nodes are wired there.
         await ctx.FollowOutput(node, result ? 0 : 1);
     }
 
+    /// <summary>
+    /// Bildet gängige Bedingungs-Synonyme auf die kanonischen Namen ab, damit sowohl
+    /// per UI als auch von der KI erzeugte Flows funktionieren (z. B. <c>url_contains</c> →
+    /// <c>page_url</c>).
+    /// </summary>
+    public static string CanonicalCondition(string condition) => condition.Trim().ToLowerInvariant() switch
+    {
+        "url_contains" or "url" or "page_url_contains" => "page_url",
+        "title_contains" or "title" or "page_title_contains" => "page_title",
+        "text_contains" or "body_contains" or "page_text_contains" => "page_contains",
+        "element_text_contains" or "element_contains" => "element_text",
+        var other => other,
+    };
+
     private static async Task<bool> EvaluateCondition(
         ExecutionContext ctx, string condition, string selector, string value, bool useRegex)
     {
-        switch (condition.ToLowerInvariant())
+        switch (CanonicalCondition(condition))
         {
             case "element_exists":
             {
