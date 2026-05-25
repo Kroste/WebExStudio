@@ -10,6 +10,7 @@ public static class LlmClientFactory
     {
         "openai" => "gpt-4o",
         "ollama" => "llama3.1",
+        "perplexity" => "sonar",
         _ => "claude-sonnet-4-6",
     };
 
@@ -22,6 +23,7 @@ public static class LlmClientFactory
         {
             "openai" => new OpenAiClient(http, o.ApiKey, model, BaseOr(o, "https://api.openai.com")),
             "ollama" => new OllamaClient(http, model, BaseOr(o, "http://localhost:11434")),
+            "perplexity" => new PerplexityClient(http, o.ApiKey, model, BaseOr(o, "https://api.perplexity.ai")),
             _ => new AnthropicClient(http, o.ApiKey, model, BaseOr(o, "https://api.anthropic.com")),
         };
     }

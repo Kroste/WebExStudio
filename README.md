@@ -467,6 +467,7 @@ gespeichert):
 |---|---|---|
 | `anthropic` | `claude-sonnet-4-6` | Anthropic Messages API, API-Key nötig. |
 | `openai` | `gpt-4o` | OpenAI Chat-Completions, API-Key nötig. |
+| `perplexity` | `sonar` | Perplexity (OpenAI-kompatibel), API-Key nötig. |
 | `ollama` | `llama3.1` | Lokale Instanz (Standard-URL `http://localhost:11434`), kein Key. |
 
 Modell und Basis-URL sind pro Anbieter überschreibbar. Die Anbindung ist im Projekt

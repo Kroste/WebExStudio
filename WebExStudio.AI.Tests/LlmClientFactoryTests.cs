@@ -11,6 +11,7 @@ public class LlmClientFactoryTests
     [InlineData("anthropic", "Anthropic/claude-sonnet-4-6")]
     [InlineData("openai", "OpenAI/gpt-4o")]
     [InlineData("ollama", "Ollama/llama3.1")]
+    [InlineData("perplexity", "Perplexity/sonar")]
     [InlineData("", "Anthropic/claude-sonnet-4-6")] // leer → Anthropic-Default
     public void Create_PicksProviderAndDefaultModel(string provider, string expectedName)
     {
