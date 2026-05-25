@@ -47,11 +47,12 @@ public sealed class ExecutionContext
     /// <summary>Pauses the flow (if a pause callback is wired) until the user resumes.</summary>
     public Task Pause(string message) => PauseCallback?.Invoke(message) ?? Task.CompletedTask;
 
-    /// <summary>Gate, das der Executor vor jedem Node abwartet — für manuelles Pausieren.</summary>
-    public Func<Task>? PauseGate { get; init; }
+    /// <summary>Gate, das der Executor vor jedem Node abwartet — für manuelles Pausieren.
+    /// Bekommt den anstehenden Node, damit die UI ihn als „nächsten" markieren kann.</summary>
+    public Func<FlowNode, Task>? PauseGate { get; init; }
 
     /// <summary>Wartet, solange manuell pausiert wurde (sonst kehrt es sofort zurück).</summary>
-    public Task CheckPauseAsync() => PauseGate?.Invoke() ?? Task.CompletedTask;
+    public Task CheckPauseAsync(FlowNode node) => PauseGate?.Invoke(node) ?? Task.CompletedTask;
 
     public ExecutionContext(
         IPage page,

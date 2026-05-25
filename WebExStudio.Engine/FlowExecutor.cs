@@ -81,7 +81,7 @@ public sealed class FlowExecutor
         IProgress<TraceEntry>? progress = null,
         CancellationToken ct = default,
         Func<string, Task>? onPause = null,
-        Func<Task>? pauseGate = null)
+        Func<FlowNode, Task>? pauseGate = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
         ApplyDriverPath(config);
@@ -155,7 +155,7 @@ public sealed class FlowExecutor
     {
         if (!visited.Add(node.Id)) return;
         ctx.CancellationToken.ThrowIfCancellationRequested();
-        await ctx.CheckPauseAsync(); // manuelles Pausieren: hält vor dem Node
+        await ctx.CheckPauseAsync(node); // manuelles Pausieren: hält vor dem Node
         ctx.CancellationToken.ThrowIfCancellationRequested();
 
         Log.Info("Node startet: {0} ({1})", node.Type, node.Id);
@@ -219,7 +219,7 @@ public sealed class FlowExecutor
         IPage page, TargetConfig target, RunConfig config,
         string projectDir, FlowDocument2 doc,
         IProgress<TraceEntry>? progress, CancellationToken ct,
-        Func<string, Task>? onPause = null, Func<Task>? pauseGate = null)
+        Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)

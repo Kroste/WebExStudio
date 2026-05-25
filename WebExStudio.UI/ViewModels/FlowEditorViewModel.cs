@@ -558,9 +558,25 @@ public sealed class FlowEditorViewModel : ViewModelBase
     {
         foreach (var tab in Tabs)
             foreach (var n in tab.Nodes)
+            {
                 n.IsActive = n.Id == nodeId;
+                n.IsNext = false; // der laufende Node ist nicht mehr „der nächste"
+            }
 
         // View follows execution: open/switch to the tab containing the active node.
+        var owner = FindTabOfNode(nodeId);
+        if (owner is not null && owner != ActiveTab)
+            OpenTab(owner);
+    }
+
+    /// <summary>Markiert den im pausierten Zustand als Nächstes auszuführenden Node.</summary>
+    public void SetNextNode(string nodeId)
+    {
+        foreach (var tab in Tabs)
+            foreach (var n in tab.Nodes)
+                n.IsNext = n.Id == nodeId;
+
+        // Ansicht zum anstehenden Node führen (z. B. wenn er in einem Subnode liegt).
         var owner = FindTabOfNode(nodeId);
         if (owner is not null && owner != ActiveTab)
             OpenTab(owner);
@@ -588,6 +604,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
             foreach (var n in tab.Nodes)
             {
                 n.IsActive = false;
+                n.IsNext = false;
                 n.Status = ExecutionStatusUi.None;
             }
     }

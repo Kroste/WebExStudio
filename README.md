@@ -357,7 +357,7 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
 
 `debug` mit `pause = true` schreibt das Payload ins Protokoll und **hält an**. In der Toolbar erscheint **⏭ Weiter** — erst auf Klick läuft es weiter. So kannst du den Payload-Inhalt in Ruhe ansehen.
 
-Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen. Im pausierten Zustand führt **👣 Schritt** genau **einen** Node aus und pausiert danach wieder (Einzelschritt-Debugging).
+Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen. Im pausierten Zustand führt **👣 Schritt** genau **einen** Node aus und pausiert danach wieder (Einzelschritt-Debugging). Der **als Nächstes auszuführende** Node ist dabei **cyan umrandet** — so siehst du, welcher Node beim nächsten Schritt läuft (und kannst dessen Werte vorher noch im Eigenschaften-Panel anpassen, sie werden beim Ausführen übernommen).
 
 ![Beispiel 5](docs/images/example-5.png)
 

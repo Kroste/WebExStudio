@@ -10,6 +10,7 @@ public sealed class NodeViewModel : ViewModelBase
     private double _y;
     private bool _isSelected;
     private bool _isActive;
+    private bool _isNext;
     private ExecutionStatusUi _status = ExecutionStatusUi.None;
 
     public FlowNode Model { get; }
@@ -66,6 +67,13 @@ public sealed class NodeViewModel : ViewModelBase
     {
         get => _isActive;
         set => this.RaiseAndSetIfChanged(ref _isActive, value);
+    }
+
+    /// <summary>Der im pausierten Zustand als Nächstes auszuführende Node (eigene Markierung).</summary>
+    public bool IsNext
+    {
+        get => _isNext;
+        set => this.RaiseAndSetIfChanged(ref _isNext, value);
     }
 
     public ExecutionStatusUi Status

@@ -284,8 +284,15 @@ public sealed class MainWindowViewModel : ViewModelBase
         StatusText = "Pausiert — auf „Weiter“ warten…";
     }
 
-    /// <summary>Gate für den Executor: wartet, solange pausiert ist (vor jedem Node geprüft).</summary>
-    private Task PauseGateAsync() => _pauseTcs?.Task ?? Task.CompletedTask;
+    /// <summary>Gate für den Executor: wartet, solange pausiert ist (vor jedem Node geprüft).
+    /// Markiert dabei den anstehenden Node als „nächsten".</summary>
+    private Task PauseGateAsync(FlowNode node)
+    {
+        var tcs = _pauseTcs;
+        if (tcs is null) return Task.CompletedTask; // nicht pausiert → frei laufen
+        Dispatcher.UIThread.Post(() => FlowEditor.SetNextNode(node.Id));
+        return tcs.Task;
+    }
 
     /// <summary>
     /// Einzelschritt: lässt genau einen Node laufen und pausiert danach wieder. Nur sinnvoll,

@@ -281,6 +281,7 @@ public sealed class NodeControl : Panel
     {
         if (e.PropertyName is nameof(NodeViewModel.IsSelected)
             or nameof(NodeViewModel.IsActive)
+            or nameof(NodeViewModel.IsNext)
             or nameof(NodeViewModel.Status)
             or nameof(NodeViewModel.StatusColor)
             or nameof(NodeViewModel.Color)
@@ -314,6 +315,13 @@ public sealed class NodeControl : Panel
             _border.BorderBrush = new SolidColorBrush(Color.Parse("#FFD740"));
             _border.BorderThickness = new Thickness(3);
             _border.BoxShadow = new BoxShadows(new BoxShadow { Blur = 18, Color = Color.Parse("#FFD740") });
+        }
+        else if (ViewModel.IsNext)
+        {
+            // Nächster auszuführender Node im pausierten Zustand (Cyan).
+            _border.BorderBrush = new SolidColorBrush(Color.Parse("#00E5FF"));
+            _border.BorderThickness = new Thickness(3);
+            _border.BoxShadow = new BoxShadows(new BoxShadow { Blur = 16, Color = Color.Parse("#00E5FF") });
         }
         else if (ViewModel.IsSelected)
         {
