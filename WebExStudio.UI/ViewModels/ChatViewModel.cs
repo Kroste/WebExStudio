@@ -59,7 +59,9 @@ public sealed class ChatViewModel : ViewModelBase
         Messages.Add(new ChatTurnViewModel(ChatRole.User, text));
         _history.Add(new ChatMessage(ChatRole.User, text));
 
-        await RunAssistantTurnAsync(PromptBuilder.BuildChatSystemPrompt());
+        // Aktuellen Flow mitgeben, damit die KI auf dem echten Stand arbeitet (auch nach Edits).
+        var flowJson = _main.FlowEditor.Document is { } doc ? FlowSerializer2.Serialize(doc) : null;
+        await RunAssistantTurnAsync(PromptBuilder.BuildChatSystemPrompt(flowJson));
     }
 
     /// <summary>

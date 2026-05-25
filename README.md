@@ -482,6 +482,10 @@ entwickeln. Enthält eine Antwort einen Flow, erscheint darunter ein Button **�
 laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Chat
 nutzt dieselben Anbieter- und Proxy-Einstellungen.
 
+Der Chat bekommt bei **jeder** Nachricht den **aktuellen Stand des Flows** mitgeschickt
+(inkl. zwischenzeitlicher Änderungen an Nodes), sodass Änderungswünsche auf dem echten
+Flow aufbauen und der zurückgegebene Flow direkt geladen werden kann.
+
 ### Flow erklären
 
 Der Toolbar-Button **🧾 Erklären** lässt den **aktuellen Flow** von der KI in verständlicher
