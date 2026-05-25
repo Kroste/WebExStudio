@@ -37,5 +37,7 @@ public sealed class AiOptions
         "- if_then_else: Vergleichswert gehört in 'value', DOM-Selektor in 'selector'. "
         + "URL-Prüfung: condition=page_url, value=z. B. mega.nz.\n"
         + "- f95zone-Maskierte Links (…/masked/<host>/…) enthalten den Zielhost im Pfad; "
-        + "nach open_tab kurz warten (sleep), dann mit page_url auf den Host prüfen.";
+        + "nach open_tab kurz warten (sleep), dann mit page_url auf den Host prüfen.\n"
+        + "- Download-Buttons mit einem click-Node + expect_download=true anklicken, damit die "
+        + "Datei gespeichert wird (sonst geht der Download verloren).";
 }

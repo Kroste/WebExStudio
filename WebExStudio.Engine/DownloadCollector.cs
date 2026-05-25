@@ -13,6 +13,7 @@ public sealed class DownloadCollector(string targetDir)
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly List<Task> _pending = [];
     private readonly HashSet<IPage> _attached = [];
+    private readonly Dictionary<IDownload, Task> _handled = [];
     private readonly Lock _lock = new();
 
     /// <summary>Hängt den Download-Handler an eine Seite (idempotent — Mehrfachaufruf ist sicher).</summary>
@@ -23,11 +24,24 @@ public sealed class DownloadCollector(string targetDir)
             if (!_attached.Add(page)) return; // schon angehängt
         }
         Log.Debug("Download-Handler an Seite gehängt");
-        page.Download += (_, download) =>
+        page.Download += (_, download) => Save(download);
+    }
+
+    /// <summary>
+    /// Speichert einen Download genau einmal (idempotent pro <see cref="IDownload"/>) und gibt den
+    /// Speicher-Task zurück. Sowohl der Page-Handler als auch ein expliziter Download-Klick rufen
+    /// dies auf — derselbe Download wird dadurch nicht doppelt gespeichert.
+    /// </summary>
+    public Task Save(IDownload download)
+    {
+        lock (_lock)
         {
+            if (_handled.TryGetValue(download, out var existing)) return existing;
             var task = SaveAsync(download);
-            lock (_lock) _pending.Add(task);
-        };
+            _handled[download] = task;
+            _pending.Add(task);
+            return task;
+        }
     }
 
     private async Task SaveAsync(IDownload download)

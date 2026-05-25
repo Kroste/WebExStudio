@@ -107,7 +107,7 @@ public sealed class FlowExecutor
             try
             {
                 var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
-                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach, downloads.Save);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
             finally
@@ -234,13 +234,14 @@ public sealed class FlowExecutor
         string projectDir, FlowDocument2 doc,
         IProgress<TraceEntry>? progress, CancellationToken ct,
         Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null,
-        Action<IPage>? attachDownloads = null)
+        Action<IPage>? attachDownloads = null, Func<IDownload, Task>? saveDownload = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
         {
             Document = doc,
             AttachDownloads = attachDownloads,
+            SaveDownload = saveDownload,
             // call → run a named subnode's tab as a fresh wired traversal.
             RunSubTabCallback = (tabId, c) => c.Document is null
                 ? Task.CompletedTask

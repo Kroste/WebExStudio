@@ -71,14 +71,18 @@ public static class NodeCatalog
         new()
         {
             Type = "click", DisplayName = "Klicken", Category = "Interaktion",
-            Description = "Klickt auf ein Element (mit automatischem Scroll und Retry).",
+            Description = "Klickt auf ein Element (mit automatischem Scroll und Retry). "
+                + "Für Download-Buttons 'expect_download' = true setzen — dann wird auf den Download "
+                + "gewartet und die Datei mit echtem Namen im Downloadordner gespeichert.",
             Color = "#2E7D32", Icon = "🖱",
-            Example = "selector = button#submit  →  klickt den Senden-Button.",
+            Example = "selector = button#submit  →  klickt den Senden-Button. Download: selector = a.download, expect_download = true.",
             Properties =
             [
                 new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["xpath", "name"] },
                 new() { Key = "text", Label = "Link-Text (alternativ)", Kind = PropertyKind.Text },
                 new() { Key = "scroll", Label = "Scroll to element", Kind = PropertyKind.Boolean, DefaultValue = "true" },
+                new() { Key = "expect_download", Label = "Auf Download warten & speichern", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+                new() { Key = "download_timeout_ms", Label = "Download-Timeout (ms)", Kind = PropertyKind.Number, DefaultValue = "60000" },
             ]
         },
         new()

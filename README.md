@@ -191,7 +191,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ### Interaktion
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
-| 🖱 | `click` | Klicken | Element klicken (mit Scroll/Retry). | `selector = button#submit` |
+| 🖱 | `click` | Klicken | Element klicken (mit Scroll/Retry). Für Download-Buttons `expect_download = true` → wartet auf den Download und speichert ihn. | `selector = a.download, expect_download = true` |
 | ⌨ | `send_keys` | Tastatureingabe | Text in Eingabefeld tippen. | `selector = input[name=q], value = {payload.suchwort}` |
 | ⏳ | `wait_for` | Warten auf Element | Auf Sichtbarkeit/Existenz warten. | `selector = .ergebnis, state = visible` |
 | 💤 | `sleep` | Pause | Feste Zeit warten. | `seconds = 2` |
@@ -419,7 +419,7 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 | **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. `brave` startet Brave als Chromium (Programmpfad wird automatisch gesucht; Browser-Typ muss `chromium` sein). |
 | **Browser-Programmpfad** | leer = automatisch; sonst Pfad zur Browser-EXE (`ExecutablePath`). |
 | **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). Darunter ein Link zur manuellen/Offline-Installation der Browser (z. B. hinter Firmen-Proxy). |
-| **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Klickt der Flow auf einen Download, wird die Datei mit ihrem **echten Namen** dorthin gespeichert (Playwright würde sie sonst nur temporär mit GUID-Namen ablegen und beim Schließen löschen). Laufende Downloads werden vor dem Beenden fertiggestellt. |
+| **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Den Download-Button mit einem `click`-Node + **`expect_download = true`** auslösen: der Node wartet auf den Download und speichert ihn mit **echtem Namen** dorthin (sonst legt Playwright ihn nur temporär mit GUID-Namen ab und löscht ihn beim Schließen). |
 | **Headless** | Browser ohne sichtbares Fenster ausführen. |
 
 **Tab „Netzwerk" (Proxy)** — gilt **für den Browser und für KI-Anfragen**:

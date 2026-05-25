@@ -57,6 +57,9 @@ public sealed class ExecutionContext
     /// <summary>Hängt den Download-Handler an eine neu geöffnete Seite (z. B. aus open_tab).</summary>
     public Action<IPage>? AttachDownloads { get; init; }
 
+    /// <summary>Speichert einen erkannten Download im Zielordner (für expect_download-Klicks).</summary>
+    public Func<IDownload, Task>? SaveDownload { get; init; }
+
     public ExecutionContext(
         IPage page,
         TargetConfig target,
@@ -118,6 +121,7 @@ public sealed class ExecutionContext
             PauseCallback = PauseCallback,
             PauseGate = PauseGate,
             AttachDownloads = AttachDownloads,
+            SaveDownload = SaveDownload,
         };
 
     /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
@@ -131,6 +135,7 @@ public sealed class ExecutionContext
             PauseCallback = PauseCallback,
             PauseGate = PauseGate,
             AttachDownloads = AttachDownloads,
+            SaveDownload = SaveDownload,
         };
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);

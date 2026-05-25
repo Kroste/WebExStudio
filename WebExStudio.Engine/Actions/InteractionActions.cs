@@ -32,6 +32,25 @@ public sealed class ClickHandler : IActionHandler
         if (scroll)
             await locator.ScrollIntoViewIfNeededAsync(new() { Timeout = ctx.Config.TimeoutMs });
 
+        // Download-Klick: auf das download-Event warten und speichern, BEVOR der Flow weiterläuft
+        // (sonst schließt z. B. close_tab die Seite, bevor Playwright den Download erfasst).
+        if (node.GetBool("expect_download") && ctx.SaveDownload is not null)
+        {
+            var downloadTimeout = int.TryParse(node.Get("download_timeout_ms", "60000"), out var dt) ? dt : 60000;
+            try
+            {
+                var download = await ctx.Page.RunAndWaitForDownloadAsync(
+                    async () => await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs }),
+                    new PageRunAndWaitForDownloadOptions { Timeout = downloadTimeout });
+                await ctx.SaveDownload(download); // blockiert bis die Datei gespeichert ist
+            }
+            catch (TimeoutException)
+            {
+                Log.Warn("Kein Download-Event nach Klick (evtl. Service-Worker-Download wie MEGA) — Klick wurde ausgeführt.");
+            }
+            return;
+        }
+
         await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs });
     }
 }
