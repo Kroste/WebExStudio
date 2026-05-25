@@ -16,6 +16,7 @@ public partial class App : Application
             var vm = new MainWindowViewModel();
             AppSettings.Load(vm.RunConfig);
             AppSettings.LoadAi(vm.AiOptions);
+            vm.InitSuggestionsEnabled(AppSettings.LoadSuggestionsEnabled());
             desktop.MainWindow = new MainWindow { DataContext = vm };
         }
         base.OnFrameworkInitializationCompleted();

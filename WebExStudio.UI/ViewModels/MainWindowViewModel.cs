@@ -13,6 +13,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 {
     private bool _isRunning;
     private bool _isPaused;
+    private bool _suggestionsEnabled = true;
     private string _statusText = "Bereit";
     private string _projectDir = string.Empty;
     private CancellationTokenSource? _runCts;
@@ -31,6 +32,30 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     /// <summary>Mehr-Turn-Chat mit der KI (Verlauf bleibt erhalten, auch wenn das Fenster schließt).</summary>
     public ChatViewModel Chat { get; }
+
+    /// <summary>Schaltet den KI-Node-Vorschlag (Toolbar 💡) ein/aus. Wird persistiert.</summary>
+    public bool SuggestionsEnabled
+    {
+        get => _suggestionsEnabled;
+        set
+        {
+            if (_suggestionsEnabled == value) return;
+            this.RaiseAndSetIfChanged(ref _suggestionsEnabled, value);
+            AppSettings.SaveSuggestionsEnabled(value);
+        }
+    }
+
+    /// <summary>Setzt den Wert beim Start, ohne ihn erneut zu speichern.</summary>
+    public void InitSuggestionsEnabled(bool enabled) =>
+        this.RaiseAndSetIfChanged(ref _suggestionsEnabled, enabled, nameof(SuggestionsEnabled));
+
+    /// <summary>Kurzstatus der KI-Anbindung für die Statusleiste.</summary>
+    public string AiStatus => AiOptions.IsConfigured
+        ? $"KI: {AiOptions.Provider}"
+        : "KI: nicht konfiguriert";
+
+    /// <summary>Nach Änderungen in den Einstellungen die KI-Anzeige aktualisieren.</summary>
+    public void NotifyAiSettingsChanged() => this.RaisePropertyChanged(nameof(AiStatus));
 
     /// <summary>
     /// Erzeugt per KI einen Flow aus einer Beschreibung und lädt ihn bei Erfolg in den Editor.

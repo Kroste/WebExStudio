@@ -46,6 +46,7 @@ public partial class MainWindow : Window
         {
             AppSettings.Save(Vm.RunConfig);
             AppSettings.SaveAi(Vm.AiOptions);
+            Vm.NotifyAiSettingsChanged();
         }
     }
 
@@ -67,6 +68,7 @@ public partial class MainWindow : Window
 
     private async void OnSuggestNode(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (!Vm.SuggestionsEnabled) return;
         if (Vm.FlowEditor.SelectedNode is not { } anchor)
         {
             Vm.StatusText = "Bitte zuerst einen Node auswählen (Anker für den Vorschlag).";

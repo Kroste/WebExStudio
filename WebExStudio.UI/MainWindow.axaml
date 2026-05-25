@@ -64,6 +64,7 @@
         <Button Content="🧾 Erklären"       Click="OnExplainFlow" Padding="8,4"
                 ToolTip.Tip="Den aktuellen Flow von der KI erklären lassen"/>
         <Button Content="💡 Vorschlag"      Click="OnSuggestNode" Padding="8,4"
+                IsEnabled="{Binding SuggestionsEnabled}"
                 ToolTip.Tip="Nächsten Node nach dem ausgewählten von der KI vorschlagen lassen"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
@@ -82,12 +83,40 @@
 
         <Button Content="⊞ Fit"         Click="OnFitView"   Padding="8,4"/>
         <Button Content="🔍 Reset View" Click="OnResetView" Padding="8,4"/>
-
-        <TextBlock Text="{Binding StatusText}"
-                   VerticalAlignment="Center"
-                   Foreground="#90A4AE" FontSize="12"
-                   Margin="16,0,8,0"/>
       </StackPanel>
+    </Border>
+
+    <!-- ── Statusleiste (unten) ── -->
+    <Border DockPanel.Dock="Bottom"
+            Background="#16162A" BorderBrush="#2E2E4E"
+            BorderThickness="0,1,0,0" Padding="10,3">
+      <Grid ColumnDefinitions="*,Auto">
+        <!-- Links: aktueller Status / Operation -->
+        <TextBlock Grid.Column="0" Text="{Binding StatusText}"
+                   VerticalAlignment="Center" Foreground="#B0BEC5" FontSize="12"
+                   TextTrimming="CharacterEllipsis"/>
+
+        <!-- Rechts: Flow-Infos, KI-Status, Vorschlag-Schalter -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0"
+                    VerticalAlignment="Center">
+          <TextBlock Text="{Binding FlowEditor.Title}" Foreground="#90A4AE" FontSize="12"
+                     VerticalAlignment="Center"/>
+          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <TextBlock Text="{Binding FlowEditor.ActiveTab.Label, StringFormat='Tab: {0}'}"
+                     Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <TextBlock Text="{Binding FlowEditor.Nodes.Count, StringFormat='Nodes: {0}'}"
+                     Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <TextBlock Text="{Binding AiStatus}" Foreground="#90A4AE" FontSize="12"
+                     VerticalAlignment="Center"/>
+          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <CheckBox IsChecked="{Binding SuggestionsEnabled}"
+                    Content="Node-Vorschlag" Foreground="#B0BEC5" FontSize="12"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="KI-Vorschlag für den nächsten Node ein-/ausschalten"/>
+        </StackPanel>
+      </Grid>
     </Border>
 
     <!-- ── Main Area ── -->

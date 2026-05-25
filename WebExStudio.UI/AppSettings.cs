@@ -47,6 +47,9 @@ public static class AppSettings
         public string AiApiKey { get; set; } = "";
         public string AiModel { get; set; } = "";
         public string AiBaseUrl { get; set; } = "";
+
+        // Oberfläche
+        public bool SuggestionsEnabled { get; set; } = true;
     }
 
     private static Model ReadModel()
@@ -125,6 +128,15 @@ public static class AppSettings
         m.AiApiKey = ai.ApiKey;
         m.AiModel = ai.Model;
         m.AiBaseUrl = ai.BaseUrl;
+        WriteModel(m);
+    }
+
+    public static bool LoadSuggestionsEnabled() => ReadModel().SuggestionsEnabled;
+
+    public static void SaveSuggestionsEnabled(bool enabled)
+    {
+        var m = ReadModel();
+        m.SuggestionsEnabled = enabled;
         WriteModel(m);
     }
 }

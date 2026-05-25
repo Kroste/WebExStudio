@@ -496,6 +496,10 @@ gesamten Flow — den **nächsten sinnvollen Node** vor (Typ, Bezeichnung, Konfi
 Begründung). Der Vorschlag wird gegen den Node-Katalog geprüft; per **Hinzufügen** wird er
 unter dem ausgewählten Node angelegt und automatisch von dessen Ausgang verbunden.
 
+Über die Checkbox **„Node-Vorschlag"** in der **Statusleiste** (unten) lässt sich die Funktion
+ein-/ausschalten (Einstellung wird gespeichert). Die Statusleiste zeigt außerdem den aktuellen
+Status, den Flow-Namen, den aktiven Tab, die Node-Anzahl und den KI-Anbieter.
+
 ---
 
 ## Legacy-Projekte importieren
