@@ -51,5 +51,7 @@ public partial class ChatWindow : Window
             Vm.LoadFlow(turn);
     }
 
+    private void OnLoadLatestFlow(object? sender, RoutedEventArgs e) => Vm?.LoadLatestFlow();
+
     private void ScrollToEnd() => Dispatcher.UIThread.Post(() => Scroller.ScrollToEnd());
 }

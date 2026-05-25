@@ -44,6 +44,18 @@
         </Grid>
       </Border>
 
+      <!-- Fester Lade-Balken: immer erreichbar, sobald die letzte Antwort einen Flow enthält -->
+      <Border DockPanel.Dock="Bottom" Background="#10243A"
+              BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="10,6"
+              IsVisible="{Binding HasLoadableFlow}">
+        <Button Click="OnLoadLatestFlow"
+                Content="{Binding LoadableFlowNote}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Background="#2979FF" Foreground="White" FontWeight="SemiBold"
+                BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6" Padding="12,9"
+                ToolTip.Tip="Den zuletzt von der KI vorgeschlagenen Flow in den Editor übernehmen"/>
+      </Border>
+
       <!-- Verlauf -->
       <ScrollViewer x:Name="Scroller" Padding="12">
         <ItemsControl ItemsSource="{Binding Messages}">

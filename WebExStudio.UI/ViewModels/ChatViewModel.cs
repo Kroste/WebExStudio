@@ -114,6 +114,7 @@ public sealed class ChatViewModel : ViewModelBase
             _history.Add(new ChatMessage(ChatRole.Assistant, answer));
             reply.Content = answer;
             reply.DetectFlow();
+            if (reply.HasFlow) LatestFlowTurn = reply;
         }
         catch (Exception ex)
         {
@@ -124,6 +125,28 @@ public sealed class ChatViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>Jüngste Antwort, die einen ladbaren Flow enthält (für den festen Lade-Balken).</summary>
+    private ChatTurnViewModel? _latestFlowTurn;
+    public ChatTurnViewModel? LatestFlowTurn
+    {
+        get => _latestFlowTurn;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _latestFlowTurn, value);
+            this.RaisePropertyChanged(nameof(HasLoadableFlow));
+            this.RaisePropertyChanged(nameof(LoadableFlowNote));
+        }
+    }
+
+    public bool HasLoadableFlow => _latestFlowTurn is not null;
+    public string LoadableFlowNote => _latestFlowTurn?.FlowNote ?? string.Empty;
+
+    /// <summary>Lädt den zuletzt vorgeschlagenen Flow (vom festen Balken aus).</summary>
+    public void LoadLatestFlow()
+    {
+        if (_latestFlowTurn is not null) LoadFlow(_latestFlowTurn);
     }
 
     /// <summary>Lädt einen in einer Antwort erkannten Flow in den Editor.</summary>

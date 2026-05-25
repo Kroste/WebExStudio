@@ -483,8 +483,11 @@ sich dort ergänzen, ohne den Generator zu ändern.
 Der Toolbar-Button **💬 KI-Chat** öffnet ein Chat-Fenster mit der KI (mehrere Turns, der
 Verlauf bleibt erhalten). Man kann Fragen zu WebExStudio stellen oder iterativ einen Flow
 entwickeln. Enthält eine Antwort einen Flow, erscheint darunter ein Button **„📥 in Editor
-laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Chat
-nutzt dieselben Anbieter- und Proxy-Einstellungen.
+laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Zusätzlich
+erscheint, sobald die letzte Antwort einen Flow enthält, ein **fest verankerter Lade-Balken
+direkt über dem Eingabefeld** — so bleibt das Übernehmen auch bei sehr langen Antworten immer
+erreichbar (ohne ans Ende der Nachricht scrollen zu müssen). Chat nutzt dieselben Anbieter-
+und Proxy-Einstellungen.
 
 Der Chat bekommt bei **jeder** Nachricht den **aktuellen Stand des Flows** mitgeschickt
 (inkl. zwischenzeitlicher Änderungen an Nodes), sodass Änderungswünsche auf dem echten
