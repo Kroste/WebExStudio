@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using ReactiveUI;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
+using WebExStudio.Core.Validation;
 using WebExStudio.Engine;
 
 namespace WebExStudio.UI.ViewModels;
@@ -88,9 +89,31 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         if (IsRunning) return;
 
-        IsRunning = true;
+        var doc = FlowEditor.Document;
+        if (doc is null) { StatusText = "Kein Flow geöffnet"; return; }
+
         TracePanel.Clear();
         FlowEditor.ClearExecutionState();
+
+        // Vor dem Lauf validieren: Fehler brechen ab, Warnungen werden nur angezeigt.
+        var validation = FlowValidator.Validate(doc);
+        ShowValidationIssues(validation);
+        if (!validation.IsValid)
+        {
+            foreach (var issue in validation.Errors.Where(i => i.NodeId is not null))
+                FlowEditor.SetNodeStatus(issue.NodeId!, ExecutionStatusUi.Error);
+
+            // Zum ersten fehlerhaften Node springen, damit die rote Markierung sichtbar ist.
+            var firstNodeError = validation.Errors.FirstOrDefault(i => i.NodeId is not null);
+            if (firstNodeError?.NodeId is { } fid && FlowEditor.FindTabOfNode(fid) is { } tab)
+                FlowEditor.OpenTab(tab);
+
+            var errorCount = validation.Errors.Count();
+            StatusText = $"Ausführung abgebrochen: {errorCount} Validierungsfehler — siehe Protokoll";
+            return;
+        }
+
+        IsRunning = true;
         StatusText = "Ausführung läuft…";
 
         _runCts = new CancellationTokenSource();
@@ -99,9 +122,6 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var doc = FlowEditor.Document;
-            if (doc is null) { StatusText = "Kein Flow geöffnet"; return; }
-
             if (string.IsNullOrEmpty(RunConfig.ProjectDir))
                 RunConfig.ProjectDir = doc.FilePath is { } fp
                     ? Path.GetDirectoryName(fp) ?? Environment.CurrentDirectory
@@ -132,6 +152,27 @@ public sealed class MainWindowViewModel : ViewModelBase
             FlowEditor.ClearExecutionState();
             _runCts?.Dispose();
             _runCts = null;
+        }
+    }
+
+    /// <summary>Schreibt die Validierungsbefunde als Trace-Einträge ins Protokoll-Panel.</summary>
+    private void ShowValidationIssues(FlowValidationResult result)
+    {
+        if (result.Issues.Count == 0) return;
+        var now = DateTime.Now;
+        var empty = new Dictionary<string, string>();
+
+        foreach (var issue in result.Issues)
+        {
+            var isError = issue.Severity == FlowIssueSeverity.Error;
+            TracePanel.AddEntry(new TraceEntry(
+                NodeId: issue.NodeId ?? string.Empty,
+                ActionType: "Validierung",
+                Status: isError ? ExecutionStatus.Error : ExecutionStatus.Skipped,
+                Timestamp: now,
+                TargetName: issue.Code,
+                ContextSnapshot: empty,
+                Message: $"{(isError ? "✖" : "⚠")} {issue.Message}"));
         }
     }
 

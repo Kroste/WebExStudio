@@ -508,6 +508,11 @@ erzeugte Flows. Er liefert eine Liste von Befunden mit Schweregrad **Error** ode
 **Warnungen** (verdächtig, evtl. gewollt): `no-entry-node` (Tab ohne Startpunkt / Zyklus),
 `group-missing-node`, `group-foreign-node`.
 
+**Beim Ausführen:** Vor jedem Lauf wird der Flow validiert. Liegt ein **Fehler** vor, wird
+der Lauf **gar nicht erst gestartet** — die Befunde erscheinen im Protokoll-Panel, der erste
+fehlerhafte Node wird rot markiert und die Ansicht springt zu seinem Tab. **Warnungen**
+werden ebenfalls im Protokoll angezeigt, blockieren den Lauf aber nicht.
+
 Die mitgelieferten Beispiel-Flows unter `projects/` werden durch
 `ExampleFlowsValidateTests` automatisch gegen den Validator geprüft.
 
@@ -525,7 +530,7 @@ dotnet test
 |---|---|
 | `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter, **Flow-Validierung** (inkl. Prüfung der Beispiel-Flows). |
 | `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
-| `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs, ohne Rendering). |
+| `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs/Gruppen, ohne Rendering) und die **Validierungs-Blockade vor dem Lauf**. |
 
 Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen.
 
