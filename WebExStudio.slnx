@@ -2,4 +2,7 @@
   <Project Path="WebExStudio.Core/WebExStudio.Core.csproj" />
   <Project Path="WebExStudio.Engine/WebExStudio.Engine.csproj" />
   <Project Path="WebExStudio.UI/WebExStudio.UI.csproj" />
+  <Project Path="WebExStudio.Core.Tests/WebExStudio.Core.Tests.csproj" />
+  <Project Path="WebExStudio.Engine.Tests/WebExStudio.Engine.Tests.csproj" />
+  <Project Path="WebExStudio.UI.Tests/WebExStudio.UI.Tests.csproj" />
 </Solution>

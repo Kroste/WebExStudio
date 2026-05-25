@@ -232,6 +232,9 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ## Beispiele
 
 > Alle Beispiele sind echtes v2-JSON. Du kannst sie 1:1 als `.json` speichern und über **📄 Flow öffnen** laden, oder im Editor nachbauen.
+>
+> **Fertig zum Öffnen:** Die Beispiele liegen auch als eigene Projekte unter [`projects/`](projects):
+> `example-1-minimal`, `example-2-foreach`, `example-3-if-else`, `example-4-subnode`, `example-5-debug-pause`, `example-6-scraping` (jeweils `flow.json`).
 
 ### Beispiel 1 — Minimaler Flow: Seite öffnen und Payload prüfen
 
@@ -476,6 +479,32 @@ Ein Flow ist **eine** JSON-Datei:
 - **`nodes[].config`**: alle node-spezifischen Felder als Strings (Zahlen/Booleans ebenfalls als String).
 - **`nodes[].label`**: die frei wählbare Bezeichnung (am Node angezeigt).
 - Subnode-Aufrufe: `call`-Node mit `config.target = <subnode-name>`.
+
+---
+
+## Tests & Continuous Integration
+
+### Tests lokal ausführen
+
+```bash
+dotnet test
+```
+
+| Test-Projekt | Deckt ab |
+|---|---|
+| `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter. |
+| `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
+| `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs, ohne Rendering). |
+
+Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen.
+
+### GitHub Actions
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+1. **`test`** — baut die Solution und führt `dotnet test` aus.
+2. **`release`** (nur wenn Tests grün) — erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)**, packt sie (`.tar.gz` / `.zip`) und stellt sie als **Actions-Artefakte** zum Download bereit.
+3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden die Pakete zusätzlich an ein **GitHub-Release** angehängt.
 
 ---
 

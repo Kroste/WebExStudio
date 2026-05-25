@@ -109,6 +109,17 @@ public sealed class FlowExecutor
         }
     }
 
+    /// <summary>
+    /// Runs a single tab against an already-created page (or null for browser-free flows).
+    /// Wires up the same execution context as a normal run; primarily a testability hook.
+    /// </summary>
+    public Task RunTabAsync(FlowDocument2 doc, string tabId, IPage page, RunConfig config,
+        TargetConfig target, IProgress<TraceEntry>? progress = null, CancellationToken ct = default)
+    {
+        var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct);
+        return ExecuteWiredAsync(doc, tabId, ctx);
+    }
+
     /// <summary>Control nodes route their own outputs (via ctx.FollowOutput) instead of auto-following.</summary>
     private static bool IsControlNode(string type) =>
         type is "if_then_else" or "foreach" or "for_range" or "get_links";

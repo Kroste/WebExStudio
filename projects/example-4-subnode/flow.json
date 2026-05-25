@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "tabs": [
+    { "id": "main", "label": "Main", "isSubFlow": false },
+    { "id": "t_login", "label": "Login", "isSubFlow": true, "name": "login" }
+  ],
+  "nodes": [
+    { "id": "f1", "type": "function", "tabId": "main", "x": 80, "y": 40,
+      "config": { "payload": "{ \"host\": \"https://example.com\", \"user\": \"apc\", \"pass\": \"geheim\" }" },
+      "wires": [["call1"]] },
+    { "id": "call1", "type": "call", "tabId": "main", "x": 80, "y": 160,
+      "config": { "target": "login" }, "wires": [[]] },
+
+    { "id": "g1", "type": "goto", "tabId": "t_login", "x": 80, "y": 40,
+      "config": { "url": "{payload.host}/logon.htm" }, "wires": [["u1"]] },
+    { "id": "u1", "type": "send_keys", "tabId": "t_login", "label": "Benutzer", "x": 80, "y": 160,
+      "config": { "selector": "[name=\"login_username\"]", "value": "{payload.user}" }, "wires": [["p1"]] },
+    { "id": "p1", "type": "send_keys", "tabId": "t_login", "label": "Passwort", "x": 80, "y": 280,
+      "config": { "selector": "[name=\"login_password\"]", "value": "{payload.pass}" }, "wires": [["s1"]] },
+    { "id": "s1", "type": "click", "tabId": "t_login", "label": "Anmelden", "x": 80, "y": 400,
+      "config": { "selector": "[name=\"submit\"]" }, "wires": [[]] }
+  ]
+}

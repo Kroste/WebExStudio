@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
+  "nodes": [
+    { "id": "g1", "type": "goto", "tabId": "main", "x": 80, "y": 40,
+      "config": { "url": "https://example.com" }, "wires": [["if1"]] },
+
+    { "id": "if1", "type": "if_then_else", "tabId": "main", "label": "Cookie-Banner?", "x": 80, "y": 160,
+      "config": { "condition": "element_exists", "selector": "#accept" },
+      "wires": [["c1"], ["done"]] },
+
+    { "id": "c1", "type": "click", "tabId": "main", "label": "Akzeptieren", "x": 320, "y": 280,
+      "config": { "selector": "#accept" }, "wires": [["done"]] },
+
+    { "id": "done", "type": "sleep", "tabId": "main", "label": "weiter", "x": 80, "y": 400,
+      "config": { "seconds": "1" }, "wires": [[]] }
+  ]
+}

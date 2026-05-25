@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
+  "nodes": [
+    { "id": "g1", "type": "goto", "tabId": "main", "x": 80, "y": 40,
+      "config": { "url": "https://example.com/produkt/123" }, "wires": [["v1"]] },
+    { "id": "v1", "type": "get_value", "tabId": "main", "label": "Preis lesen", "x": 80, "y": 160,
+      "config": { "selector": ".price", "ctx_key": "preis", "filter": "trim" }, "wires": [["w1"]] },
+    { "id": "w1", "type": "write_file", "tabId": "main", "label": "Speichern", "x": 80, "y": 280,
+      "config": { "path": "preise.txt", "value": "123 = {preis}", "append": "true" }, "wires": [[]] }
+  ]
+}

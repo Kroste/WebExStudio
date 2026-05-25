@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
+  "nodes": [
+    { "id": "sp", "type": "set_payload", "tabId": "main", "x": 80, "y": 40,
+      "config": { "key": "status", "value": "geprüft" }, "wires": [["d1"]] },
+    { "id": "d1", "type": "debug", "tabId": "main", "label": "Inspektion", "x": 80, "y": 160,
+      "config": { "source": "both", "pause": "true" }, "wires": [[]] }
+  ]
+}

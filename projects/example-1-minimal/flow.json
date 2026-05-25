@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
+  "nodes": [
+    { "id": "f1", "type": "function", "tabId": "main", "label": "Start", "x": 80, "y": 40,
+      "config": { "payload": "{ \"host\": \"https://example.com\" }" }, "wires": [["g1"]] },
+
+    { "id": "g1", "type": "goto", "tabId": "main", "label": "Startseite", "x": 80, "y": 160,
+      "config": { "url": "{payload.host}", "wait_ms": "500" }, "wires": [["d1"]] },
+
+    { "id": "d1", "type": "debug", "tabId": "main", "x": 80, "y": 280,
+      "config": { "source": "payload", "pause": "false" }, "wires": [[]] }
+  ]
+}
