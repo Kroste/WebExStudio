@@ -53,12 +53,13 @@
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="System-Browser (Channel) — leer = Standard/Bundled"
-                           FontSize="12" Foreground="#B0BEC5"/>
+                <TextBlock Text="System-Browser (Channel) — leer = Standard/Bundled; brave benötigt Browser-Typ chromium"
+                           FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
                 <ComboBox x:Name="ChannelBox" HorizontalAlignment="Stretch">
                   <ComboBoxItem Content=""/>
                   <ComboBoxItem Content="chrome"/>
                   <ComboBoxItem Content="msedge"/>
+                  <ComboBoxItem Content="brave"/>
                   <ComboBoxItem Content="chrome-beta"/>
                   <ComboBoxItem Content="msedge-beta"/>
                 </ComboBox>

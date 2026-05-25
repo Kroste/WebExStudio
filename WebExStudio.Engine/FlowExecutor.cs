@@ -255,6 +255,41 @@ public sealed class FlowExecutor
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")
             : config.DownloadDir;
 
+    /// <summary>Sucht die Brave-Programmdatei an den üblichen Orten (OS-abhängig).</summary>
+    private static string? FindBraveExecutable()
+    {
+        string[] candidates;
+        if (OperatingSystem.IsWindows())
+        {
+            string[] roots =
+            [
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            ];
+            candidates = roots
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Select(r => Path.Combine(r, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"))
+                .ToArray();
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            candidates = ["/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"];
+        }
+        else
+        {
+            candidates =
+            [
+                "/usr/bin/brave-browser", "/usr/bin/brave-browser-stable", "/usr/bin/brave",
+                "/opt/brave.com/brave/brave-browser", "/opt/brave.com/brave/brave", "/snap/bin/brave",
+            ];
+        }
+
+        var found = candidates.FirstOrDefault(File.Exists);
+        if (found is not null) Log.Info("Brave gefunden: {0}", found);
+        return found;
+    }
+
     /// <summary>If a driver path is configured, point Playwright at it (used when the
     /// driver can't be located automatically).</summary>
     private static void ApplyDriverPath(RunConfig config)
@@ -273,10 +308,24 @@ public sealed class FlowExecutor
             DownloadsPath = string.IsNullOrEmpty(config.DownloadDir) ? null : config.DownloadDir,
         };
 
-        if (!string.IsNullOrWhiteSpace(config.BrowserChannel))
-            options.Channel = config.BrowserChannel;
-        if (!string.IsNullOrWhiteSpace(config.BrowserExecutablePath))
-            options.ExecutablePath = config.BrowserExecutablePath;
+        if (config.BrowserChannel.Equals("brave", StringComparison.OrdinalIgnoreCase))
+        {
+            // Brave ist kein Playwright-Channel → als Chromium mit der Brave-Programmdatei starten.
+            var exe = string.IsNullOrWhiteSpace(config.BrowserExecutablePath)
+                ? FindBraveExecutable()
+                : config.BrowserExecutablePath;
+            if (!string.IsNullOrEmpty(exe))
+                options.ExecutablePath = exe;
+            else
+                Log.Warn("Brave nicht gefunden — bitte Programmpfad in den Einstellungen angeben.");
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(config.BrowserChannel))
+                options.Channel = config.BrowserChannel;
+            if (!string.IsNullOrWhiteSpace(config.BrowserExecutablePath))
+                options.ExecutablePath = config.BrowserExecutablePath;
+        }
         if (!string.IsNullOrWhiteSpace(config.ProxyServer))
         {
             options.Proxy = new Proxy

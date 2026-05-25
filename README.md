@@ -416,7 +416,7 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 | Einstellung | Bedeutung |
 |---|---|
 | **Browser-Typ** | `chromium` (Standard), `firefox`, `webkit`. |
-| **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. |
+| **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. `brave` startet Brave als Chromium (Programmpfad wird automatisch gesucht; Browser-Typ muss `chromium` sein). |
 | **Browser-Programmpfad** | leer = automatisch; sonst Pfad zur Browser-EXE (`ExecutablePath`). |
 | **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). Darunter ein Link zur manuellen/Offline-Installation der Browser (z. B. hinter Firmen-Proxy). |
 | **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Klickt der Flow auf einen Download, wird die Datei mit ihrem **echten Namen** dorthin gespeichert (Playwright würde sie sonst nur temporär mit GUID-Namen ablegen und beim Schließen löschen). Laufende Downloads werden vor dem Beenden fertiggestellt. |
