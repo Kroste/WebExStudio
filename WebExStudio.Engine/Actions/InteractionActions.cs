@@ -37,16 +37,26 @@ public sealed class ClickHandler : IActionHandler
         if (node.GetBool("expect_download") && ctx.SaveDownload is not null)
         {
             var downloadTimeout = int.TryParse(node.Get("download_timeout_ms", "60000"), out var dt) ? dt : 60000;
+            // Erst auf den Download warten, DANN klicken (klassisches Playwright-Muster).
+            var downloadTask = ctx.Page.WaitForDownloadAsync(new PageWaitForDownloadOptions { Timeout = downloadTimeout });
             try
             {
-                var download = await ctx.Page.RunAndWaitForDownloadAsync(
-                    async () => await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs }),
-                    new PageRunAndWaitForDownloadOptions { Timeout = downloadTimeout });
+                // NoWaitAfter: nicht auf die (durch den Download abgebrochene) Navigation warten —
+                // sonst läuft der Klick selbst in einen Timeout.
+                await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs, NoWaitAfter = true });
+            }
+            catch (TimeoutException)
+            {
+                Log.Warn("Download-Klick lief in einen Timeout — versuche dennoch, den Download zu erfassen.");
+            }
+            try
+            {
+                var download = await downloadTask;
                 await ctx.SaveDownload(download); // blockiert bis die Datei gespeichert ist
             }
             catch (TimeoutException)
             {
-                Log.Warn("Kein Download-Event nach Klick (evtl. Service-Worker-Download wie MEGA) — Klick wurde ausgeführt.");
+                Log.Warn("Kein Download-Event nach Klick (evtl. Service-Worker-Download wie MEGA).");
             }
             return;
         }
