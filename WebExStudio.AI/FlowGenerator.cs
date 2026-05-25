@@ -35,6 +35,15 @@ public sealed class FlowGenerator(ILlmClient client)
             return FlowGenerationResult.Failed($"KI-Anfrage fehlgeschlagen: {ex.Message}");
         }
 
+        return Parse(raw);
+    }
+
+    /// <summary>
+    /// Extrahiert ein Flow-JSON aus beliebigem Text (z. B. einer Chat-Antwort), parst und
+    /// validiert es. Ohne Netzwerk — auch vom Chat-Fenster genutzt.
+    /// </summary>
+    public static FlowGenerationResult Parse(string raw)
+    {
         var json = JsonExtractor.Extract(raw);
         if (string.IsNullOrWhiteSpace(json))
             return FlowGenerationResult.Failed("Leere Modellantwort.", raw);
@@ -43,7 +52,6 @@ public sealed class FlowGenerator(ILlmClient client)
         {
             var doc = FlowSerializer2.Deserialize(json);
             var validation = FlowValidator.Validate(doc);
-            Log.Info("Flow generiert: {0} Nodes, gültig={1}", doc.Nodes.Count, validation.IsValid);
             return new FlowGenerationResult
             {
                 Document = doc,
@@ -53,7 +61,6 @@ public sealed class FlowGenerator(ILlmClient client)
         }
         catch (JsonException ex)
         {
-            Log.Warn("KI-Antwort war kein gültiges JSON: {0}", ex.Message);
             return FlowGenerationResult.Failed($"Antwort war kein gültiges Flow-JSON: {ex.Message}", raw);
         }
     }

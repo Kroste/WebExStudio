@@ -5,18 +5,19 @@ public sealed class OllamaClient(HttpClient http, string model, string baseUrl) 
 {
     public string Name => $"Ollama/{model}";
 
-    public async Task<string> CompleteAsync(string systemPrompt, string userPrompt, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string systemPrompt, IReadOnlyList<ChatMessage> messages,
+        bool jsonMode = false, CancellationToken ct = default)
     {
+        var msgs = new List<object> { new { role = "system", content = systemPrompt } };
+        msgs.AddRange(messages.Select(m =>
+            new { role = m.Role == ChatRole.Assistant ? "assistant" : "user", content = m.Content }));
+
         var body = new
         {
             model,
             stream = false,
-            format = "json",
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt },
-            },
+            format = jsonMode ? "json" : null,
+            messages = msgs,
         };
 
         using var doc = await HttpJson.PostAsync(http, $"{baseUrl}/api/chat", body, _ => { }, ct);

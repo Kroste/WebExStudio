@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WebExStudio.UI.ViewModels"
+        x:Class="WebExStudio.UI.Views.ChatWindow"
+        x:DataType="vm:ChatViewModel"
+        Title="KI-Chat"
+        Width="520" Height="640"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        Background="#12121F">
+
+  <Border BorderBrush="#2E2E4E" BorderThickness="1">
+    <DockPanel>
+
+      <!-- Titelleiste -->
+      <Border DockPanel.Dock="Top" Background="#1E1E2E"
+              BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
+              PointerPressed="OnTitleBarPointerPressed">
+        <Grid ColumnDefinitions="*,Auto" Height="36">
+          <TextBlock Grid.Column="0" Text="💬 KI-Chat" FontSize="12" FontWeight="SemiBold"
+                     Foreground="#90A4AE" VerticalAlignment="Center" Margin="14,0"
+                     IsHitTestVisible="False"/>
+          <Button Grid.Column="1" Click="OnClose" Content="&#x2715;" FontSize="13"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="40" Height="36" Padding="0"/>
+        </Grid>
+      </Border>
+
+      <!-- Eingabe -->
+      <Border DockPanel.Dock="Bottom" Background="#16162A"
+              BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,10">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <TextBox Grid.Column="0" x:Name="InputBox"
+                   Text="{Binding Input}"
+                   AcceptsReturn="True" TextWrapping="Wrap"
+                   MinHeight="44" MaxHeight="120"
+                   VerticalContentAlignment="Center"
+                   Watermark="Frage stellen oder einen Flow beschreiben…  (Enter = senden, Umschalt+Enter = neue Zeile)"
+                   KeyDown="OnInputKeyDown"/>
+          <Button Grid.Column="1" Content="Senden" Click="OnSend"
+                  IsEnabled="{Binding CanSend}" Padding="16,8"
+                  VerticalAlignment="Bottom"
+                  Background="#1B5E20" Foreground="White"/>
+        </Grid>
+      </Border>
+
+      <!-- Verlauf -->
+      <ScrollViewer x:Name="Scroller" Padding="12">
+        <ItemsControl ItemsSource="{Binding Messages}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ChatTurnViewModel">
+              <Border Background="{Binding Bubble}" BorderBrush="{Binding Border}"
+                      BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,4"
+                      MaxWidth="420" HorizontalAlignment="{Binding Align}">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="{Binding RoleLabel}" FontSize="10" FontWeight="Bold"
+                             Foreground="#90A4AE"/>
+                  <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                                       Foreground="#ECEFF1" FontSize="13"/>
+                  <Button Content="{Binding FlowNote}" Click="OnLoadFlow"
+                          IsVisible="{Binding HasFlow}"
+                          Background="#0D47A1" Foreground="White"
+                          HorizontalAlignment="Left" Padding="10,5" FontSize="12"/>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+    </DockPanel>
+  </Border>
+</Window>

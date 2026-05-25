@@ -59,6 +59,8 @@
                 IsEnabled="{Binding FlowEditor.CanSave}"/>
         <Button Content="🤖 KI-Flow"        Click="OnGenerateFlow" Padding="8,4"
                 ToolTip.Tip="Flow aus einer Beschreibung erzeugen"/>
+        <Button Content="💬 KI-Chat"        Click="OnChat" Padding="8,4"
+                ToolTip.Tip="Chat-Fenster mit der KI öffnen"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 

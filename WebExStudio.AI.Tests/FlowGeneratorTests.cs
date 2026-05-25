@@ -5,11 +5,12 @@ namespace WebExStudio.AI.Tests;
 
 public class FlowGeneratorTests
 {
-    /// <summary>Returns a canned response regardless of the prompt.</summary>
+    /// <summary>Returns a canned response regardless of the conversation.</summary>
     private sealed class FakeClient(string response) : ILlmClient
     {
         public string Name => "Fake";
-        public Task<string> CompleteAsync(string s, string u, CancellationToken ct = default) =>
+        public Task<string> ChatAsync(string s, IReadOnlyList<ChatMessage> m,
+            bool jsonMode = false, CancellationToken ct = default) =>
             Task.FromResult(response);
     }
 
@@ -79,5 +80,48 @@ public class FlowGeneratorTests
 
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
+    }
+
+    [Fact]
+    public void Parse_ExtractsFlowFromProse()
+    {
+        // Chat-Szenario: Fließtext mit eingebettetem Flow.
+        var reply = "Klar! Hier ist der Flow:\n```json\n" + ValidFlow + "\n```\nFertig.";
+        var result = FlowGenerator.Parse(reply);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, result.Document!.Nodes.Count);
+    }
+
+    [Fact]
+    public void Parse_PlainProse_IsNotAFlow()
+    {
+        var result = FlowGenerator.Parse("Ein foreach iteriert über eine Liste. Frag gern weiter!");
+        Assert.False(result.Success);
+        Assert.Null(result.Document);
+    }
+
+    [Fact]
+    public async Task CompleteAsync_Extension_UsesJsonMode()
+    {
+        var spy = new ModeSpyClient();
+        await spy.CompleteAsync("sys", "user");
+        Assert.True(spy.LastJsonMode);
+        Assert.Equal("user", spy.LastMessages.Single().Content);
+    }
+
+    private sealed class ModeSpyClient : ILlmClient
+    {
+        public string Name => "Spy";
+        public bool LastJsonMode { get; private set; }
+        public IReadOnlyList<ChatMessage> LastMessages { get; private set; } = [];
+
+        public Task<string> ChatAsync(string s, IReadOnlyList<ChatMessage> m,
+            bool jsonMode = false, CancellationToken ct = default)
+        {
+            LastJsonMode = jsonMode;
+            LastMessages = m;
+            return Task.FromResult("{}");
+        }
     }
 }

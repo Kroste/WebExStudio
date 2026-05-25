@@ -55,6 +55,23 @@ public partial class MainWindow : Window
     private async void OnGenerateFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         await new AiFlowDialog(Vm).ShowDialog(this);
 
+    private ChatWindow? _chatWindow;
+
+    private void OnChat(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // Nicht-modal, eine Instanz; Verlauf lebt im ViewModel und bleibt erhalten.
+        if (_chatWindow is null)
+        {
+            _chatWindow = new ChatWindow(Vm.Chat);
+            _chatWindow.Closed += (_, _) => _chatWindow = null;
+            _chatWindow.Show(this);
+        }
+        else
+        {
+            _chatWindow.Activate();
+        }
+    }
+
     private async void OnOpenFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions

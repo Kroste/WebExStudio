@@ -473,6 +473,14 @@ Modell und Basis-URL sind pro Anbieter überschreibbar. Die Anbindung ist im Pro
 `WebExStudio.AI` über die Schnittstelle `ILlmClient` gekapselt — weitere Anbieter lassen
 sich dort ergänzen, ohne den Generator zu ändern.
 
+### KI-Chat
+
+Der Toolbar-Button **💬 KI-Chat** öffnet ein Chat-Fenster mit der KI (mehrere Turns, der
+Verlauf bleibt erhalten). Man kann Fragen zu WebExStudio stellen oder iterativ einen Flow
+entwickeln. Enthält eine Antwort einen Flow, erscheint darunter ein Button **„📥 in Editor
+laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Chat
+nutzt dieselben Anbieter- und Proxy-Einstellungen.
+
 ---
 
 ## Legacy-Projekte importieren

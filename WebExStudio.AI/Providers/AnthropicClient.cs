@@ -7,14 +7,17 @@ public sealed class AnthropicClient(HttpClient http, string apiKey, string model
 {
     public string Name => $"Anthropic/{model}";
 
-    public async Task<string> CompleteAsync(string systemPrompt, string userPrompt, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string systemPrompt, IReadOnlyList<ChatMessage> messages,
+        bool jsonMode = false, CancellationToken ct = default)
     {
         var body = new
         {
             model,
             max_tokens = 8192,
             system = systemPrompt,
-            messages = new[] { new { role = "user", content = userPrompt } },
+            messages = messages
+                .Select(m => new { role = m.Role == ChatRole.Assistant ? "assistant" : "user", content = m.Content })
+                .ToArray(),
         };
 
         using var doc = await HttpJson.PostAsync(http, $"{baseUrl}/v1/messages", body, req =>

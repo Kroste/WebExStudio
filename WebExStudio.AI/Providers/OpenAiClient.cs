@@ -7,17 +7,18 @@ public sealed class OpenAiClient(HttpClient http, string apiKey, string model, s
 {
     public string Name => $"OpenAI/{model}";
 
-    public async Task<string> CompleteAsync(string systemPrompt, string userPrompt, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string systemPrompt, IReadOnlyList<ChatMessage> messages,
+        bool jsonMode = false, CancellationToken ct = default)
     {
+        var msgs = new List<object> { new { role = "system", content = systemPrompt } };
+        msgs.AddRange(messages.Select(m =>
+            new { role = m.Role == ChatRole.Assistant ? "assistant" : "user", content = m.Content }));
+
         var body = new
         {
             model,
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt },
-            },
-            response_format = new { type = "json_object" },
+            messages = msgs,
+            response_format = jsonMode ? new { type = "json_object" } : null,
         };
 
         using var doc = await HttpJson.PostAsync(http, $"{baseUrl}/v1/chat/completions", body, req =>

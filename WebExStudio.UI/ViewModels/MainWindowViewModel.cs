@@ -29,6 +29,9 @@ public sealed class MainWindowViewModel : ViewModelBase
     /// <summary>KI-Anbindung (Anbieter/Key/Modell) — aus den Einstellungen befüllt.</summary>
     public AiOptions AiOptions { get; } = new();
 
+    /// <summary>Mehr-Turn-Chat mit der KI (Verlauf bleibt erhalten, auch wenn das Fenster schließt).</summary>
+    public ChatViewModel Chat { get; }
+
     /// <summary>
     /// Erzeugt per KI einen Flow aus einer Beschreibung und lädt ihn bei Erfolg in den Editor.
     /// Liefert das Ergebnis zurück, damit der Aufrufer Fehler/Validierung anzeigen kann.
@@ -54,6 +57,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        Chat = new ChatViewModel(this);
         FlowEditor.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(FlowEditorViewModel.Document) or nameof(FlowEditorViewModel.CanSave))
