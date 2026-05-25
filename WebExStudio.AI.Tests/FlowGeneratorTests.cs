@@ -94,6 +94,19 @@ public class FlowGeneratorTests
     }
 
     [Fact]
+    public void Parse_FlowInFence_FollowedByBracesInProse()
+    {
+        // Regression: Erklärtext nach dem ```json-Block enthält {payload.link}-Klammern.
+        // Ohne Fence-Bevorzugung würde „erstes { … letztes }" bis in den Erklärtext greifen.
+        var reply = "Hier der geänderte Flow:\n```json\n" + ValidFlow + "\n```\n\n"
+            + "**Was geändert wurde:** Der Node nutzt jetzt {payload.link_url} statt {payload.link}.";
+        var result = FlowGenerator.Parse(reply);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, result.Document!.Nodes.Count);
+    }
+
+    [Fact]
     public void Parse_PlainProse_IsNotAFlow()
     {
         var result = FlowGenerator.Parse("Ein foreach iteriert über eine Liste. Frag gern weiter!");

@@ -19,6 +19,17 @@ public class SecretMaskerTests
         Assert.DoesNotContain("sk-123", masked);
     }
 
+    [Theory]
+    [InlineData("""{ "loginPassword": "x" }""")]
+    [InlineData("""{ "userPwd": "x" }""")]
+    [InlineData("""{ "passwortFeld": "x" }""")]
+    public void Mask_RedactsKeysContainingSecretWords(string json)
+    {
+        var masked = SecretMasker.Mask(json);
+        Assert.Contains("\"***\"", masked);
+        Assert.DoesNotContain("\"x\"", masked);
+    }
+
     [Fact]
     public void Mask_KeepsHarmlessFields()
     {

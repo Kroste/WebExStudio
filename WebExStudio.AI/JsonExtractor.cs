@@ -1,14 +1,21 @@
+using System.Text.RegularExpressions;
+
 namespace WebExStudio.AI;
 
 /// <summary>
 /// Holt das JSON-Objekt aus einer Modellantwort heraus — auch wenn es in einen ```json-Block
 /// oder erklärenden Text eingebettet ist.
 /// </summary>
-public static class JsonExtractor
+public static partial class JsonExtractor
 {
+    [GeneratedRegex("```(?:json)?\\s*\\r?\\n(.*?)```", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex FencedBlock();
+
     /// <summary>
-    /// Liefert die JSON-Nutzlast (vom ersten <c>{</c> bis zur zugehörigen schließenden <c>}</c>)
-    /// oder den getrimmten Originaltext, falls keine Klammern gefunden werden.
+    /// Liefert die JSON-Nutzlast. Bevorzugt den Inhalt eines ```json-Codeblocks (egal wo im Text) —
+    /// wichtig, weil erklärender Text danach Klammern enthalten kann (z. B. {payload.link}), die
+    /// sonst die „erstes {…letztes }"-Heuristik zerstören. Ohne Codeblock: erstes <c>{</c> bis
+    /// letztes <c>}</c>.
     /// </summary>
     public static string Extract(string raw)
     {
@@ -16,21 +23,15 @@ public static class JsonExtractor
 
         var text = raw.Trim();
 
-        // Markdown-Codeblock entfernen, falls vorhanden.
-        if (text.StartsWith("```"))
-        {
-            var firstNewline = text.IndexOf('\n');
-            if (firstNewline >= 0) text = text[(firstNewline + 1)..];
-            var fenceEnd = text.LastIndexOf("```", StringComparison.Ordinal);
-            if (fenceEnd >= 0) text = text[..fenceEnd];
-            text = text.Trim();
-        }
+        // Zuerst einen ```-Codeblock bevorzugen (begrenzt die Suche auf den Block-Inhalt).
+        var fence = FencedBlock().Match(text);
+        var candidate = fence.Success ? fence.Groups[1].Value : text;
 
-        var start = text.IndexOf('{');
-        var end = text.LastIndexOf('}');
+        var start = candidate.IndexOf('{');
+        var end = candidate.LastIndexOf('}');
         if (start >= 0 && end > start)
-            return text[start..(end + 1)];
+            return candidate[start..(end + 1)];
 
-        return text;
+        return candidate.Trim();
     }
 }

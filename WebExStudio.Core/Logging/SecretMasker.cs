@@ -11,10 +11,11 @@ public static partial class SecretMasker
 {
     public const string Mask_ = "***";
 
-    // JSON-Felder, deren Werte vertraulich sind. Bewusst NICHT "key" (kollidiert mit
+    // JSON-Felder, deren Schlüsselname auf ein Geheimnis hindeutet (Teil-Treffer, z. B.
+    // "loginPassword", "userPwd", "apiKey"). Bewusst NICHT bloßes "key" (kollidiert mit
     // harmlosen Feldern wie ctx_key / debug.key).
     [GeneratedRegex(
-        "(\"(?:password|passwort|pwd|secret|token|api[_-]?key|apikey|authorization|auth)\"\\s*:\\s*)\"[^\"]*\"",
+        "(\"[^\"]*(?:passwor|pwd|secret|token|api[_-]?key|apikey|authorization)[^\"]*\"\\s*:\\s*)\"[^\"]*\"",
         RegexOptions.IgnoreCase)]
     private static partial Regex SensitiveJsonField();
 
