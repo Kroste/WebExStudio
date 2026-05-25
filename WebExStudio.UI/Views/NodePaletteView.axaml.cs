@@ -20,6 +20,7 @@ public partial class NodePaletteView : UserControl
     private NodeDefinition? _dragDef;
     private Point _dragStart;
     private bool _dragging;
+    private PointerPressedEventArgs? _pressArgs; // Av12: DoDragDropAsync braucht die Press-Args
 
     public NodePaletteView()
     {
@@ -67,6 +68,7 @@ public partial class NodePaletteView : UserControl
                     _dragDef = d;
                     _dragStart = e.GetPosition(item);
                     _dragging = false;
+                    _pressArgs = e;
                 };
 
                 item.PointerMoved += async (_, e) =>
@@ -76,10 +78,11 @@ public partial class NodePaletteView : UserControl
                     var p = e.GetPosition(item);
                     if (Math.Abs(p.X - _dragStart.X) < 4 && Math.Abs(p.Y - _dragStart.Y) < 4) return;
 
+                    if (_pressArgs is null) return;
                     _dragging = true;
                     var data = new DataTransfer();
                     data.Add(DataTransferItem.Create(NodeTypeFormat, d.Type));
-                    await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Copy);
+                    await DragDrop.DoDragDropAsync(_pressArgs, data, DragDropEffects.Copy);
                     _dragDef = null;
                 };
 

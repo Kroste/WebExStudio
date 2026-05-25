@@ -5,7 +5,7 @@
         Width="420" Height="320"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="#12121F">
 
   <Border BorderBrush="#2E2E4E" BorderThickness="1">

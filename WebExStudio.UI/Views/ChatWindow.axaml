@@ -6,7 +6,7 @@
         Title="KI-Chat"
         Width="520" Height="640"
         WindowStartupLocation="CenterOwner"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="#12121F">
 
   <Border BorderBrush="#2E2E4E" BorderThickness="1">

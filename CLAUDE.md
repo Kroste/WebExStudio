@@ -8,7 +8,7 @@ Session in den Kontext geladen. Bitte die folgenden Regeln **bei jeder Änderung
 WebExStudio ist eine C#/Avalonia-Desktop-App zum visuellen Erstellen von
 Web-Automatisierungs-Flows (Node-RED-Paradigma, Ausführung über Playwright).
 
-- **Sprache:** .NET 10 (`net10.0`), Avalonia 11.3.x, ReactiveUI (MVVM), NLog, xUnit.
+- **Sprache:** .NET 10 (`net10.0`), Avalonia 12.0.x, ReactiveUI (MVVM, via `ReactiveUI.Avalonia`), NLog, xUnit.
 - **Solution:** `WebExStudio.slnx`
 - **Projekte:**
   - `WebExStudio.Core` – Modelle, Serialisierung, Node-Katalog

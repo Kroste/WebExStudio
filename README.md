@@ -610,4 +610,4 @@ Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, 
 | `WebExStudio.UI` | Avalonia-Desktop-App: Canvas, Node-/Wire-Rendering, Palette, Subnode-Panel, Eigenschaften, Trace, Einstellungen, About. |
 | `WebExStudio.AI` | KI-Anbindung: Node-Schema-Export, Prompt-Bau, `FlowGenerator` und Provider (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
-Technik: **.NET 10**, **Avalonia 11.3**, **Microsoft.Playwright 1.52**, **NLog 6**.
+Technik: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.

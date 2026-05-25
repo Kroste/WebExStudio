@@ -18,6 +18,7 @@ public partial class SubnodePanelView : UserControl
     private FlowTabViewModel? _dragSubnode;
     private Point _dragStart;
     private bool _dragging;
+    private PointerPressedEventArgs? _pressArgs; // Av12: DoDragDropAsync braucht die Press-Args
 
     public SubnodePanelView()
     {
@@ -43,6 +44,7 @@ public partial class SubnodePanelView : UserControl
         _dragSubnode = item;
         _dragStart = e.GetPosition(SubnodeList);
         _dragging = false;
+        _pressArgs = e;
     }
 
     private async void OnListPointerMoved(object? sender, PointerEventArgs e)
@@ -52,10 +54,11 @@ public partial class SubnodePanelView : UserControl
         var p = e.GetPosition(SubnodeList);
         if (System.Math.Abs(p.X - _dragStart.X) < 4 && System.Math.Abs(p.Y - _dragStart.Y) < 4) return;
 
+        if (_pressArgs is null) return;
         _dragging = true;
         var data = new DataTransfer();
         data.Add(DataTransferItem.Create(SubnodeNameFormat, _dragSubnode.Name ?? string.Empty));
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Copy);
+        await DragDrop.DoDragDropAsync(_pressArgs, data, DragDropEffects.Copy);
         _dragSubnode = null;
     }
 
