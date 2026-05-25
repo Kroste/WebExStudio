@@ -5,11 +5,14 @@
         x:DataType="vm:ChatViewModel"
         Title="KI-Chat"
         Width="520" Height="640"
+        MinWidth="380" MinHeight="360"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         WindowDecorations="None"
         Background="#12121F">
 
-  <Border BorderBrush="#2E2E4E" BorderThickness="1">
+  <Grid RowDefinitions="6,*,6" ColumnDefinitions="6,*,6">
+  <Border Grid.RowSpan="3" Grid.ColumnSpan="3" BorderBrush="#2E2E4E" BorderThickness="1">
     <DockPanel>
 
       <!-- Titelleiste -->
@@ -85,4 +88,23 @@
 
     </DockPanel>
   </Border>
+
+  <!-- Resize-Griffe (randloses Fenster): transparente Kanten/Ecken über dem Rahmen -->
+  <Border Grid.Row="0" Grid.Column="0" Background="Transparent" Cursor="TopLeftCorner"
+          Tag="NorthWest" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="0" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
+          Tag="North" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="0" Grid.Column="2" Background="Transparent" Cursor="TopRightCorner"
+          Tag="NorthEast" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="1" Grid.Column="0" Background="Transparent" Cursor="SizeWestEast"
+          Tag="West" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="1" Grid.Column="2" Background="Transparent" Cursor="SizeWestEast"
+          Tag="East" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="2" Grid.Column="0" Background="Transparent" Cursor="BottomLeftCorner"
+          Tag="SouthWest" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="2" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
+          Tag="South" PointerPressed="OnResizePressed"/>
+  <Border Grid.Row="2" Grid.Column="2" Background="Transparent" Cursor="BottomRightCorner"
+          Tag="SouthEast" PointerPressed="OnResizePressed"/>
+  </Grid>
 </Window>

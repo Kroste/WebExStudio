@@ -24,6 +24,13 @@ public partial class ChatWindow : Window
             BeginMoveDrag(e);
     }
 
+    private void OnResizePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (sender is Control { Tag: string edgeName } && Enum.TryParse<WindowEdge>(edgeName, out var edge))
+            BeginResizeDrag(edge, e);
+    }
+
     private void OnClose(object? sender, RoutedEventArgs e) => Close();
 
     private async void OnSend(object? sender, RoutedEventArgs e) => await SendAsync();
