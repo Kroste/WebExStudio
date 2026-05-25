@@ -31,8 +31,9 @@ Vor dem Abschluss einer Aufgabe immer prüfen:
 3. **Versionsnummer anheben** – siehe unten.
 4. **Build + Tests grün** – `dotnet build WebExStudio.slnx` und
    `dotnet test WebExStudio.slnx` müssen fehlerfrei durchlaufen.
-5. **Committen** – nach jeder abgeschlossenen Änderung alles stagen und committen
-   (`git add -A` + `git commit`) mit einer kurzen deutschen Commit-Nachricht.
+5. **Committen + Pushen** – nach jeder abgeschlossenen Änderung alles stagen, committen
+   (`git add -A` + `git commit`) mit einer kurzen deutschen Commit-Nachricht und
+   anschließend automatisch `git push` (Auto-Push ist vom Nutzer dauerhaft erlaubt).
 
 ## Versionierung (SemVer)
 
