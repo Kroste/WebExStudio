@@ -12,14 +12,23 @@ public sealed class DownloadCollector(string targetDir)
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly List<Task> _pending = [];
+    private readonly HashSet<IPage> _attached = [];
     private readonly Lock _lock = new();
 
-    /// <summary>Hängt den Download-Handler an eine Seite (für jede neue Seite/Tab aufrufen).</summary>
-    public void Attach(IPage page) => page.Download += (_, download) =>
+    /// <summary>Hängt den Download-Handler an eine Seite (idempotent — Mehrfachaufruf ist sicher).</summary>
+    public void Attach(IPage page)
     {
-        var task = SaveAsync(download);
-        lock (_lock) _pending.Add(task);
-    };
+        lock (_lock)
+        {
+            if (!_attached.Add(page)) return; // schon angehängt
+        }
+        Log.Debug("Download-Handler an Seite gehängt");
+        page.Download += (_, download) =>
+        {
+            var task = SaveAsync(download);
+            lock (_lock) _pending.Add(task);
+        };
+    }
 
     private async Task SaveAsync(IDownload download)
     {

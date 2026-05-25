@@ -94,7 +94,10 @@ public sealed class FlowExecutor
             var page = await context.NewPageAsync();
 
             // Browser-Downloads mit echtem Namen im Zielordner speichern (statt GUID-Temp).
+            // An JEDE Seite hängen — auch an Popups/neue Tabs, die die Seite selbst öffnet
+            // (z. B. pixeldrain) und die nicht über den open_tab-Node laufen.
             var downloads = new DownloadCollector(ResolveDownloadDir(config));
+            context.Page += (_, p) => downloads.Attach(p);
             downloads.Attach(page);
 
             try
@@ -305,7 +308,8 @@ public sealed class FlowExecutor
         {
             Headless = config.Headless,
             SlowMo = config.SlowMoMs,
-            DownloadsPath = string.IsNullOrEmpty(config.DownloadDir) ? null : config.DownloadDir,
+            // Kein fester DownloadsPath: Playwright nutzt seinen verwalteten Temp; die finale
+            // Datei schreibt der DownloadCollector per SaveAsAsync mit echtem Namen ins Ziel.
         };
 
         if (config.BrowserChannel.Equals("brave", StringComparison.OrdinalIgnoreCase))
