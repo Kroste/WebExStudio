@@ -32,14 +32,26 @@ public sealed class TraceEntryViewModel : ViewModelBase
     public string CopyText => $"{Time}\t{StatusText}\t{ActionType}\t{Message}".TrimEnd();
 
     /// <summary>Diagnose-Text zum Übertragen in den KI-Chat (Flow wird vom Chat ohnehin mitgesendet).</summary>
-    public string DiagnosticText =>
-        (IsError
-            ? $"Beim Ausführen des Nodes „{ActionType}“"
-            : $"Frage zum Node „{ActionType}“ (Status {StatusText})")
-        + (string.IsNullOrEmpty(NodeId) ? "" : $" (id: {NodeId})")
-        + (IsError ? " ist ein Fehler aufgetreten." : ".")
-        + (HasMessage ? $"\nMeldung: {Message}" : "")
-        + "\n\nBitte hilf mir, das im aktuellen Flow zu beheben.";
+    public string DiagnosticText
+    {
+        get
+        {
+            var lines = new List<string>
+            {
+                IsError
+                    ? "Beim Ausführen ist ein Fehler aufgetreten:"
+                    : $"Frage zu einem Ausführungsschritt (Status {StatusText}):",
+                $"Node-Typ: {ActionType}",
+            };
+            if (!string.IsNullOrEmpty(NodeId)) lines.Add($"Node-ID: {NodeId}");
+            lines.Add($"Status: {StatusText}");
+            if (HasMessage) lines.Add($"Meldung: {Message}");
+            lines.Add("");
+            lines.Add("Bitte hilf mir, das zu beheben. Der betroffene Node ist über die \"id\" "
+                + "im mitgesendeten Flow-JSON zu finden.");
+            return string.Join("\n", lines);
+        }
+    }
 
     public TraceEntryViewModel(TraceEntry entry) => Entry = entry;
 }
