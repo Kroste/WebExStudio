@@ -482,6 +482,37 @@ Ein Flow ist **eine** JSON-Datei:
 
 ---
 
+## Flow-Validierung
+
+Der `FlowValidator` (in `WebExStudio.Core`) prüft ein Flow-Dokument auf strukturelle und
+schematische Fehler — als Sicherheitsnetz für importierte und (künftig) automatisch
+erzeugte Flows. Er liefert eine Liste von Befunden mit Schweregrad **Error** oder **Warning**;
+`IsValid` ist `true`, solange kein Fehler vorliegt.
+
+**Fehler** (Flow läuft so nicht zuverlässig):
+
+| Code | Bedeutung |
+|---|---|
+| `unknown-type` | Node-Typ ist im Katalog nicht bekannt. |
+| `missing-required` | Pflichtfeld fehlt (Aliase werden berücksichtigt). |
+| `dangling-wire` | Verbindung zeigt auf eine nicht existierende Node-ID. |
+| `cross-tab-wire` | Verbindung führt zu einem Node auf einem anderen Tab (nur per `call` erlaubt). |
+| `wire-invalid-port` | Verbindung an einem Ausgang, den der Node-Typ nicht hat. |
+| `wire-into-no-input` | Verbindung führt in einen Node ohne Eingang (z. B. eine Annotation). |
+| `call-target-missing` | `call`-Node verweist auf einen unbekannten Subnode. |
+| `duplicate-node-id` | Node-ID kommt mehrfach vor. |
+| `duplicate-subnode-name` | Subnode-Name mehrfach vergeben (`call`-Ziel mehrdeutig). |
+| `unknown-tab` | Node verweist auf einen unbekannten Tab. |
+| `no-main-tab` | Es gibt keinen Haupt-Tab. |
+
+**Warnungen** (verdächtig, evtl. gewollt): `no-entry-node` (Tab ohne Startpunkt / Zyklus),
+`group-missing-node`, `group-foreign-node`.
+
+Die mitgelieferten Beispiel-Flows unter `projects/` werden durch
+`ExampleFlowsValidateTests` automatisch gegen den Validator geprüft.
+
+---
+
 ## Tests & Continuous Integration
 
 ### Tests lokal ausführen
@@ -492,7 +523,7 @@ dotnet test
 
 | Test-Projekt | Deckt ab |
 |---|---|
-| `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter. |
+| `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter, **Flow-Validierung** (inkl. Prüfung der Beispiel-Flows). |
 | `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
 | `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs, ohne Rendering). |
 
