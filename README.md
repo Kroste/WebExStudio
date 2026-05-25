@@ -442,7 +442,11 @@ NLog schreibt nach `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
 | `debug.log` | Debug-Ebene für `WebExStudio.*` (ausführlich). |
 | `error.log` | Fehler inkl. Stacktrace. |
 
-Während der Ausführung erscheinen Node-Status und `debug`-Ausgaben außerdem live im **Ausführungsprotokoll** unten in der App.
+Während der Ausführung erscheinen Node-Status und `debug`-Ausgaben außerdem live im **Ausführungsprotokoll** unten in der App. Dort gilt pro Eintrag:
+
+- **Doppelklick** → springt im Editor zum zugehörigen Node (öffnet dessen Tab, wählt ihn aus und zentriert die Ansicht).
+- **Rechtsklick** → „↪ Zum Node springen", „📋 Zeile kopieren" (in die Zwischenablage) und „💬 An KI-Chat senden" (überträgt Node, Status und Fehlermeldung als Frage in den KI-Chat — der aktuelle Flow wird automatisch mitgeschickt).
+- Der Meldungstext ist markierbar und damit direkt kopierbar.
 
 ---
 

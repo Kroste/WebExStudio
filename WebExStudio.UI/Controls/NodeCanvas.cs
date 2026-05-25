@@ -79,6 +79,15 @@ public sealed class NodeCanvas : Canvas
         UpdateTransform();
     }
 
+    /// <summary>Verschiebt die Ansicht so, dass der Welt-Punkt in der Mitte des Canvas liegt.</summary>
+    public void CenterOn(Point world)
+    {
+        if (Bounds.Width <= 0 || Bounds.Height <= 0) return;
+        _panOffsetX = Bounds.Width / 2 - _scale * world.X;
+        _panOffsetY = Bounds.Height / 2 - _scale * world.Y;
+        UpdateTransform();
+    }
+
     public Point CanvasToWorld(Point screen) =>
         new((screen.X - _panOffsetX) / _scale, (screen.Y - _panOffsetY) / _scale);
 

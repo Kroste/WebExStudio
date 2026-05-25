@@ -26,7 +26,17 @@
       <ItemsControl ItemsSource="{Binding Entries}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:TraceEntryViewModel">
-            <Border Padding="6,3" BorderBrush="#2A2A3E" BorderThickness="0,0,0,1">
+            <Border Padding="6,3" BorderBrush="#2A2A3E" BorderThickness="0,0,0,1"
+                    Background="Transparent" Cursor="Hand"
+                    DoubleTapped="OnEntryDoubleTapped"
+                    ToolTip.Tip="Doppelklick: zum Node springen · Rechtsklick: kopieren / an KI-Chat">
+              <Border.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="↪ Zum Node springen" Click="OnGoToNode"/>
+                  <MenuItem Header="📋 Zeile kopieren" Click="OnCopyEntry"/>
+                  <MenuItem Header="💬 An KI-Chat senden" Click="OnSendToChat"/>
+                </ContextMenu>
+              </Border.ContextMenu>
               <Grid ColumnDefinitions="70,80,100,*,Auto">
 
                 <TextBlock Grid.Column="0" Text="{Binding Time}"
@@ -46,10 +56,9 @@
                            FontSize="11" Foreground="#80CBC4"
                            VerticalAlignment="Center" FontFamily="Monospace"/>
 
-                <TextBlock Grid.Column="3" Text="{Binding Message}"
+                <SelectableTextBlock Grid.Column="3" Text="{Binding Message}"
                            FontSize="11" Foreground="#B0BEC5"
                            VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
                            IsVisible="{Binding HasMessage}"/>
 
                 <TextBlock Grid.Column="4" Text="{Binding TargetName}"

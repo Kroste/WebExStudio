@@ -23,5 +23,23 @@ public sealed class TraceEntryViewModel : ViewModelBase
 
     public bool HasMessage => !string.IsNullOrEmpty(Message);
 
+    /// <summary>Node, zu dem dieser Eintrag gehört (für „zum Node springen").</summary>
+    public string NodeId => Entry.NodeId;
+
+    public bool IsError => Entry.Status == ExecutionStatus.Error;
+
+    /// <summary>Ganze Zeile als Text (für „Kopieren").</summary>
+    public string CopyText => $"{Time}\t{StatusText}\t{ActionType}\t{Message}".TrimEnd();
+
+    /// <summary>Diagnose-Text zum Übertragen in den KI-Chat (Flow wird vom Chat ohnehin mitgesendet).</summary>
+    public string DiagnosticText =>
+        (IsError
+            ? $"Beim Ausführen des Nodes „{ActionType}“"
+            : $"Frage zum Node „{ActionType}“ (Status {StatusText})")
+        + (string.IsNullOrEmpty(NodeId) ? "" : $" (id: {NodeId})")
+        + (IsError ? " ist ein Fehler aufgetreten." : ".")
+        + (HasMessage ? $"\nMeldung: {Message}" : "")
+        + "\n\nBitte hilf mir, das im aktuellen Flow zu beheben.";
+
     public TraceEntryViewModel(TraceEntry entry) => Entry = entry;
 }

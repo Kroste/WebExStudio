@@ -566,6 +566,16 @@ public sealed class FlowEditorViewModel : ViewModelBase
             OpenTab(owner);
     }
 
+    /// <summary>Öffnet den Tab des Nodes und wählt ihn aus (für „zum Node springen").</summary>
+    public NodeViewModel? FocusNode(string nodeId)
+    {
+        var tab = FindTabOfNode(nodeId);
+        if (tab is not null) OpenTab(tab);
+        var vm = FindNode(nodeId);
+        if (vm is not null) SelectNode(vm);
+        return vm;
+    }
+
     public void SetNodeStatus(string nodeId, ExecutionStatusUi status)
     {
         var vm = FindNode(nodeId);

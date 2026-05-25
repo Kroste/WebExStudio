@@ -77,6 +77,16 @@ public partial class MainWindow : Window
         await new NodeSuggestionDialog(Vm, anchor).ShowDialog(this);
     }
 
+    /// <summary>Springt im Editor zu einem Node (aus dem Ausführungsprotokoll aufgerufen).</summary>
+    public void FocusNode(string nodeId) => FlowEditorView.FocusNode(nodeId);
+
+    /// <summary>Öffnet den KI-Chat und legt den übergebenen Text ins Eingabefeld (zum Absenden).</summary>
+    public void ShowChatWithText(string text)
+    {
+        ShowChat();
+        Vm.Chat.Input = text;
+    }
+
     /// <summary>Öffnet (oder aktiviert) das nicht-modale Chat-Fenster; Verlauf lebt im ViewModel.</summary>
     private void ShowChat()
     {

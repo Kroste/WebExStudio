@@ -44,6 +44,13 @@ public partial class FlowEditorView : UserControl
 
     public void ResetView() => Canvas.ResetView();
 
+    /// <summary>Öffnet den Tab des Nodes, wählt ihn aus und zentriert die Ansicht darauf.</summary>
+    public void FocusNode(string nodeId)
+    {
+        if (Vm?.FocusNode(nodeId) is not { } node) return;
+        Canvas.CenterOn(new Point(node.X + node.Width / 2, node.Y + node.Height / 2));
+    }
+
     public void FitToView()
     {
         var bounds = _nodeControls.Values
