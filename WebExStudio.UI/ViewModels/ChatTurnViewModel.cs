@@ -34,9 +34,15 @@ public sealed class ChatTurnViewModel : ViewModelBase
     public HorizontalAlignment Align => IsUser ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 
     public IBrush Bubble => new SolidColorBrush(Color.Parse(
-        _notice ? "#3A2E16" : IsUser ? "#1B3A2E" : "#1A1A2E"));
+        _notice ? "#0D3A4A" : IsUser ? "#1B3A2E" : "#1A1A2E"));
     public IBrush Border => new SolidColorBrush(Color.Parse(
-        _notice ? "#7A5C16" : IsUser ? "#2E7D32" : "#2E2E4E"));
+        _notice ? "#29B6F6" : IsUser ? "#2E7D32" : "#2E2E4E"));
+
+    /// <summary>Textfarbe — Hinweise hell/auffällig, sonst neutral.</summary>
+    public IBrush TextBrush => new SolidColorBrush(Color.Parse(_notice ? "#E1F5FE" : "#ECEFF1"));
+
+    /// <summary>Hinweise etwas größer/fetter darstellen.</summary>
+    public bool IsNotice => _notice;
 
     // ── Erkannter Flow (falls die Antwort einen enthält) ───────────────────────
     private bool _hasFlow;

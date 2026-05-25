@@ -56,11 +56,14 @@
                   <TextBlock Text="{Binding RoleLabel}" FontSize="10" FontWeight="Bold"
                              Foreground="#90A4AE"/>
                   <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap"
-                                       Foreground="#ECEFF1" FontSize="13"/>
+                                       Foreground="{Binding TextBrush}" FontSize="13"/>
                   <Button Content="{Binding FlowNote}" Click="OnLoadFlow"
                           IsVisible="{Binding HasFlow}"
-                          Background="#0D47A1" Foreground="White"
-                          HorizontalAlignment="Left" Padding="10,5" FontSize="12"/>
+                          Background="#2979FF" Foreground="White" FontWeight="SemiBold"
+                          BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                          Padding="12,9" FontSize="13" Margin="0,4,0,0"
+                          ToolTip.Tip="Diesen Flow in den Editor übernehmen"/>
                 </StackPanel>
               </Border>
             </DataTemplate>
