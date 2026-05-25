@@ -37,6 +37,7 @@ public sealed class OpenTabHandler : IActionHandler
         var url = ctx.Fmt(node.Get("url"));
         Log.Debug("Neuer Tab: {0}", url);
         var newPage = await ctx.Page.Context.NewPageAsync();
+        ctx.AttachDownloads?.Invoke(newPage); // Downloads aus diesem Tab im Zielordner speichern
         if (!string.IsNullOrEmpty(url))
             await newPage.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
         // Switch the active page to the newly opened tab.

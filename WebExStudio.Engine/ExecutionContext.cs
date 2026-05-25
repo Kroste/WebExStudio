@@ -54,6 +54,9 @@ public sealed class ExecutionContext
     /// <summary>Wartet, solange manuell pausiert wurde (sonst kehrt es sofort zurück).</summary>
     public Task CheckPauseAsync(FlowNode node) => PauseGate?.Invoke(node) ?? Task.CompletedTask;
 
+    /// <summary>Hängt den Download-Handler an eine neu geöffnete Seite (z. B. aus open_tab).</summary>
+    public Action<IPage>? AttachDownloads { get; init; }
+
     public ExecutionContext(
         IPage page,
         TargetConfig target,
@@ -114,6 +117,7 @@ public sealed class ExecutionContext
             FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
             PauseGate = PauseGate,
+            AttachDownloads = AttachDownloads,
         };
 
     /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
@@ -126,6 +130,7 @@ public sealed class ExecutionContext
             FollowOutputCallback = FollowOutputCallback,
             PauseCallback = PauseCallback,
             PauseGate = PauseGate,
+            AttachDownloads = AttachDownloads,
         };
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);

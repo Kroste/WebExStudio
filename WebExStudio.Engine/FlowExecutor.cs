@@ -90,16 +90,23 @@ public sealed class FlowExecutor
         try
         {
             // Explicit context so handlers (e.g. open_tab) can create additional pages.
-            var context = await browser.NewContextAsync();
+            var context = await browser.NewContextAsync(new BrowserNewContextOptions { AcceptDownloads = true });
             var page = await context.NewPageAsync();
+
+            // Browser-Downloads mit echtem Namen im Zielordner speichern (statt GUID-Temp).
+            var downloads = new DownloadCollector(ResolveDownloadDir(config));
+            downloads.Attach(page);
+
             try
             {
                 var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
-                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
             finally
             {
+                if (!ct.IsCancellationRequested)
+                    await downloads.WaitAllAsync(); // laufende Downloads vor dem Schließen fertigstellen
                 await context.CloseAsync();
             }
         }
@@ -219,12 +226,14 @@ public sealed class FlowExecutor
         IPage page, TargetConfig target, RunConfig config,
         string projectDir, FlowDocument2 doc,
         IProgress<TraceEntry>? progress, CancellationToken ct,
-        Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null)
+        Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null,
+        Action<IPage>? attachDownloads = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
         {
             Document = doc,
+            AttachDownloads = attachDownloads,
             // call → run a named subnode's tab as a fresh wired traversal.
             RunSubTabCallback = (tabId, c) => c.Document is null
                 ? Task.CompletedTask
@@ -239,6 +248,12 @@ public sealed class FlowExecutor
 
     private static bool IsAnnotation(string type) =>
         type is "label" or "caption";
+
+    /// <summary>Zielordner für Downloads: konfiguriert, sonst der Standard-Downloadordner des Nutzers.</summary>
+    private static string ResolveDownloadDir(RunConfig config) =>
+        string.IsNullOrWhiteSpace(config.DownloadDir)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")
+            : config.DownloadDir;
 
     /// <summary>If a driver path is configured, point Playwright at it (used when the
     /// driver can't be located automatically).</summary>
