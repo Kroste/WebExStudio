@@ -15,6 +15,7 @@ public partial class App : Application
         {
             var vm = new MainWindowViewModel();
             AppSettings.Load(vm.RunConfig);
+            AppSettings.LoadAi(vm.AiOptions);
             desktop.MainWindow = new MainWindow { DataContext = vm };
         }
         base.OnFrameworkInitializationCompleted();

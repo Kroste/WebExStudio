@@ -1,5 +1,6 @@
 using System.Text.Json;
 using NLog;
+using WebExStudio.AI;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.UI;
@@ -33,40 +34,32 @@ public static class AppSettings
         public string BrowserExecutablePath { get; set; } = "";
         public string DriverPath { get; set; } = "";
         public bool Headless { get; set; }
+
+        // KI-Anbindung
+        public string AiProvider { get; set; } = "anthropic";
+        public string AiApiKey { get; set; } = "";
+        public string AiModel { get; set; } = "";
+        public string AiBaseUrl { get; set; } = "";
     }
 
-    public static void Load(RunConfig config)
+    private static Model ReadModel()
     {
         try
         {
-            if (!File.Exists(SettingsPath)) return;
-            var m = JsonSerializer.Deserialize<Model>(File.ReadAllText(SettingsPath), Options);
-            if (m is null) return;
-            config.Browser = m.Browser;
-            config.BrowserChannel = m.BrowserChannel;
-            config.BrowserExecutablePath = m.BrowserExecutablePath;
-            config.DriverPath = m.DriverPath;
-            config.Headless = m.Headless;
-            Log.Info("Einstellungen geladen: {0}", SettingsPath);
+            if (File.Exists(SettingsPath))
+                return JsonSerializer.Deserialize<Model>(File.ReadAllText(SettingsPath), Options) ?? new Model();
         }
         catch (Exception ex)
         {
-            Log.Warn("Einstellungen konnten nicht geladen werden: {0}", ex.Message);
+            Log.Warn("Einstellungen konnten nicht gelesen werden: {0}", ex.Message);
         }
+        return new Model();
     }
 
-    public static void Save(RunConfig config)
+    private static void WriteModel(Model m)
     {
         try
         {
-            var m = new Model
-            {
-                Browser = config.Browser,
-                BrowserChannel = config.BrowserChannel,
-                BrowserExecutablePath = config.BrowserExecutablePath,
-                DriverPath = config.DriverPath,
-                Headless = config.Headless,
-            };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(m, Options));
             Log.Info("Einstellungen gespeichert: {0}", SettingsPath);
         }
@@ -74,5 +67,47 @@ public static class AppSettings
         {
             Log.Warn("Einstellungen konnten nicht gespeichert werden: {0}", ex.Message);
         }
+    }
+
+    public static void Load(RunConfig config)
+    {
+        var m = ReadModel();
+        config.Browser = m.Browser;
+        config.BrowserChannel = m.BrowserChannel;
+        config.BrowserExecutablePath = m.BrowserExecutablePath;
+        config.DriverPath = m.DriverPath;
+        config.Headless = m.Headless;
+    }
+
+    public static void Save(RunConfig config)
+    {
+        // Read-modify-write, damit der KI-Abschnitt erhalten bleibt.
+        var m = ReadModel();
+        m.Browser = config.Browser;
+        m.BrowserChannel = config.BrowserChannel;
+        m.BrowserExecutablePath = config.BrowserExecutablePath;
+        m.DriverPath = config.DriverPath;
+        m.Headless = config.Headless;
+        WriteModel(m);
+    }
+
+    public static void LoadAi(AiOptions ai)
+    {
+        var m = ReadModel();
+        ai.Provider = m.AiProvider;
+        ai.ApiKey = m.AiApiKey;
+        ai.Model = m.AiModel;
+        ai.BaseUrl = m.AiBaseUrl;
+    }
+
+    public static void SaveAi(AiOptions ai)
+    {
+        // Read-modify-write, damit der Browser-Abschnitt erhalten bleibt.
+        var m = ReadModel();
+        m.AiProvider = ai.Provider;
+        m.AiApiKey = ai.ApiKey;
+        m.AiModel = ai.Model;
+        m.AiBaseUrl = ai.BaseUrl;
+        WriteModel(m);
     }
 }

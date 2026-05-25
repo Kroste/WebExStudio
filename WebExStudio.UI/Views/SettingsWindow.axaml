@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="WebExStudio.UI.Views.SettingsWindow"
         Title="Einstellungen"
-        Width="560" Height="420"
+        Width="560" Height="640"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         SystemDecorations="None"
@@ -36,6 +36,7 @@
       </Border>
 
       <!-- Body -->
+      <ScrollViewer>
       <StackPanel Margin="20" Spacing="14">
 
         <TextBlock Text="Browser" FontWeight="Bold" Foreground="#90A4AE" FontSize="13"/>
@@ -81,7 +82,38 @@
 
         <CheckBox x:Name="HeadlessBox" Content="Headless (ohne sichtbares Browserfenster)"
                   Foreground="#B0BEC5"/>
+
+        <Border Background="#2E2E4E" Height="1" Margin="0,4"/>
+
+        <TextBlock Text="KI-Anbindung (Flow aus Beschreibung)" FontWeight="Bold"
+                   Foreground="#90A4AE" FontSize="13"/>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="Anbieter" FontSize="12" Foreground="#B0BEC5"/>
+          <ComboBox x:Name="AiProviderBox" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="anthropic"/>
+            <ComboBoxItem Content="openai"/>
+            <ComboBoxItem Content="ollama"/>
+          </ComboBox>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="API-Schlüssel (bei Ollama nicht nötig)" FontSize="12" Foreground="#B0BEC5"/>
+          <TextBox x:Name="AiApiKeyBox" PasswordChar="•" Watermark="sk-…"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="Modell (leer = Standard des Anbieters)" FontSize="12" Foreground="#B0BEC5"/>
+          <TextBox x:Name="AiModelBox" Watermark="z. B. claude-sonnet-4-6 / gpt-4o / llama3.1"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="Basis-URL (optional, z. B. lokale Ollama-Instanz)" FontSize="12" Foreground="#B0BEC5"/>
+          <TextBox x:Name="AiBaseUrlBox" Watermark="leer = Standard"/>
+        </StackPanel>
+
       </StackPanel>
+      </ScrollViewer>
     </DockPanel>
   </Border>
 </Window>

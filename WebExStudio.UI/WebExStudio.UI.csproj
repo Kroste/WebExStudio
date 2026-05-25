@@ -32,5 +32,6 @@
   <ItemGroup>
     <ProjectReference Include="..\WebExStudio.Core\WebExStudio.Core.csproj" />
     <ProjectReference Include="..\WebExStudio.Engine\WebExStudio.Engine.csproj" />
+    <ProjectReference Include="..\WebExStudio.AI\WebExStudio.AI.csproj" />
   </ItemGroup>
 </Project>

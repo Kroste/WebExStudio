@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using ReactiveUI;
+using WebExStudio.AI;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
 using WebExStudio.Core.Validation;
@@ -24,6 +25,30 @@ public sealed class MainWindowViewModel : ViewModelBase
     public TracePanelViewModel TracePanel { get; } = new();
 
     public RunConfig RunConfig { get; } = new();
+
+    /// <summary>KI-Anbindung (Anbieter/Key/Modell) — aus den Einstellungen befüllt.</summary>
+    public AiOptions AiOptions { get; } = new();
+
+    private static readonly HttpClient AiHttp = new() { Timeout = TimeSpan.FromMinutes(2) };
+
+    /// <summary>
+    /// Erzeugt per KI einen Flow aus einer Beschreibung und lädt ihn bei Erfolg in den Editor.
+    /// Liefert das Ergebnis zurück, damit der Aufrufer Fehler/Validierung anzeigen kann.
+    /// </summary>
+    public async Task<FlowGenerationResult> GenerateFlowAsync(string description, CancellationToken ct = default)
+    {
+        var client = LlmClientFactory.Create(AiOptions, AiHttp);
+        var generator = new FlowGenerator(client);
+        var result = await generator.GenerateAsync(description, ct);
+
+        if (result.Success && result.Document is not null)
+        {
+            FlowEditor.LoadDocument(result.Document);
+            FlowEditor.MarkDirty();
+            StatusText = $"Flow von KI erzeugt ({result.Document.Nodes.Count} Nodes) — bitte prüfen und speichern";
+        }
+        return result;
+    }
 
     public MainWindowViewModel()
     {

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using WebExStudio.AI;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.UI.Views;
@@ -9,21 +10,28 @@ namespace WebExStudio.UI.Views;
 public partial class SettingsWindow : Window
 {
     private readonly RunConfig _config;
+    private readonly AiOptions _ai;
 
     public bool Saved { get; private set; }
 
-    public SettingsWindow() : this(new RunConfig()) { }
+    public SettingsWindow() : this(new RunConfig(), new AiOptions()) { }
 
-    public SettingsWindow(RunConfig config)
+    public SettingsWindow(RunConfig config, AiOptions ai)
     {
         InitializeComponent();
         _config = config;
+        _ai = ai;
 
         SelectCombo(BrowserBox, _config.Browser);
         SelectCombo(ChannelBox, _config.BrowserChannel);
         ExePathBox.Text = _config.BrowserExecutablePath;
         DriverPathBox.Text = _config.DriverPath;
         HeadlessBox.IsChecked = _config.Headless;
+
+        SelectCombo(AiProviderBox, _ai.Provider);
+        AiApiKeyBox.Text = _ai.ApiKey;
+        AiModelBox.Text = _ai.Model;
+        AiBaseUrlBox.Text = _ai.BaseUrl;
     }
 
     private static void SelectCombo(ComboBox box, string value)
@@ -74,6 +82,12 @@ public partial class SettingsWindow : Window
         _config.BrowserExecutablePath = ExePathBox.Text ?? string.Empty;
         _config.DriverPath = DriverPathBox.Text ?? string.Empty;
         _config.Headless = HeadlessBox.IsChecked == true;
+
+        _ai.Provider = (AiProviderBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "anthropic";
+        _ai.ApiKey = AiApiKeyBox.Text ?? string.Empty;
+        _ai.Model = AiModelBox.Text ?? string.Empty;
+        _ai.BaseUrl = AiBaseUrlBox.Text ?? string.Empty;
+
         Saved = true;
         Close();
     }

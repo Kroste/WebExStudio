@@ -40,9 +40,13 @@ public partial class MainWindow : Window
 
     private async void OnSettings(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var dlg = new SettingsWindow(Vm.RunConfig);
+        var dlg = new SettingsWindow(Vm.RunConfig, Vm.AiOptions);
         await dlg.ShowDialog(this);
-        if (dlg.Saved) AppSettings.Save(Vm.RunConfig);
+        if (dlg.Saved)
+        {
+            AppSettings.Save(Vm.RunConfig);
+            AppSettings.SaveAi(Vm.AiOptions);
+        }
     }
 
     private void OnNewFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
