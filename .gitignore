@@ -38,3 +38,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Projekte
+**/f95zone/
+**/usv2/
+**/usv3/
