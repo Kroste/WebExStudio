@@ -411,6 +411,19 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "credential_store", DisplayName = "Tresor (Credentials)", Category = "Erweitert",
+            Description = "Markiert, dass der Flow den verschlüsselten Anmeldedaten-Tresor nutzt, und dient "
+                + "als Anker zum Verwalten/Entsperren (Doppelklick öffnet den Tresor). Beim Flow-Start wird "
+                + "der Tresor – falls Secrets verwendet werden – per Master-Passwort entsperrt. Zugriff auf "
+                + "Werte überall per {secret[name].user} / {secret[name].password} / {secret[name].api}. "
+                + "Die Werte gelangen nie in den Payload und werden in Logs maskiert.",
+            Color = "#37474F", Icon = "🔐",
+            InputPorts = 0, OutputPorts = 0,
+            Example = "Im Main platzieren; Felder z. B. {secret[F95].user} in „Text eingeben“ verwenden.",
+            Properties = []
+        },
+        new()
+        {
             Type = "use_session", DisplayName = "Sitzung verwenden", Category = "Erweitert",
             Description = "Prüft, ob eine gespeicherte Sitzung existiert (und – bei max_age_hours > 0 – nicht "
                 + "zu alt ist). Falls ja, werden deren Cookies in den laufenden Browser geladen und der "

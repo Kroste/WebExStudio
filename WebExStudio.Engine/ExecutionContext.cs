@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using NLog;
 using WebExStudio.Core.Models;
@@ -69,6 +70,17 @@ public sealed class ExecutionContext
     /// Modell überschreiben (für die Auswahl im ai_query-Node).</summary>
     public Func<AiRequest, CancellationToken, Task<string>>? AiComplete { get; init; }
 
+    /// <summary>Liefert (Name, Feld) → Wert aus dem entsperrten Credential-Tresor (null = nicht verfügbar).
+    /// Von der UI verdrahtet; löst <c>{secret[name].field}</c>-Platzhalter zur Laufzeit auf.</summary>
+    public Func<string, string, string?>? SecretLookup { get; init; }
+
+    /// <summary>Alle in diesem Lauf aufgelösten Secret-Werte — geteilt über Kind-Kontexte, damit sie
+    /// in allen Logs/Traces maskiert werden können. Niemals serialisieren/ausgeben.</summary>
+    public HashSet<string> SecretValues { get; init; } = [];
+
+    private static readonly Regex SecretRefRegex =
+        new(@"\{secret\[([^\]\r\n]+)\]\.([A-Za-z0-9_]+)\}", RegexOptions.Compiled);
+
     public ExecutionContext(
         IPage page,
         TargetConfig target,
@@ -103,6 +115,39 @@ public sealed class ExecutionContext
         return value;
     }
 
+    /// <summary>Wie <see cref="Fmt"/>, löst zusätzlich <c>{secret[name].field}</c> aus dem Tresor auf.
+    /// NUR in seitenwirksamen Nodes verwenden (Text eingeben, goto-URL …) — Secret-Werte gelangen so
+    /// nie in den Payload.</summary>
+    public string FmtSecret(string? value) => ResolveSecrets(Fmt(value));
+
+    /// <summary>Ersetzt <c>{secret[name].field}</c> durch die Tresor-Werte (für sofortige Verwendung).
+    /// Wirft, wenn der Tresor gesperrt ist oder ein Eintrag fehlt. Aufgelöste Werte werden für die
+    /// Maskierung vermerkt.</summary>
+    public string ResolveSecrets(string text)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("{secret[", StringComparison.OrdinalIgnoreCase))
+            return text;
+        return SecretRefRegex.Replace(text, m =>
+        {
+            var name = m.Groups[1].Value.Trim();
+            var field = m.Groups[2].Value.Trim();
+            var val = SecretLookup?.Invoke(name, field)
+                ?? throw new InvalidOperationException(
+                    $"Secret '{name}.{field}' nicht verfügbar (Tresor gesperrt oder Eintrag fehlt).");
+            if (val.Length > 0) SecretValues.Add(val);
+            return val;
+        });
+    }
+
+    /// <summary>Ersetzt bekannte Secret-Werte durch *** (für sicheres Logging).</summary>
+    public string MaskSecrets(string text)
+    {
+        if (string.IsNullOrEmpty(text) || SecretValues.Count == 0) return text;
+        foreach (var s in SecretValues)
+            if (s.Length > 0) text = text.Replace(s, "***");
+        return text;
+    }
+
     public string Get(string key, string fallback = "") =>
         Payload.TryGetValue(key, out var v) ? v : fallback;
 
@@ -132,6 +177,8 @@ public sealed class ExecutionContext
             AttachDownloads = AttachDownloads,
             SaveDownload = SaveDownload,
             AiComplete = AiComplete,
+            SecretLookup = SecretLookup,
+            SecretValues = SecretValues,
         };
 
     /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
@@ -147,6 +194,8 @@ public sealed class ExecutionContext
             AttachDownloads = AttachDownloads,
             SaveDownload = SaveDownload,
             AiComplete = AiComplete,
+            SecretLookup = SecretLookup,
+            SecretValues = SecretValues,
         };
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);

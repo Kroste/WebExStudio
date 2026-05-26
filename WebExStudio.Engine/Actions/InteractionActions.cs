@@ -14,13 +14,13 @@ public sealed class ClickHandler : IActionHandler
         var selector = ctx.Fmt(node.Get("selector"));
         if (string.IsNullOrEmpty(selector))
             selector = ctx.Fmt(node.Get("xpath"));
-        var text = ctx.Fmt(node.Get("text"));
+        var text = ctx.FmtSecret(node.Get("text"));
         var scroll = node.GetBool("scroll", true);
 
         ILocator locator;
         if (!string.IsNullOrEmpty(text))
         {
-            Log.Debug("Klick auf Text: {0}", text);
+            Log.Debug("Klick auf Text: {0}", ctx.MaskSecrets(text));
             locator = ctx.Page.GetByText(text).First;
         }
         else
@@ -78,11 +78,11 @@ public sealed class SendKeysHandler : IActionHandler
             var name = ctx.Fmt(node.Get("name"));
             if (!string.IsNullOrEmpty(name)) selector = $"[name=\"{name}\"]";
         }
-        var value = ctx.Fmt(node.Get("value"));
+        var value = ctx.FmtSecret(node.Get("value")); // {secret[..]} hier auflösen (nie in den Payload)
         var clear = node.GetBool("clear", true);
         var append = node.GetBool("append", false);
 
-        Log.Debug("SendKeys: {0} = '{1}'", selector, value);
+        Log.Debug("SendKeys: {0} = '{1}'", selector, ctx.MaskSecrets(value));
         var locator = ctx.Page.Locator(selector).First;
 
         if (clear && !append)
@@ -204,11 +204,11 @@ public sealed class SelectOptionHandler : IActionHandler
     {
         var selector = ctx.Fmt(node.Get("selector"));
         var by = node.Get("by", "value").ToLowerInvariant();
-        var value = ctx.Fmt(node.Get("value"));
+        var value = ctx.FmtSecret(node.Get("value"));
         var locator = ctx.Page.Locator(selector).First;
         var options = new LocatorSelectOptionOptions { Timeout = ctx.Config.TimeoutMs };
 
-        Log.Debug("select_option: {0} {1}='{2}'", selector, by, value);
+        Log.Debug("select_option: {0} {1}='{2}'", selector, by, ctx.MaskSecrets(value));
         var choice = by switch
         {
             "label" => new SelectOptionValue { Label = value },

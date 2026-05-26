@@ -11,7 +11,7 @@ public sealed class GotoHandler : IActionHandler
 
     public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var url = ctx.Fmt(node.Get("url"));
+        var url = ctx.FmtSecret(node.Get("url")); // erlaubt {secret[..]} in URLs (z. B. Tokens)
         if (string.IsNullOrEmpty(url)) url = ctx.Get("host");
         var newTab = node.GetBool("new_tab");
         var opts = new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = ctx.Config.TimeoutMs };
@@ -19,7 +19,7 @@ public sealed class GotoHandler : IActionHandler
         if (newTab)
         {
             // Wie der frühere open_tab-Node: neue Seite öffnen, Downloads anhängen, dorthin wechseln.
-            Log.Info("Navigiere in neuem Tab zu: {0}", url);
+            Log.Info("Navigiere in neuem Tab zu: {0}", ctx.MaskSecrets(url));
             var newPage = await ctx.Page.Context.NewPageAsync();
             ctx.AttachDownloads?.Invoke(newPage);
             if (!string.IsNullOrEmpty(url))
@@ -28,7 +28,7 @@ public sealed class GotoHandler : IActionHandler
         }
         else
         {
-            Log.Info("Navigiere zu: {0}", url);
+            Log.Info("Navigiere zu: {0}", ctx.MaskSecrets(url));
             await ctx.Page.GotoAsync(url, opts);
         }
 

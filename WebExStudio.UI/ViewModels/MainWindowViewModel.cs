@@ -27,6 +27,24 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public RunConfig RunConfig { get; } = new();
 
+    /// <summary>Verschlüsselter Anmeldedaten-Tresor (gesperrt bis zum Entsperren per Master-Passwort).</summary>
+    public WebExStudio.Core.Credentials.CredentialVault Vault { get; } =
+        new(AppSettings.CredentialVaultPath);
+
+    /// <summary>True, wenn der aktuelle Flow Secrets nutzt ({secret[..]} oder einen Tresor-Node enthält).</summary>
+    public bool CurrentFlowUsesSecrets()
+    {
+        var doc = FlowEditor.Document;
+        if (doc is null) return false;
+        foreach (var n in doc.Nodes)
+        {
+            if (n.Type == "credential_store") return true;
+            foreach (var v in n.Config.Values)
+                if (v.Contains("{secret[", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+        return false;
+    }
+
     /// <summary>KI-Anbindung (Anbieter/Key/Modell) — aus den Einstellungen befüllt.</summary>
     public AiOptions AiOptions { get; } = new();
 
@@ -173,12 +191,14 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public void NewFlow()
     {
+        Vault.Lock(); // Tresor beim Flow-Wechsel wieder verschließen
         FlowEditor.NewDocument();
         StatusText = "Neuer Flow";
     }
 
     public async Task OpenFlowAsync(string path)
     {
+        Vault.Lock();
         await FlowEditor.LoadAsync(path);
         AddRecent(path);
         StatusText = $"Flow geladen: {Path.GetFileName(path)}";
@@ -262,12 +282,15 @@ public sealed class MainWindowViewModel : ViewModelBase
                     return await client.ChatAsync(req.SystemPrompt, [new ChatMessage(ChatRole.User, req.UserPrompt)], req.JsonMode, token);
                 };
 
+            // Secret-Auflösung aus dem (vor dem Start entsperrten) Tresor; null bei gesperrt → Node-Fehler.
+            Func<string, string, string?> secretLookup = (name, field) => Vault.Get(name, field);
+
             // Run the executor on a background thread so the UI thread stays free to
             // render node highlights; trace updates marshal back via Progress<T>.
             await Task.Run(() =>
                 executor.RunDocumentAsync(doc, RunConfig,
                     new TargetConfig { Name = "Lokal", Enabled = true },
-                    progress, ct, OnPauseRequested, PauseGateAsync, aiComplete), ct);
+                    progress, ct, OnPauseRequested, PauseGateAsync, aiComplete, secretLookup), ct);
             StatusText = "Ausführung abgeschlossen";
         }
         catch (OperationCanceledException)

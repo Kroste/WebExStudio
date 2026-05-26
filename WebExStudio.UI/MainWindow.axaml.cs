@@ -11,7 +11,12 @@ public partial class MainWindow : Window
 {
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
 
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+        // Doppelklick auf den Tresor-Node öffnet die Verwaltung.
+        FlowEditorView.CredentialVaultRequested += async (_, _) => await OpenVaultAsync();
+    }
 
     // ── Custom title bar ──────────────────────────────────────────────────────
 
@@ -47,6 +52,7 @@ public partial class MainWindow : Window
     {
         try
         {
+            Vm.Vault.Lock();
             var doc = FlowSerializer2.Deserialize(json);
             Vm.FlowEditor.LoadDocument(doc);
             Vm.FlowEditor.MarkDirty();
@@ -153,20 +159,42 @@ public partial class MainWindow : Window
 
     private bool _closing;
 
-    private void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        Vm.StartRun();
+    private async void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await RunFlowAsync();
 
-    /// <summary>F5 startet den Flow (wie der ▶-Button), wenn nicht bereits ein Lauf aktiv ist.</summary>
-    protected override void OnKeyDown(KeyEventArgs e)
+    /// <summary>F5 startet den Flow (wie der ▶-Button).</summary>
+    protected override async void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.F5)
         {
-            if (Vm.CanRun) Vm.StartRun();
             e.Handled = true;
+            await RunFlowAsync();
             return;
         }
         base.OnKeyDown(e);
     }
+
+    /// <summary>Startet den Flow; entsperrt vorher bei Bedarf den Tresor (Secrets im Flow).</summary>
+    private async Task RunFlowAsync()
+    {
+        if (!Vm.CanRun) return;
+        if (Vm.CurrentFlowUsesSecrets() && !Vm.Vault.IsUnlocked)
+        {
+            var dlg = new PasswordDialog("Tresor entsperren",
+                "Dieser Flow nutzt Anmeldedaten. Master-Passwort zum Entsperren des Tresors:");
+            await dlg.ShowDialog(this);
+            if (!dlg.Confirmed) { Vm.StatusText = "Lauf abgebrochen — Tresor nicht entsperrt."; return; }
+            try { Vm.Vault.Unlock(dlg.Password); }
+            catch { Vm.StatusText = "Tresor: falsches Master-Passwort."; return; }
+        }
+        Vm.StartRun();
+    }
+
+    private async void OnVault(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await OpenVaultAsync();
+
+    private async Task OpenVaultAsync() =>
+        await new CredentialVaultWindow(Vm.Vault).ShowDialog(this);
 
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
@@ -252,6 +280,7 @@ public partial class MainWindow : Window
         var dir = folders[0].Path.LocalPath;
         try
         {
+            Vm.Vault.Lock();
             var doc = await Task.Run(() => LegacyImporter.Convert(dir));
             Vm.FlowEditor.LoadDocument(doc);
             Vm.FlowEditor.MarkDirty();

@@ -62,6 +62,8 @@ public sealed class ActionRegistry
         r.Register(new AliasHandler("navigate_to", r.Get("goto")!));
         // eval_js wurde in den Function-Node (page_function) zusammengeführt — Alias für Altbestand.
         r.Register(new AliasHandler("eval_js", r.Get("page_function")!));
+        // credential_store ist nur ein Marker/Anker im Flow (entsperrt wird beim Start) → No-Op.
+        r.Register(new AliasHandler("credential_store", r.Get("noop")!));
         return r;
     }
 }

@@ -18,6 +18,7 @@
 - [Node-Referenz](#node-referenz)
 - [Beispiele](#beispiele)
 - [Payload & Platzhalter](#payload--platzhalter)
+- [Anmeldedaten-Tresor (Secrets)](#anmeldedaten-tresor-secrets)
 - [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
 - [Logging](#logging)
 - [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
@@ -243,6 +244,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 | 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
 | ƒ | `page_function` | Function | JS-Funktion im Seitenkontext: ohne Selektor `payload => { … }`, mit Selektor `(element, payload) => { … }`. Rückgabe → `ctx_key` (Einzelwert) oder Objekt-Felder in den Payload gemerged. Seite bearbeiten (Hinweis einblenden, Elemente entfernen/hervorheben) oder Werte lesen. (Vereint den früheren `eval_js`; dieser bleibt als Alias.) | `code = payload => ({ anzahl: document.querySelectorAll('a').length })` |
 | 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. | nach dem Login einfügen; Pfad leer = `session.json` |
+| 🔐 | `credential_store` | Tresor (Credentials) | Marker/Anker für den verschlüsselten Anmeldedaten-Tresor (Doppelklick öffnet die Verwaltung). Zugriff überall per `{secret[name].user/.password/.api}`. | im Main platzieren |
 | 🔓 | `use_session` | Sitzung verwenden | **If/Else für Sitzungen** (2 Ausgänge `geladen` / `keine Sitzung`): existiert eine (nicht zu alte) Sitzungsdatei, werden deren Cookies in den laufenden Browser geladen → Ausgang `geladen`; sonst `keine Sitzung`. So: bei Sitzung direkt navigieren, sonst Login + `save_session`. | `max_age_hours = 0` (unbegrenzt) |
 | 🎬 | `download_stream` | Stream/Medien laden | Schneidet den Netzwerkverkehr mit, erkennt Medien-URLs (Video/Audio, HLS `.m3u8`, DASH `.mpd`) → Payload (`ctx_key`); lädt direkte Dateien per HTTP, Segment-Streams via **ffmpeg**. DRM-Streams sind nicht ladbar. | `wait_ms = 8000, download = true` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
@@ -427,6 +429,28 @@ Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anh
 - **Verwenden**: in (fast) jedem Textfeld per Platzhalter:
   - `{host}` **oder** `{payload.host}` — beides löst denselben Payload-Wert auf.
 - Beispiel: `goto.url = {payload.host}/login`, `sleep.seconds = {payload.seconds}`, `send_keys.value = {payload.user}`.
+
+---
+
+## Anmeldedaten-Tresor (Secrets)
+
+Anmeldedaten gehören **nicht** in den Flow. Stattdessen liegen sie in einem **verschlüsselten Tresor**
+und werden im Flow nur per Namen referenziert.
+
+- **Speicher**: eine verschlüsselte Datei (`credentials.enc` im Konfig-Ordner), **AES-256-GCM** mit
+  Schlüssel aus deinem **Master-Passwort** (PBKDF2). Plattformneutral, keine OS-Abhängigkeit.
+- **Verwalten**: Toolbar **🔐 Tresor** (oder Doppelklick auf einen `credential_store`-Node). Pro Eintrag
+  (z. B. `F95`, `Pixeldrain`) die Felder **Benutzer / Passwort / API-Key** anlegen.
+- **Verwenden**: per Platzhalter `{secret[name].user}`, `{secret[name].password}`, `{secret[name].api}` —
+  z. B. in **Text eingeben** (`value`), **Navigate** (`url`), **Dropdown wählen**, **Klicken** (Text).
+- **Lebenszyklus**: standardmäßig **verschlossen**. Beim Flow-Start (wenn Secrets genutzt werden) erscheint
+  die **Master-Passwort-Abfrage**; danach ist der Tresor für die Sitzung entsperrt. Beim **Neu/Laden** eines
+  Flows und beim **Programm-Ende** wird er wieder verschlossen.
+- **Sicherheit**: Secret-Werte werden **erst beim Verwenden** aufgelöst und gelangen **nie in den Payload**
+  (auch nicht über `set_payload`/`function`) — der **Debug-Node** zeigt also nie den Wert. In **Logs/Traces**
+  werden sie **maskiert** (`***`). Schutz greift gegen Weitergabe/Repo/Logs — nicht gegen einen Angreifer mit
+  entsperrter Sitzung bzw. dem Master-Passwort (die App muss die Werte zur Laufzeit entschlüsseln).
+- Die Programm-Einstellungen (AI-Key etc. in `settings.json`) bleiben davon unberührt.
 
 ---
 

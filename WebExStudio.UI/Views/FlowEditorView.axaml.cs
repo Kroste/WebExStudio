@@ -12,6 +12,10 @@ public partial class FlowEditorView : UserControl
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private FlowEditorViewModel? Vm => DataContext as FlowEditorViewModel;
+
+    /// <summary>Doppelklick auf einen Tresor-Node → Anmeldedaten-Verwaltung öffnen.</summary>
+    public event EventHandler? CredentialVaultRequested;
+
     private readonly Dictionary<string, NodeControl> _nodeControls = [];
     private readonly Dictionary<string, GroupControl> _groupControls = [];
     private WireViewModel? _selectedWire;
@@ -173,6 +177,14 @@ public partial class FlowEditorView : UserControl
     {
         if (sender is not NodeControl ctrl || Vm is null) return;
         Log.Debug("Node ausgewählt: {0} ({1})", ctrl.ViewModel.Id, ctrl.ViewModel.ActionType);
+
+        // Doppelklick auf den Tresor-Node öffnet die Anmeldedaten-Verwaltung.
+        if (e.ClickCount == 2 && ctrl.ViewModel.ActionType == "credential_store")
+        {
+            CredentialVaultRequested?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
 
         // Doppelklick auf einen call-Node öffnet den referenzierten Subnode. Direkt hier
         // prüfen (statt über DoubleTapped), weil der Node-Drag den PointerPressed als Handled

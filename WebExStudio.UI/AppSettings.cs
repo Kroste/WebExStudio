@@ -15,7 +15,7 @@ public static class AppSettings
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
-    private static string SettingsPath
+    private static string ConfigDir
     {
         get
         {
@@ -23,9 +23,14 @@ public static class AppSettings
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "WebExStudio");
             Directory.CreateDirectory(dir);
-            return Path.Combine(dir, "settings.json");
+            return dir;
         }
     }
+
+    private static string SettingsPath => Path.Combine(ConfigDir, "settings.json");
+
+    /// <summary>Pfad zur verschlüsselten Anmeldedaten-Tresor-Datei.</summary>
+    public static string CredentialVaultPath => Path.Combine(ConfigDir, "credentials.enc");
 
     private sealed class Model
     {

@@ -76,6 +76,8 @@
         <Button Content="💡 Vorschlag"      Click="OnSuggestNode" Padding="8,4"
                 IsEnabled="{Binding SuggestionsEnabled}"
                 ToolTip.Tip="Nächsten Node nach dem ausgewählten von der KI vorschlagen lassen"/>
+        <Button Content="🔐 Tresor"         Click="OnVault" Padding="8,4"
+                ToolTip.Tip="Anmeldedaten-Tresor verwalten (verschlüsselt, {secret[name].feld})"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
