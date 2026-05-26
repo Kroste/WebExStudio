@@ -146,6 +146,50 @@ public sealed class EvalJsHandler : IActionHandler
     }
 }
 
+/// <summary>
+/// Echter „Function"-Node (Node-RED-Stil): führt eine JavaScript-Funktion im Kontext der geöffneten
+/// Seite aus. Das Skript bekommt den aktuellen Payload als Argument (<c>payload =&gt; { … }</c>) und kann
+/// die Seite manipulieren (Hinweis einblenden, Elemente entfernen/hervorheben …). Gibt das Skript ein
+/// Objekt zurück, werden dessen Felder in den Payload übernommen.
+/// </summary>
+public sealed class PageFunctionHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "page_function";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var code = node.Get("code");
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            Log.Warn("function: kein Code angegeben");
+            return;
+        }
+        var merge = node.GetBool("merge", true);
+
+        // Payload als Objekt an die JS-Funktion übergeben (code = "payload => { … }").
+        var payloadArg = new Dictionary<string, string>(ctx.Payload);
+        Log.Debug("function: führe Seiten-Skript aus ({0} Payload-Schlüssel)", payloadArg.Count);
+
+        var result = await ctx.Page.EvaluateAsync(code, payloadArg);
+
+        if (merge)
+            foreach (var (k, v) in ObjectToPairs(result))
+            {
+                ctx.Set(k, v);
+                Log.Debug("function → ctx[{0}] = '{1}'", k, v);
+            }
+    }
+
+    /// <summary>Ein zurückgegebenes JS-Objekt wird zu Payload-Schlüssel/Wert-Paaren (sonst leer).</summary>
+    public static IEnumerable<KeyValuePair<string, string>> ObjectToPairs(System.Text.Json.JsonElement? element)
+    {
+        if (element is { ValueKind: System.Text.Json.JsonValueKind.Object } e)
+            foreach (var p in e.EnumerateObject())
+                yield return new KeyValuePair<string, string>(p.Name, EvalJsHandler.ToStringValue(p.Value));
+    }
+}
+
 public sealed class CaptchaGuardHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();

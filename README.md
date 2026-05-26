@@ -178,7 +178,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ### Start
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
-| 🚀 | `function` | Function / Start | Startpunkt; setzt initiales Payload (JSON). | `payload = {"host":"https://example.com"}` → `{payload.host}` |
+| 🚀 | `function` | Input | Input-/Startpunkt; setzt initiales Payload (JSON). | `payload = {"host":"https://example.com"}` → `{payload.host}` |
 
 ### Navigation
 | | Typ | Name | Zweck | Beispiel |
@@ -229,6 +229,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 |---|---|---|---|---|
 | ⬇ | `download_url` | URL herunterladen | Datei von URL laden. | `url = {payload.host}/datei.pdf` |
 | 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
+| ƒ | `page_function` | Function | JS-Funktion `payload => { … }` im Seitenkontext (Seite bearbeiten: Hinweis einblenden, Elemente entfernen/hervorheben). Rückgabe-Objekt wird in den Payload gemerged. | `code = payload => ({ anzahl: document.querySelectorAll('a').length })` |
 | 📜 | `eval_js` | JavaScript ausführen | Beliebiges JS in der Seite; Rückgabe optional ins Payload (`ctx_key`). Mit Selektor wird das Element als Argument übergeben. | `script = document.title, ctx_key = titel` |
 | 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. Mit der Einstellung „Sitzung wiederverwenden" wird sie beim nächsten Start geladen → Login/Captcha entfällt. | nach dem Login einfügen; Pfad leer = `session.json` |
 | 🎬 | `download_stream` | Stream/Medien laden | Schneidet den Netzwerkverkehr mit, erkennt Medien-URLs (Video/Audio, HLS `.m3u8`, DASH `.mpd`) → Payload (`ctx_key`); lädt direkte Dateien per HTTP, Segment-Streams via **ffmpeg**. DRM-Streams sind nicht ladbar. | `wait_ms = 8000, download = true` |

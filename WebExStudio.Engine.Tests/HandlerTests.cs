@@ -32,6 +32,26 @@ public class HandlerTests
     }
 
     [Fact]
+    public void PageFunction_ObjectToPairs_MapsReturnedObjectToPayload()
+    {
+        using var obj = System.Text.Json.JsonDocument.Parse("""{ "anzahl": 5, "titel": "Start", "ok": true }""");
+        var pairs = PageFunctionHandler.ObjectToPairs(obj.RootElement).ToDictionary(p => p.Key, p => p.Value);
+        Assert.Equal("5", pairs["anzahl"]);
+        Assert.Equal("Start", pairs["titel"]); // String roh, ohne Anführungszeichen
+        Assert.Equal("true", pairs["ok"]);
+    }
+
+    [Theory]
+    [InlineData("42")]
+    [InlineData("\"text\"")]
+    [InlineData("null")]
+    public void PageFunction_ObjectToPairs_EmptyForNonObject(string json)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        Assert.Empty(PageFunctionHandler.ObjectToPairs(doc.RootElement));
+    }
+
+    [Fact]
     public void EvalJs_ToStringValue_CoercesReturnKinds()
     {
         using var str = System.Text.Json.JsonDocument.Parse("\"hallo\"");

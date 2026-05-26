@@ -10,8 +10,8 @@ public static class NodeCatalog
         // ── Start ────────────────────────────────────────────────────────────
         new()
         {
-            Type = "function", DisplayName = "Function / Start", Category = "Start",
-            Description = "Startpunkt des Flows. Setzt die initialen Payload-Werte (ersetzt Targets).",
+            Type = "function", DisplayName = "Input", Category = "Start",
+            Description = "Input-/Startpunkt des Flows. Setzt die initialen Payload-Werte (ersetzt Targets).",
             Color = "#D84315", Icon = "🚀",
             Example = "payload = {\"host\":\"https://example.com\",\"user\":\"max\"}  →  im Flow nutzbar als {payload.host}",
             Properties =
@@ -417,6 +417,23 @@ public static class NodeCatalog
             Properties =
             [
                 new() { Key = "path", Label = "Pfad (optional)", Kind = PropertyKind.FilePath },
+            ]
+        },
+        new()
+        {
+            Type = "page_function", DisplayName = "Function", Category = "Erweitert",
+            Description = "Führt eine JavaScript-Funktion im Kontext der geöffneten Seite aus, um sie zu "
+                + "bearbeiten. Schreibweise: payload => { … } — das Skript bekommt den aktuellen Payload als "
+                + "Argument; gibt es ein Objekt zurück, werden dessen Felder in den Payload übernommen. "
+                + "Möglichkeiten: Hinweis/Banner einblenden, Elemente hervorheben oder entfernen, Werte zählen/"
+                + "berechnen. (Im Unterschied zu eval_js: Payload rein als Argument, Objekt-Rückgabe wird gemerged.)",
+            Color = "#4527A0", Icon = "ƒ",
+            Example = "code = payload => ({ anzahl: document.querySelectorAll('a').length })  →  {anzahl} im Payload.",
+            Properties =
+            [
+                new() { Key = "code", Label = "JavaScript-Funktion (payload => { … })", Kind = PropertyKind.Code, Required = true,
+                        DefaultValue = "payload => {\n  // Beispiel: Hinweis einblenden\n  const d = document.createElement('div');\n  d.textContent = 'WebExStudio aktiv';\n  d.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:#222;color:#fff;padding:8px 12px;border-radius:6px;font:14px sans-serif';\n  document.body.appendChild(d);\n  return { hinweis_gesetzt: true };\n}" },
+                new() { Key = "merge", Label = "Rückgabe-Objekt in den Payload übernehmen", Kind = PropertyKind.Boolean, DefaultValue = "true" },
             ]
         },
         new()

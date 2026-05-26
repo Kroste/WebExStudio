@@ -31,6 +31,7 @@ public class ActionRegistryTests
     [InlineData("save_session")]
     [InlineData("ai_query")]
     [InlineData("download_stream")]
+    [InlineData("page_function")]
     [InlineData("get_value")]
     [InlineData("set_payload")]
     [InlineData("debug")]
