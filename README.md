@@ -622,13 +622,22 @@ Soll der Node selbst **verzweigen** (mehrere Ausgänge, wie if_then_else), in de
 `OutputPorts`/`OutputLabels` setzen und **`RoutesOutputs = true`**; der Handler routet dann per
 `ctx.FollowOutput(node, port)`.
 
-**Beispiel-Plugin:** [`samples/FileCheckPlugin`](samples/FileCheckPlugin) liefert den Node
-**„Datei vorhanden?"** (`file_exists`): sucht im Ordner (leer = Download-Ordner) nach einem Namen/Muster
-und verzweigt **gefunden / nicht gefunden** — praktisch, um vor einem Download zu prüfen, ob die Datei
-schon existiert. Bauen und die DLL kopieren:
+**Mitgelieferte Plugins** (unter [`samples/`](samples), zugleich Vorlagen):
+
+- [`samples/FileCheckPlugin`](samples/FileCheckPlugin) — Node **„Datei vorhanden?"** (`file_exists`): sucht im
+  Ordner (leer = Download-Ordner) nach einem Namen/Muster und verzweigt **gefunden / nicht gefunden** —
+  praktisch, um vor einem Download zu prüfen, ob die Datei schon existiert (Beispiel für einen
+  **verzweigenden** Node, `RoutesOutputs`).
+- [`samples/HttpRequestPlugin`](samples/HttpRequestPlugin) — Node **„HTTP-Anfrage"** (`http_request`):
+  sendet eine REST-/Webhook-Anfrage **ohne Browser** (Methode, Header `Name: Wert` pro Zeile, Body).
+  Antwort-Body → `ctx_key` (Standard `response`), Status-Code → `status_key` (Standard `response_status`);
+  optional **bei Status ≥ 400 fehlschlagen**. `{secret[..]}` ist in URL/Headern/Body erlaubt und wird
+  **erst beim Senden** aufgelöst, nie geloggt (Beispiel für korrekten Secret-Umgang in Plugins).
+
+Bauen und die DLL(s) kopieren:
 ```bash
-dotnet build samples/FileCheckPlugin -c Release
-# FileCheckPlugin.dll + FileCheckPlugin.deps.json nach %AppData%/WebExStudio/plugins kopieren, App neu starten
+dotnet build samples/HttpRequestPlugin -c Release
+# HttpRequestPlugin.dll + HttpRequestPlugin.deps.json nach %AppData%/WebExStudio/plugins kopieren, App neu starten
 ```
 
 **Laden:** Die kompilierte DLL in einen `plugins/`-Ordner legen — neben der Anwendung **oder** unter

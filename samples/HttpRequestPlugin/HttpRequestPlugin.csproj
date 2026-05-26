@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Erzeugt eine plugin-taugliche *.deps.json und markiert Host-Refs als nicht-kopierend. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!-- Plugin (kein App-Bestandteil): wird als DLL in den plugins/-Ordner gelegt. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Host-Assemblies werden zur Laufzeit geteilt (nicht ins Plugin-Output kopieren). -->
+    <ProjectReference Include="..\..\WebExStudio.Core\WebExStudio.Core.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\WebExStudio.Engine\WebExStudio.Engine.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+</Project>

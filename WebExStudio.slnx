@@ -8,6 +8,7 @@
   <Project Path="WebExStudio.UI.Tests/WebExStudio.UI.Tests.csproj" />
   <Folder Name="/samples/">
     <Project Path="samples/FileCheckPlugin/FileCheckPlugin.csproj" />
+    <Project Path="samples/HttpRequestPlugin/HttpRequestPlugin.csproj" />
   </Folder>
   <Project Path="WebExStudio.AI.Tests/WebExStudio.AI.Tests.csproj" />
 </Solution>

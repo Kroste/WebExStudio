@@ -17,8 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\WebExStudio.Core\WebExStudio.Core.csproj" />
     <ProjectReference Include="..\WebExStudio.Engine\WebExStudio.Engine.csproj" />
-    <!-- Beispiel-Plugin: nur damit FileCheckPlugin.dll im Test-Output liegt und dynamisch geladen werden kann. -->
+    <!-- Plugins: nur damit ihre DLLs im Test-Output liegen und dynamisch geladen werden können. -->
     <ProjectReference Include="..\samples\FileCheckPlugin\FileCheckPlugin.csproj" />
+    <ProjectReference Include="..\samples\HttpRequestPlugin\HttpRequestPlugin.csproj" />
   </ItemGroup>
 
 </Project>
