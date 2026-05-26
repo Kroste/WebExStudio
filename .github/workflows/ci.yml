@@ -96,7 +96,12 @@ jobs:
             (cd "publish-cli/$R" && tar -czf "../../webex-$V-$R.tar.gz" .)
           fi
 
-      - name: Artefakte hochladen (kurze Aufbewahrung, spart Speicher)
+      # Actions-Artefakt nur bei manuellem Lauf (workflow_dispatch) — bei Tags ist das
+      # GitHub-Release die Verteilung (dessen Assets zählen NICHT gegens Artefakt-Kontingent).
+      # continue-on-error: ein voller Artefakt-Speicher darf das Release nie blockieren.
+      - name: Artefakte hochladen (nur bei manuellem Lauf)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: WebExStudio-${{ matrix.rid }}
