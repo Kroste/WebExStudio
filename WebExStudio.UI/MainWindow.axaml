@@ -58,10 +58,15 @@
 
         <Button Content="✨ Neuer Flow"     Click="OnNewFlow"     Padding="8,4"/>
         <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
+        <Button Content="🕘" Click="OnRecent" Padding="8,4" ToolTip.Tip="Zuletzt geöffnete Flows"/>
         <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
                 IsEnabled="{Binding FlowEditor.CanSave}"/>
         <Button Content="♻ Convert"         Click="OnConvert"     Padding="8,4"
                 ToolTip.Tip="Alten (Python-)Flow aus einem Projektordner in das neue Format konvertieren"/>
+        <Button Content="↶" Click="OnUndo" Padding="8,4" ToolTip.Tip="Rückgängig (Strg+Z)"
+                IsEnabled="{Binding FlowEditor.CanUndo}"/>
+        <Button Content="↷" Click="OnRedo" Padding="8,4" ToolTip.Tip="Wiederholen (Strg+Y)"
+                IsEnabled="{Binding FlowEditor.CanRedo}"/>
         <Button Content="🤖 KI-Flow"        Click="OnGenerateFlow" Padding="8,4"
                 ToolTip.Tip="Flow aus einer Beschreibung erzeugen"/>
         <Button Content="💬 KI-Chat"        Click="OnChat" Padding="8,4"
@@ -93,6 +98,10 @@
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
+        <Button Content="🔎 Suchen"     Click="OnSearchNode" Padding="8,4"
+                ToolTip.Tip="Node suchen / dorthin springen (Strg+F)"/>
+        <Button Content="🪄 Layout"     Click="OnAutoLayout" Padding="8,4"
+                ToolTip.Tip="Nodes automatisch anordnen"/>
         <Button Content="▦ Ausrichten"  Click="OnSnapToGrid" Padding="8,4"
                 ToolTip.Tip="Alle Nodes am Raster ausrichten"/>
         <Button Content="⊞ Fit"         Click="OnFitView"   Padding="8,4"/>

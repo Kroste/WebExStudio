@@ -239,6 +239,7 @@ public partial class FlowEditorView : UserControl
         if (targetCtrl.ViewModel.Id == e.Source.Id) return;
 
         Log.Debug("Wire dropped: {0} → {1}", e.Source.Id, targetCtrl.ViewModel.Id);
+        Vm.PushUndo();
         Vm.AddWire(e.Source.Id, e.OutputPort, targetCtrl.ViewModel.Id);
         RefreshConnections();
     }
@@ -246,8 +247,22 @@ public partial class FlowEditorView : UserControl
     private void OnNodeDeleteRequested(object? sender, NodeViewModel vm)
     {
         Log.Info("Node löschen: {0} ({1})", vm.Id, vm.ActionType);
+        Vm?.PushUndo();
         Vm?.DeleteNode(vm);
         RebuildCanvas();
+    }
+
+    /// <summary>Öffnet die Node-Suche (z. B. vom Toolbar-Button).</summary>
+    public void OpenSearch() => ShowSearch();
+
+    /// <summary>Öffnet die Node-Suche (Strg+F) und springt zum gewählten Node.</summary>
+    private async void ShowSearch()
+    {
+        if (Vm is null) return;
+        var dlg = new NodeSearchDialog(Vm);
+        if (TopLevel.GetTopLevel(this) is Window owner) await dlg.ShowDialog(owner);
+        else dlg.Show();
+        if (dlg.SelectedNodeId is { } id) FocusNode(id);
     }
 
     private void RefreshConnections()
@@ -342,6 +357,7 @@ public partial class FlowEditorView : UserControl
         del.Click += (_, _) =>
         {
             Log.Info("Verbindung löschen: {0} → {1}", wire.SourceNodeId, wire.TargetNodeId);
+            Vm?.PushUndo();
             Vm?.RemoveWire(wire);
             SelectWire(null);
             RefreshConnections();
@@ -352,6 +368,20 @@ public partial class FlowEditorView : UserControl
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        // Tastenkürzel mit Strg: Undo/Redo, Kopieren/Einfügen/Duplizieren, Suchen.
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && Vm is not null)
+        {
+            switch (e.Key)
+            {
+                case Key.Z: Vm.Undo(); e.Handled = true; return;
+                case Key.Y: Vm.Redo(); e.Handled = true; return;
+                case Key.C: Vm.CopySelection(); e.Handled = true; return;
+                case Key.V: Vm.PasteClipboard(); e.Handled = true; return;
+                case Key.D: Vm.DuplicateSelection(); e.Handled = true; return;
+                case Key.F: ShowSearch(); e.Handled = true; return;
+            }
+        }
+
         // Pfeiltasten verschieben die Auswahl (Umschalt = fein, sonst ein Rasterschritt).
         if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down && Vm?.SelectedNodes.Count > 0)
         {
@@ -363,6 +393,7 @@ public partial class FlowEditorView : UserControl
                 Key.Up => (0.0, -step),
                 _ => (0.0, step),
             };
+            Vm.PushUndo();
             Vm.MoveSelectedBy(dx, dy);
             e.Handled = true;
             return;
@@ -373,6 +404,7 @@ public partial class FlowEditorView : UserControl
             if (_selectedWire is not null)
             {
                 Log.Info("Verbindung löschen (Taste): {0} → {1}", _selectedWire.SourceNodeId, _selectedWire.TargetNodeId);
+                Vm?.PushUndo();
                 Vm?.RemoveWire(_selectedWire);
                 SelectWire(null);
                 RefreshConnections();
@@ -381,6 +413,7 @@ public partial class FlowEditorView : UserControl
             else if (Vm?.SelectedNode is { } node)
             {
                 Log.Info("Node löschen (Taste): {0} ({1})", node.Id, node.ActionType);
+                Vm.PushUndo();
                 Vm.DeleteNode(node);
                 RebuildCanvas();
                 e.Handled = true;
@@ -406,6 +439,7 @@ public partial class FlowEditorView : UserControl
         if (e.DataTransfer.TryGetValue(SubnodePanelView.SubnodeNameFormat) is string subnode && !string.IsNullOrEmpty(subnode))
         {
             Log.Info("Subnode per Drag&Drop einfügen: {0}", subnode);
+            Vm.PushUndo();
             var vm = Vm.AddNode("call", world.X - 100, world.Y - 30);
             vm.Model.Config["target"] = subnode;
             vm.RaiseTitleChanged();
@@ -414,6 +448,7 @@ public partial class FlowEditorView : UserControl
 
         if (e.DataTransfer.TryGetValue(NodePaletteView.NodeTypeFormat) is not string type || string.IsNullOrEmpty(type)) return;
         Log.Info("Node per Drag&Drop hinzufügen: {0} @ ({1:F0},{2:F0})", type, world.X, world.Y);
+        Vm.PushUndo();
         Vm.AddNode(type, world.X - 100, world.Y - 30); // center node on cursor
     }
 
@@ -423,16 +458,22 @@ public partial class FlowEditorView : UserControl
         Log.Debug("Kontext-Menü @ ({0:F0},{1:F0})", worldPos.X, worldPos.Y);
         var menu = new ContextMenu();
 
-        // Group the current multi-selection.
+        // Aktionen für die aktuelle Mehrfachauswahl.
         if (Vm is { SelectedNodes.Count: >= 2 })
         {
             var groupItem = new MenuItem { Header = "📦  Gruppieren" };
             groupItem.Click += (_, _) =>
             {
                 Log.Info("Gruppieren: {0} Nodes", Vm.SelectedNodes.Count);
+                Vm.PushUndo();
                 Vm.CreateGroupFromSelection();
             };
             menu.Items.Add(groupItem);
+
+            var subItem = new MenuItem { Header = "📦  Subnode aus Auswahl" };
+            subItem.Click += async (_, _) => await ExtractSelectionAsync();
+            menu.Items.Add(subItem);
+
             menu.Items.Add(new Separator());
         }
 
@@ -446,6 +487,7 @@ public partial class FlowEditorView : UserControl
                 item.Click += (_, _) =>
                 {
                     Log.Info("Node hinzufügen: {0} @ ({1:F0},{2:F0})", d.Type, worldPos.X, worldPos.Y);
+                    Vm?.PushUndo();
                     // AddNode raises CollectionChanged → OnNodesCollectionChanged renders the control.
                     Vm?.AddNode(d.Type, worldPos.X, worldPos.Y);
                 };
@@ -455,6 +497,18 @@ public partial class FlowEditorView : UserControl
         }
 
         menu.Open(this);
+    }
+
+    /// <summary>Fragt Name/Bezeichnung ab und macht aus der Auswahl direkt einen Subnode.</summary>
+    private async Task ExtractSelectionAsync()
+    {
+        if (Vm is null || Vm.SelectedNodes.Count == 0) return;
+        var dlg = new SubnodeDialog("Subnode aus Auswahl", "", "");
+        await ShowDialogOverOwner(dlg);
+        if (!dlg.Confirmed) return;
+        var sub = Vm.ExtractSelectionToSubnode(dlg.SubnodeName, dlg.SubnodeLabel);
+        if (sub is null)
+            Log.Warn("Subnode aus Auswahl fehlgeschlagen (Name leer/vergeben): {0}", dlg.SubnodeName);
     }
 
     // ── Group context menu ─────────────────────────────────────────────────────

@@ -16,6 +16,58 @@ public class FlowEditorViewModelTests
     }
 
     [Fact]
+    public void UndoRedo_RestoresAddedNode()
+    {
+        var vm = NewEditor();
+        var before = vm.ActiveTab!.Nodes.Count;
+        vm.PushUndo();
+        vm.AddNode("click", 0, 0);
+        Assert.Equal(before + 1, vm.ActiveTab!.Nodes.Count);
+        Assert.True(vm.CanUndo);
+
+        vm.Undo();
+        Assert.Equal(before, vm.ActiveTab!.Nodes.Count);
+        Assert.True(vm.CanRedo);
+
+        vm.Redo();
+        Assert.Equal(before + 1, vm.ActiveTab!.Nodes.Count);
+    }
+
+    [Fact]
+    public void DuplicateSelection_AddsCopy()
+    {
+        var vm = NewEditor();
+        var n = vm.AddNode("click", 50, 50); // wird ausgewählt
+        var before = vm.ActiveTab!.Nodes.Count;
+        vm.DuplicateSelection();
+        Assert.Equal(before + 1, vm.ActiveTab!.Nodes.Count);
+        Assert.NotEqual(n.Id, vm.SelectedNode!.Id); // Auswahl auf der Kopie
+    }
+
+    [Fact]
+    public void CopyPaste_AddsCopyIntoActiveTab()
+    {
+        var vm = NewEditor();
+        vm.AddNode("click", 0, 0);
+        vm.CopySelection();
+        Assert.True(vm.HasClipboard);
+        var before = vm.ActiveTab!.Nodes.Count;
+        vm.PasteClipboard();
+        Assert.Equal(before + 1, vm.ActiveTab!.Nodes.Count);
+    }
+
+    [Fact]
+    public void AutoLayout_PlacesConnectedNodesTopDown()
+    {
+        var vm = NewEditor();
+        var a = vm.AddNode("goto", 999, 999);
+        var b = vm.AddNode("click", 0, 0);
+        vm.AddWire(a.Id, 0, b.Id);
+        vm.AutoLayoutActiveTab();
+        Assert.True(b.Y > a.Y); // Ziel liegt unter der Quelle
+    }
+
+    [Fact]
     public void SnapAllToGrid_RoundsNodePositions()
     {
         var vm = NewEditor();

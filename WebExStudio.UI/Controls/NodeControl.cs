@@ -32,6 +32,7 @@ public sealed class NodeControl : Panel
     private readonly List<Ellipse> _outputPorts = [];
     private readonly List<TextBlock> _outputLabels = [];
     private readonly TextBlock? _annotation;
+    private TextBlock? _errorMarker;
 
     public NodeControl(NodeViewModel vm)
     {
@@ -170,10 +171,20 @@ public sealed class NodeControl : Panel
             }
         }
 
+        // Validierungs-Marker (oben rechts), nur sichtbar bei Fehlern.
+        _errorMarker = new TextBlock
+        {
+            Text = "⚠",
+            FontSize = 15,
+            Foreground = new SolidColorBrush(Color.Parse("#FF5252")),
+        };
+        Children.Add(_errorMarker);
+
         ContextMenu = BuildContextMenu(vm);
         vm.PropertyChanged += OnVmPropertyChanged;
         PointerMoved += OnPointerMoved;
         PointerExited += OnPointerExited;
+        UpdateErrorMarker();
         UpdateVisuals();
     }
 
@@ -198,6 +209,7 @@ public sealed class NodeControl : Panel
         _inputPort?.Measure(availableSize);
         foreach (var p in _outputPorts) p.Measure(availableSize);
         foreach (var l in _outputLabels) l.Measure(availableSize);
+        _errorMarker?.Measure(availableSize);
         return new Size(Width, Height);
     }
 
@@ -221,6 +233,8 @@ public sealed class NodeControl : Panel
             if (i < _outputLabels.Count)
                 _outputLabels[i].Arrange(new Rect(x - 18, finalSize.Height - PortRadius - 12, 36, 12));
         }
+
+        _errorMarker?.Arrange(new Rect(finalSize.Width - 16, -10, 20, 20));
 
         return finalSize;
     }
@@ -292,6 +306,17 @@ public sealed class NodeControl : Panel
         {
             UpdateVisuals();
         }
+        else if (e.PropertyName is nameof(NodeViewModel.ValidationError) or nameof(NodeViewModel.HasError))
+        {
+            UpdateErrorMarker();
+        }
+    }
+
+    private void UpdateErrorMarker()
+    {
+        if (_errorMarker is null) return;
+        _errorMarker.IsVisible = ViewModel.HasError;
+        ToolTip.SetTip(_errorMarker, ViewModel.ValidationError);
     }
 
     private void UpdateVisuals()

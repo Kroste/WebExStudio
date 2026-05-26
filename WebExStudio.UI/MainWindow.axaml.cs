@@ -195,6 +195,40 @@ public partial class MainWindow : Window
     private void OnSnapToGrid(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.FlowEditor.SnapAllToGrid();
 
+    private void OnAutoLayout(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.FlowEditor.AutoLayoutActiveTab();
+
+    private void OnUndo(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.FlowEditor.Undo();
+
+    private void OnRedo(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.FlowEditor.Redo();
+
+    private void OnSearchNode(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        FlowEditorView.OpenSearch();
+
+    private void OnRecent(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        var flyout = new MenuFlyout();
+        if (Vm.RecentFiles.Count == 0)
+        {
+            flyout.Items.Add(new MenuItem { Header = "(noch keine)", IsEnabled = false });
+        }
+        else
+        {
+            foreach (var path in Vm.RecentFiles)
+            {
+                var p = path;
+                var item = new MenuItem { Header = System.IO.Path.GetFileName(p), };
+                ToolTip.SetTip(item, p);
+                item.Click += async (_, _) => await Vm.OpenFlowAsync(p);
+                flyout.Items.Add(item);
+            }
+        }
+        flyout.ShowAt(btn);
+    }
+
     private async void OnConvert(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions

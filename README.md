@@ -81,7 +81,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  🌐 WebExStudio                                          ⚙  ❓  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✨ Neuer  📄 Öffnen  💾 Speichern  ♻ Convert │ ▶ Ausführen ⏹ ⏸ 👣 ⏭ │ ▦ Ausrichten ⊞ Fit 🔍 Reset │ ← Toolbar
+│ ✨ Neuer  📄 Öffnen 🕘  💾 Speichern  ♻ Convert  ↶ ↷ │ ▶ Ausführen ⏹ ⏸ 👣 ⏭ │ 🔎 🪄 ▦ ⊞ 🔍 │ ← Toolbar
 ├───────────────┬──────────────────────────────────────────────┬───────────────┤
 │ Node-Palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Eigenschaften │
 │  Suchen…      │                                              │               │
@@ -162,10 +162,16 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Node verschieben** | Node mit der linken Maustaste ziehen; **oder** Node(s) auswählen und mit den **Pfeiltasten** verschieben (ein Rasterschritt; **Umschalt+Pfeil** = feinstufig 1 px). |
 | **Am Raster ausrichten** | Toolbar **▦ Ausrichten** — rundet alle Nodes des aktiven Tabs auf das Raster. |
 | **Node löschen** | Node auswählen → `Entf`; **oder** Rechtsklick → „Node löschen". |
+| **Rückgängig / Wiederholen** | **Strg+Z** / **Strg+Y**; **oder** Toolbar **↶ / ↷**. |
+| **Kopieren / Einfügen / Duplizieren** | **Strg+C** / **Strg+V** (auch tab-übergreifend) / **Strg+D**. Verbindungen innerhalb der Auswahl bleiben erhalten. |
+| **Node suchen / springen** | **Strg+F** **oder** Toolbar **🔎 Suchen** → tippen, Enter springt zum Node (auch in Subnodes). |
+| **Auto-Layout** | Toolbar **🪄 Layout** ordnet die Nodes des Tabs von oben nach unten an. |
+| **Zuletzt geöffnet** | Toolbar **🕘** zeigt die zuletzt geöffneten/gespeicherten Flows. |
 | **Mehrere auswählen** | **Strg**+Klick auf mehrere Nodes; **oder** auf leerer Fläche ein **Auswahlrechteck (Gummiband)** aufziehen. |
 | **Gruppieren** | ≥ 2 Nodes auswählen → Rechtsklick auf leere Fläche → **„📦 Gruppieren"**. |
-| **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"** → Name + Bezeichnung. Die Nodes wandern in einen neuen Subnode-Tab; an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
+| **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"**; **oder** direkt aus der Auswahl: Rechtsklick auf leere Fläche → **„📦 Subnode aus Auswahl"**. Name + Bezeichnung eingeben — die Nodes wandern in einen neuen Subnode-Tab, an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
 | **Bezeichnung vergeben** | Node auswählen → Feld **„Bezeichnung"** oben im Eigenschaften-Panel. |
+| **Fehler-Markierung** | Nodes mit Validierungsfehler zeigen oben rechts ein **⚠** — der Tooltip nennt das Problem (Live-Validierung bei jeder Änderung). |
 | **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. Das Hilfefenster zeigt **diese README** (eingebettet gerendert) — Doku und Hilfe bleiben dadurch immer gleich. Es ist **frei skalierbar**, und die JSON-**Beispiele** lassen sich per Button **„📥 In den Flow laden"** direkt übernehmen. |
 | **Alten Flow konvertieren** | Toolbar **♻ Convert** → Projektordner (Python-Flow) wählen → wird ins neue Format überführt und geladen (Alternative zum CLI `--convert`). |
 | **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |

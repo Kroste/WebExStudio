@@ -55,6 +55,7 @@ public static class AppSettings
 
         // Oberfläche
         public bool SuggestionsEnabled { get; set; } = true;
+        public List<string> RecentFiles { get; set; } = [];
     }
 
     private static Model ReadModel()
@@ -143,6 +144,15 @@ public static class AppSettings
         m.AiBaseUrl = ai.BaseUrl;
         m.AiHints = ai.Hints;
         m.AiSendHints = ai.SendHints;
+        WriteModel(m);
+    }
+
+    public static List<string> LoadRecentFiles() => ReadModel().RecentFiles;
+
+    public static void SaveRecentFiles(List<string> files)
+    {
+        var m = ReadModel();
+        m.RecentFiles = files;
         WriteModel(m);
     }
 

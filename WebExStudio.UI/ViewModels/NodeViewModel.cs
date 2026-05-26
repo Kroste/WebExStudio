@@ -11,6 +11,7 @@ public sealed class NodeViewModel : ViewModelBase
     private bool _isSelected;
     private bool _isActive;
     private bool _isNext;
+    private string? _validationError;
     private ExecutionStatusUi _status = ExecutionStatusUi.None;
 
     public FlowNode Model { get; }
@@ -70,6 +71,20 @@ public sealed class NodeViewModel : ViewModelBase
     }
 
     /// <summary>Der im pausierten Zustand als Nächstes auszuführende Node (eigene Markierung).</summary>
+    /// <summary>Validierungsfehler an diesem Node (null = ok) — wird als Marker angezeigt.</summary>
+    public string? ValidationError
+    {
+        get => _validationError;
+        set
+        {
+            if (_validationError == value) return;
+            this.RaiseAndSetIfChanged(ref _validationError, value);
+            this.RaisePropertyChanged(nameof(HasError));
+        }
+    }
+
+    public bool HasError => !string.IsNullOrEmpty(_validationError);
+
     public bool IsNext
     {
         get => _isNext;

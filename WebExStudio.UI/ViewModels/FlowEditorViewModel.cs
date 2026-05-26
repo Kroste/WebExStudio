@@ -16,6 +16,11 @@ public sealed class FlowEditorViewModel : ViewModelBase
     private NodeDefinition? _previewDefinition;
     private bool _isDirty;
 
+    private readonly List<string> _undo = [];
+    private readonly List<string> _redo = [];
+    private bool _restoring;
+    private List<FlowNode> _clipboard = [];
+
     public FlowDocument2? Document
     {
         get => _document;
@@ -131,6 +136,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public void SnapAllToGrid(double grid = GridSize)
     {
         if (_activeTab is null || grid <= 0) return;
+        PushUndo();
         foreach (var n in _activeTab.Nodes)
         {
             n.X = System.Math.Round(n.X / grid) * grid;
@@ -206,6 +212,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
         SwitchTab(mainTab);
         IsDirty = false;
         this.RaisePropertyChanged(nameof(Title));
+        ValidateAndMark();
     }
 
     public async Task SaveAsync(string path)
@@ -560,6 +567,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public NodeViewModel AddConnectedNode(NodeViewModel anchor, string type,
         IReadOnlyDictionary<string, string> config, string label)
     {
+        PushUndo();
         var vm = AddNode(type, anchor.X, anchor.Y + 120);
         foreach (var kv in config)
             vm.Model.Config[kv.Key] = kv.Value;
@@ -596,6 +604,177 @@ public sealed class FlowEditorViewModel : ViewModelBase
             if (vm is not null) return vm;
         }
         return null;
+    }
+
+    // ── Undo / Redo (Snapshot des gesamten Dokuments) ───────────────────────────
+    private const int UndoCap = 100;
+
+    public bool CanUndo => _undo.Count > 0;
+    public bool CanRedo => _redo.Count > 0;
+
+    /// <summary>Sichert den aktuellen Zustand für „Rückgängig" (vor einer Änderung aufrufen).</summary>
+    public void PushUndo()
+    {
+        if (Document is null || _restoring) return;
+        _undo.Add(FlowSerializer2.Serialize(Document));
+        if (_undo.Count > UndoCap) _undo.RemoveAt(0);
+        _redo.Clear();
+        RaiseUndoRedo();
+    }
+
+    public void Undo()
+    {
+        if (_undo.Count == 0 || Document is null) return;
+        _redo.Add(FlowSerializer2.Serialize(Document));
+        RestoreSnapshot(Pop(_undo));
+    }
+
+    public void Redo()
+    {
+        if (_redo.Count == 0 || Document is null) return;
+        _undo.Add(FlowSerializer2.Serialize(Document));
+        RestoreSnapshot(Pop(_redo));
+    }
+
+    private static string Pop(List<string> stack)
+    {
+        var v = stack[^1];
+        stack.RemoveAt(stack.Count - 1);
+        return v;
+    }
+
+    private void RestoreSnapshot(string json)
+    {
+        var path = Document?.FilePath;
+        var doc = FlowSerializer2.Deserialize(json);
+        doc.FilePath = path;
+        _restoring = true;
+        LoadDocument(doc);
+        _restoring = false;
+        MarkDirty();
+        RaiseUndoRedo();
+    }
+
+    private void RaiseUndoRedo()
+    {
+        this.RaisePropertyChanged(nameof(CanUndo));
+        this.RaisePropertyChanged(nameof(CanRedo));
+    }
+
+    // ── Kopieren / Einfügen / Duplizieren ───────────────────────────────────────
+    public bool HasClipboard => _clipboard.Count > 0;
+
+    public void CopySelection()
+    {
+        _clipboard = SelectedNodes.Select(n => CloneModel(n.Model)).ToList();
+        this.RaisePropertyChanged(nameof(HasClipboard));
+    }
+
+    public void PasteClipboard()
+    {
+        if (_clipboard.Count == 0) return;
+        PushUndo();
+        PasteNodes(_clipboard, 30, 30);
+    }
+
+    public void DuplicateSelection()
+    {
+        if (SelectedNodes.Count == 0) return;
+        PushUndo();
+        PasteNodes(SelectedNodes.Select(n => CloneModel(n.Model)).ToList(), 30, 30);
+    }
+
+    private static FlowNode CloneModel(FlowNode n) => new()
+    {
+        Id = n.Id, Type = n.Type, TabId = n.TabId, Label = n.Label,
+        X = n.X, Y = n.Y, SeqIndex = n.SeqIndex,
+        Config = new Dictionary<string, string>(n.Config),
+        Wires = n.Wires.Select(p => p.ToList()).ToList(),
+    };
+
+    /// <summary>Fügt Kopien der Quell-Nodes (mit neuen IDs) in den aktiven Tab ein und wählt sie aus.
+    /// Verbindungen innerhalb der Auswahl werden übernommen (auf die neuen IDs umgeschrieben).</summary>
+    private void PasteNodes(List<FlowNode> source, double dx, double dy)
+    {
+        if (_activeTab is null || Document is null || source.Count == 0) return;
+        var idMap = source.ToDictionary(n => n.Id, _ => NewId());
+        var newVms = new List<NodeViewModel>();
+        foreach (var s in source)
+        {
+            var node = new FlowNode
+            {
+                Id = idMap[s.Id], Type = s.Type, TabId = _activeTab.Id,
+                Label = s.Label, X = s.X + dx, Y = s.Y + dy,
+                SeqIndex = _activeTab.Nodes.Count,
+                Config = new Dictionary<string, string>(s.Config),
+                Wires = s.Wires.Select(port =>
+                    port.Where(idMap.ContainsKey).Select(t => idMap[t]).ToList()).ToList(),
+            };
+            Document.Nodes.Add(node);
+            var vm = new NodeViewModel(node);
+            _activeTab.Nodes.Add(vm);
+            newVms.Add(vm);
+        }
+        ClearSelection();
+        foreach (var vm in newVms) { SelectedNodes.Add(vm); vm.IsSelected = true; }
+        SelectedNode = newVms.LastOrDefault();
+        RefreshWires();
+        MarkDirty();
+        Log.Debug("Eingefügt: {0} Node(s)", newVms.Count);
+    }
+
+    // ── Auto-Layout ─────────────────────────────────────────────────────────────
+    /// <summary>Ordnet die Nodes des aktiven Tabs als von oben nach unten verlaufenden Graphen an.</summary>
+    public void AutoLayoutActiveTab()
+    {
+        if (_activeTab is null || Document is null || _activeTab.Nodes.Count == 0) return;
+        PushUndo();
+
+        var nodes = _activeTab.Nodes.ToList();
+        var ids = nodes.Select(n => n.Id).ToHashSet();
+        var outAdj = nodes.ToDictionary(n => n.Id, _ => new List<string>());
+        var indeg = nodes.ToDictionary(n => n.Id, _ => 0);
+        foreach (var n in nodes)
+            foreach (var port in Document.GetNode(n.Id)?.Wires ?? [])
+                foreach (var t in port)
+                    if (ids.Contains(t)) { outAdj[n.Id].Add(t); indeg[t]++; }
+
+        // Längster Pfad (Tiefe) als vertikale Ebene; Kahn-Reihenfolge.
+        var depth = nodes.ToDictionary(n => n.Id, _ => 0);
+        var work = new Dictionary<string, int>(indeg);
+        var q = new Queue<string>(nodes.Where(n => work[n.Id] == 0).Select(n => n.Id));
+        while (q.Count > 0)
+        {
+            var u = q.Dequeue();
+            foreach (var v in outAdj[u])
+            {
+                if (depth[v] < depth[u] + 1) depth[v] = depth[u] + 1;
+                if (--work[v] == 0) q.Enqueue(v);
+            }
+        }
+
+        const double colW = 240, rowH = 150, x0 = 80, y0 = 60;
+        foreach (var level in nodes.GroupBy(n => depth[n.Id]).OrderBy(g => g.Key))
+        {
+            int col = 0;
+            foreach (var n in level.OrderBy(n => n.Y).ThenBy(n => n.X))
+            {
+                n.Y = y0 + level.Key * rowH;
+                n.X = x0 + col * colW;
+                col++;
+            }
+        }
+        MarkDirty();
+        Log.Info("Auto-Layout: {0} Nodes angeordnet", nodes.Count);
+    }
+
+    /// <summary>Erzeugt aus der aktuellen Mehrfachauswahl direkt einen Subnode (gruppiert + extrahiert).</summary>
+    public FlowTabViewModel? ExtractSelectionToSubnode(string name, string label)
+    {
+        if (SelectedNodes.Count == 0) return null;
+        PushUndo();
+        var g = CreateGroupFromSelection(label);
+        return g is null ? null : ExtractGroupToSubnode(g, name, label);
     }
 
     // ── Execution state ───────────────────────────────────────────────────────
@@ -659,5 +838,20 @@ public sealed class FlowEditorViewModel : ViewModelBase
     {
         IsDirty = true;
         this.RaisePropertyChanged(nameof(Title));
+        ValidateAndMark();
+    }
+
+    /// <summary>Validiert den Flow und markiert fehlerhafte Nodes (Live-Validierung).</summary>
+    public void ValidateAndMark()
+    {
+        if (Document is null) return;
+        var byNode = WebExStudio.Core.Validation.FlowValidator.Validate(Document).Issues
+            .Where(i => i.Severity == WebExStudio.Core.Validation.FlowIssueSeverity.Error && !string.IsNullOrEmpty(i.NodeId))
+            .GroupBy(i => i.NodeId!)
+            .ToDictionary(g => g.Key, g => string.Join("\n", g.Select(i => i.Message)));
+
+        foreach (var tab in Tabs)
+            foreach (var n in tab.Nodes)
+                n.ValidationError = byNode.TryGetValue(n.Id, out var msg) ? msg : null;
     }
 }

@@ -33,6 +33,24 @@ public sealed class MainWindowViewModel : ViewModelBase
     /// <summary>Mehr-Turn-Chat mit der KI (Verlauf bleibt erhalten, auch wenn das Fenster schließt).</summary>
     public ChatViewModel Chat { get; }
 
+    /// <summary>Zuletzt geöffnete/gespeicherte Flow-Dateien (persistiert in den Einstellungen).</summary>
+    public ObservableCollection<string> RecentFiles { get; } = [];
+
+    /// <summary>Setzt die Liste beim Start (ohne erneutes Speichern).</summary>
+    public void InitRecentFiles(IEnumerable<string> paths)
+    {
+        RecentFiles.Clear();
+        foreach (var p in paths) RecentFiles.Add(p);
+    }
+
+    private void AddRecent(string path)
+    {
+        RecentFiles.Remove(path);
+        RecentFiles.Insert(0, path);
+        while (RecentFiles.Count > 8) RecentFiles.RemoveAt(8);
+        AppSettings.SaveRecentFiles([.. RecentFiles]);
+    }
+
     /// <summary>Schaltet den KI-Node-Vorschlag (Toolbar 💡) ein/aus. Wird persistiert.</summary>
     public bool SuggestionsEnabled
     {
@@ -162,12 +180,14 @@ public sealed class MainWindowViewModel : ViewModelBase
     public async Task OpenFlowAsync(string path)
     {
         await FlowEditor.LoadAsync(path);
+        AddRecent(path);
         StatusText = $"Flow geladen: {Path.GetFileName(path)}";
     }
 
     public async Task SaveFlowAsync(string path)
     {
         await FlowEditor.SaveAsync(path);
+        AddRecent(path);
         StatusText = "Gespeichert";
     }
 

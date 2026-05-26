@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WebExStudio.UI.Views.NodeSearchDialog"
+        Title="Node suchen"
+        Width="460" Height="460"
+        WindowStartupLocation="CenterOwner"
+        WindowDecorations="None"
+        Background="#12121F">
+
+  <Border BorderBrush="#2E2E4E" BorderThickness="1">
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Background="#1E1E2E" BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
+              PointerPressed="OnTitleBarPointerPressed">
+        <Grid ColumnDefinitions="*,Auto" Height="36">
+          <TextBlock Grid.Column="0" Text="🔎  Node suchen / springen" FontSize="12" FontWeight="SemiBold"
+                     Foreground="#90A4AE" VerticalAlignment="Center" Margin="14,0" IsHitTestVisible="False"/>
+          <Button Grid.Column="1" Click="OnClose" Content="&#x2715;" FontSize="13"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0" Width="40" Height="36" Padding="0"/>
+        </Grid>
+      </Border>
+
+      <TextBox DockPanel.Dock="Top" x:Name="SearchBox" Margin="10" Padding="8,6"
+               PlaceholderText="Name oder Typ tippen…  (Enter = springen, Esc = schließen)"
+               TextChanged="OnFilter" KeyDown="OnSearchKeyDown"/>
+
+      <ListBox x:Name="ResultList" Background="Transparent" Margin="6,0,6,8"
+               DoubleTapped="OnAccept">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:CompileBindings="False">
+            <StackPanel Spacing="0" Margin="4,2">
+              <TextBlock Text="{Binding Display}" Foreground="White" FontSize="12"/>
+              <TextBlock Text="{Binding Sub}" Foreground="#78909C" FontSize="10"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+  </Border>
+</Window>
