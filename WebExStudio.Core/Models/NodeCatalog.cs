@@ -23,20 +23,23 @@ public static class NodeCatalog
         // ── Navigation ───────────────────────────────────────────────────────
         new()
         {
-            Type = "goto", DisplayName = "Goto / Navigate", Category = "Navigation",
-            Description = "Navigiert zu einer URL und wartet auf das Laden der Seite.",
+            Type = "goto", DisplayName = "Navigate", Category = "Navigation",
+            Description = "Navigiert zu einer URL und wartet auf das Laden der Seite. Mit 'new_tab' = true "
+                + "wird stattdessen ein neuer Tab geöffnet und dorthin gewechselt (ersetzt den open_tab-Node).",
             Color = "#1565C0", Icon = "🌐",
-            Example = "url = {payload.host}/login  →  öffnet die Login-Seite und wartet aufs Laden.",
+            Example = "url = {payload.host}/login  →  öffnet die Login-Seite. new_tab = true → in neuem Tab.",
             Properties =
             [
                 new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Required = true, Placeholder = "{payload.host}/pfad" },
+                new() { Key = "new_tab", Label = "In neuem Tab öffnen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
                 new() { Key = "wait_ms", Label = "Wartezeit (ms)", Kind = PropertyKind.Number, DefaultValue = "0" },
             ]
         },
+        // Ersetzt durch 'goto' mit new_tab=true — als versteckter Alias erhalten (alte Flows).
         new()
         {
-            Type = "open_tab", DisplayName = "Tab öffnen", Category = "Navigation",
-            Description = "Öffnet einen neuen Browser-Tab und wechselt dorthin.",
+            Type = "open_tab", DisplayName = "Tab öffnen", Category = "Navigation", Hidden = true,
+            Description = "Öffnet einen neuen Browser-Tab und wechselt dorthin. (Ersetzt durch Navigate + new_tab.)",
             Color = "#1565C0", Icon = "➕",
             Example = "url = https://example.com  →  öffnet einen neuen Tab; nachfolgende Aktionen laufen darin.",
             Properties =

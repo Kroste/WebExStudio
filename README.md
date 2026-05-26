@@ -183,8 +183,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ### Navigation
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
-| 🌐 | `goto` | Goto / Navigate | Zu URL navigieren, auf Laden warten. | `url = {payload.host}/login` |
-| ➕ | `open_tab` | Tab öffnen | Neuen Browser-Tab öffnen & dorthin wechseln. | `url = https://example.com` |
+| 🌐 | `goto` | Navigate | Zu URL navigieren, auf Laden warten. Mit `new_tab = true` in neuem Tab öffnen & dorthin wechseln (ersetzt `open_tab`). | `url = {payload.host}/login` · `new_tab = true` |
 | ✖ | `close_tab` | Tab schließen | Aktuellen Tab schließen. | — |
 | 🔗 | `get_links` | Links sammeln | Links sammeln; Ausgang **je Link** läuft pro Treffer. | `selector = a.product` → `{link}` |
 

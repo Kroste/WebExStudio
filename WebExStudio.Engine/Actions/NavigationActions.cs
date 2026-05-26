@@ -13,13 +13,24 @@ public sealed class GotoHandler : IActionHandler
     {
         var url = ctx.Fmt(node.Get("url"));
         if (string.IsNullOrEmpty(url)) url = ctx.Get("host");
+        var newTab = node.GetBool("new_tab");
+        var opts = new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = ctx.Config.TimeoutMs };
 
-        Log.Info("Navigiere zu: {0}", url);
-        await ctx.Page.GotoAsync(url, new PageGotoOptions
+        if (newTab)
         {
-            WaitUntil = WaitUntilState.DOMContentLoaded,
-            Timeout = ctx.Config.TimeoutMs,
-        });
+            // Wie der frühere open_tab-Node: neue Seite öffnen, Downloads anhängen, dorthin wechseln.
+            Log.Info("Navigiere in neuem Tab zu: {0}", url);
+            var newPage = await ctx.Page.Context.NewPageAsync();
+            ctx.AttachDownloads?.Invoke(newPage);
+            if (!string.IsNullOrEmpty(url))
+                await newPage.GotoAsync(url, opts);
+            ctx.Page = newPage;
+        }
+        else
+        {
+            Log.Info("Navigiere zu: {0}", url);
+            await ctx.Page.GotoAsync(url, opts);
+        }
 
         var waitMs = node.Get("wait_ms");
         if (int.TryParse(waitMs, out var ms) && ms > 0)
