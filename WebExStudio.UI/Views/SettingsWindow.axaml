@@ -166,6 +166,7 @@
                 <ComboBox x:Name="AiProviderBox" HorizontalAlignment="Stretch">
                   <ComboBoxItem Content="anthropic"/>
                   <ComboBoxItem Content="openai"/>
+                  <ComboBoxItem Content="gemini"/>
                   <ComboBoxItem Content="perplexity"/>
                   <ComboBoxItem Content="ollama"/>
                 </ComboBox>

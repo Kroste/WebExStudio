@@ -3,7 +3,7 @@ namespace WebExStudio.AI;
 /// <summary>Konfiguration der KI-Anbindung (aus den App-Einstellungen befüllt).</summary>
 public sealed class AiOptions
 {
-    /// <summary>Anbieter-Kennung: <c>anthropic</c>, <c>openai</c> oder <c>ollama</c>.</summary>
+    /// <summary>Anbieter-Kennung: <c>anthropic</c>, <c>openai</c>, <c>gemini</c>, <c>perplexity</c> oder <c>ollama</c>.</summary>
     public string Provider { get; set; } = "anthropic";
 
     /// <summary>API-Schlüssel (bei Ollama nicht nötig).</summary>

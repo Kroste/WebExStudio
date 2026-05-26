@@ -9,6 +9,7 @@ public static class LlmClientFactory
     public static string DefaultModel(string provider) => provider.ToLowerInvariant() switch
     {
         "openai" => "gpt-4o",
+        "gemini" => "gemini-2.0-flash",
         "ollama" => "llama3.1",
         "perplexity" => "sonar",
         _ => "claude-sonnet-4-6",
@@ -22,6 +23,7 @@ public static class LlmClientFactory
         return provider switch
         {
             "openai" => new OpenAiClient(http, o.ApiKey, model, BaseOr(o, "https://api.openai.com")),
+            "gemini" => new GeminiClient(http, o.ApiKey, model, BaseOr(o, "https://generativelanguage.googleapis.com")),
             "ollama" => new OllamaClient(http, model, BaseOr(o, "http://localhost:11434")),
             "perplexity" => new PerplexityClient(http, o.ApiKey, model, BaseOr(o, "https://api.perplexity.ai")),
             _ => new AnthropicClient(http, o.ApiKey, model, BaseOr(o, "https://api.anthropic.com")),

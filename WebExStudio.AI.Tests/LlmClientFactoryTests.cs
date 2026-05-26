@@ -10,6 +10,7 @@ public class LlmClientFactoryTests
     [Theory]
     [InlineData("anthropic", "Anthropic/claude-sonnet-4-6")]
     [InlineData("openai", "OpenAI/gpt-4o")]
+    [InlineData("gemini", "Gemini/gemini-2.0-flash")]
     [InlineData("ollama", "Ollama/llama3.1")]
     [InlineData("perplexity", "Perplexity/sonar")]
     [InlineData("", "Anthropic/claude-sonnet-4-6")] // leer → Anthropic-Default

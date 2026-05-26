@@ -488,6 +488,7 @@ gespeichert):
 |---|---|---|
 | `anthropic` | `claude-sonnet-4-6` | Anthropic Messages API, API-Key nötig. |
 | `openai` | `gpt-4o` | OpenAI Chat-Completions, API-Key nötig. |
+| `gemini` | `gemini-2.0-flash` | Google Gemini (Generative Language API), API-Key nötig. |
 | `perplexity` | `sonar` | Perplexity (OpenAI-kompatibel), API-Key nötig. |
 | `ollama` | `llama3.1` | Lokale Instanz (Standard-URL `http://localhost:11434`), kein Key. |
 
