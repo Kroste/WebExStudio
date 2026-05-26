@@ -389,6 +389,24 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "download_stream", DisplayName = "Stream/Medien laden", Category = "Erweitert",
+            Description = "Schneidet den Netzwerkverkehr für ein Zeitfenster mit, erkennt Medien-URLs "
+                + "(eingebettete Videos/Audios, HLS .m3u8, DASH .mpd) und schreibt sie ins Payload (ctx_key). "
+                + "Lädt direkte Dateien (mp4/mp3) per HTTP, Segment-Streams via ffmpeg (muss installiert/erreichbar "
+                + "sein). Hinweis: Die Wiedergabe sollte beim Ausführen laufen; DRM-Streams sind nicht ladbar.",
+            Color = "#4527A0", Icon = "🎬",
+            Example = "wait_ms = 8000, download = true  →  erkennt den Stream und speichert ihn (stream_*.mp4).",
+            Properties =
+            [
+                new() { Key = "wait_ms", Label = "Mitschnitt-Dauer (ms)", Kind = PropertyKind.Number, DefaultValue = "8000" },
+                new() { Key = "download", Label = "Gefundenes Medium laden", Kind = PropertyKind.Boolean, DefaultValue = "true" },
+                new() { Key = "filename", Label = "Dateiname (optional)", Kind = PropertyKind.Text },
+                new() { Key = "ffmpeg_path", Label = "ffmpeg-Pfad (für HLS/DASH)", Kind = PropertyKind.Text, DefaultValue = "ffmpeg" },
+                new() { Key = "ctx_key", Label = "Erkannte URLs → Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "media_urls" },
+            ]
+        },
+        new()
+        {
             Type = "save_session", DisplayName = "Sitzung speichern", Category = "Erweitert",
             Description = "Speichert die aktuelle Sitzung (Cookies + localStorage) in eine Datei. "
                 + "Wenn in den Einstellungen „Sitzung wiederverwenden\" aktiv ist, wird sie beim nächsten "

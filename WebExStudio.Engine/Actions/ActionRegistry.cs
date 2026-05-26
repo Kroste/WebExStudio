@@ -49,6 +49,7 @@ public sealed class ActionRegistry
         r.Register(new WriteFileHandler());
         r.Register(new DownloadUrlHandler());
         r.Register(new ScreenshotHandler());
+        r.Register(new DownloadStreamHandler());
         r.Register(new EvalJsHandler());
         r.Register(new SaveSessionHandler());
         r.Register(new AiQueryHandler());

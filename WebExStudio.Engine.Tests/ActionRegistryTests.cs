@@ -30,6 +30,7 @@ public class ActionRegistryTests
     [InlineData("eval_js")]
     [InlineData("save_session")]
     [InlineData("ai_query")]
+    [InlineData("download_stream")]
     [InlineData("get_value")]
     [InlineData("set_payload")]
     [InlineData("debug")]

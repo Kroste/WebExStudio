@@ -231,6 +231,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 | 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
 | 📜 | `eval_js` | JavaScript ausführen | Beliebiges JS in der Seite; Rückgabe optional ins Payload (`ctx_key`). Mit Selektor wird das Element als Argument übergeben. | `script = document.title, ctx_key = titel` |
 | 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. Mit der Einstellung „Sitzung wiederverwenden" wird sie beim nächsten Start geladen → Login/Captcha entfällt. | nach dem Login einfügen; Pfad leer = `session.json` |
+| 🎬 | `download_stream` | Stream/Medien laden | Schneidet den Netzwerkverkehr mit, erkennt Medien-URLs (Video/Audio, HLS `.m3u8`, DASH `.mpd`) → Payload (`ctx_key`); lädt direkte Dateien per HTTP, Segment-Streams via **ffmpeg**. DRM-Streams sind nicht ladbar. | `wait_ms = 8000, download = true` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
 
 ### KI
