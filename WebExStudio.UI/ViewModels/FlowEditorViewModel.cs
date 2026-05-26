@@ -13,6 +13,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
     private FlowDocument2? _document;
     private FlowTabViewModel? _activeTab;
     private NodeViewModel? _selectedNode;
+    private NodeDefinition? _previewDefinition;
     private bool _isDirty;
 
     public FlowDocument2? Document
@@ -73,6 +74,15 @@ public sealed class FlowEditorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedNode, value);
     }
 
+    /// <summary>Definition eines in der Palette angeklickten Nodes — das Eigenschaften-Panel zeigt
+    /// dafür eine (nicht editierbare) Vorschau mit Hinweisen/Beispiel. Wird beim Auswählen eines
+    /// echten Nodes geleert.</summary>
+    public NodeDefinition? PreviewDefinition
+    {
+        get => _previewDefinition;
+        set => this.RaiseAndSetIfChanged(ref _previewDefinition, value);
+    }
+
     // ── Selection ──────────────────────────────────────────────────────────────
 
     public void ClearSelection()
@@ -86,6 +96,7 @@ public sealed class FlowEditorViewModel : ViewModelBase
     public void SelectNode(NodeViewModel? node, bool additive = false)
     {
         if (node is null) { if (!additive) ClearSelection(); return; }
+        PreviewDefinition = null; // echte Auswahl hebt die Palette-Vorschau auf
 
         if (additive)
         {

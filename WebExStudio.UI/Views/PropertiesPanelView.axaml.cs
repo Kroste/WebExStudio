@@ -33,7 +33,8 @@ public partial class PropertiesPanelView : UserControl
 
     private void OnFlowEditorPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(FlowEditorViewModel.SelectedNode))
+        if (e.PropertyName is nameof(FlowEditorViewModel.SelectedNode)
+            or nameof(FlowEditorViewModel.PreviewDefinition))
         {
             _currentNode = _flowEditor?.SelectedNode;
             RebuildForm();
@@ -43,6 +44,13 @@ public partial class PropertiesPanelView : UserControl
     private void RebuildForm()
     {
         PropertiesPanel.Children.Clear();
+
+        // Palette-Vorschau hat Vorrang: nur lesen, kein Bearbeiten (noch kein Node im Flow).
+        if (_flowEditor?.PreviewDefinition is { } preview)
+        {
+            BuildPreview(preview);
+            return;
+        }
 
         if (_currentNode is null)
         {
@@ -91,6 +99,102 @@ public partial class PropertiesPanelView : UserControl
         // Description + example box (under the properties)
         PropertiesPanel.Children.Add(BuildInfoBox(_currentNode.Definition));
     }
+
+    /// <summary>Nur-Lese-Vorschau eines Palette-Nodes: Kopf, Eigenschaften, Beschreibung/Beispiel.</summary>
+    private void BuildPreview(NodeDefinition def)
+    {
+        PropertiesPanel.Children.Add(new Border
+        {
+            Background = new SolidColorBrush(Color.Parse(def.Color + "44")),
+            CornerRadius = new Avalonia.CornerRadius(6),
+            Padding = new Avalonia.Thickness(10, 6),
+            Child = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 8,
+                Children =
+                {
+                    new TextBlock { Text = def.Icon, FontSize = 20 },
+                    new StackPanel
+                    {
+                        Children =
+                        {
+                            new TextBlock { Text = def.DisplayName, FontWeight = FontWeight.Bold, Foreground = Brushes.White },
+                            new TextBlock { Text = def.Type, FontSize = 11, Foreground = new SolidColorBrush(Color.Parse("#90A4AE")) },
+                        }
+                    }
+                }
+            }
+        });
+
+        PropertiesPanel.Children.Add(new Border
+        {
+            Margin = new Avalonia.Thickness(0, 8, 0, 4),
+            Padding = new Avalonia.Thickness(8, 6),
+            CornerRadius = new Avalonia.CornerRadius(4),
+            Background = new SolidColorBrush(Color.Parse("#1B2A1B")),
+            Child = new TextBlock
+            {
+                Text = "👁 Vorschau — zum Bearbeiten per Drag & Drop in den Flow ziehen.",
+                FontSize = 11,
+                Foreground = new SolidColorBrush(Color.Parse("#A5D6A7")),
+                TextWrapping = TextWrapping.Wrap,
+            }
+        });
+
+        if (def.Properties.Count > 0)
+        {
+            PropertiesPanel.Children.Add(new TextBlock
+            {
+                Text = "Eigenschaften",
+                FontSize = 11,
+                FontWeight = FontWeight.Bold,
+                Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
+                Margin = new Avalonia.Thickness(0, 6, 0, 2),
+            });
+            foreach (var prop in def.Properties)
+                PropertiesPanel.Children.Add(BuildPreviewField(prop));
+        }
+
+        PropertiesPanel.Children.Add(BuildInfoBox(def));
+    }
+
+    private static Control BuildPreviewField(PropertyDefinition prop)
+    {
+        var name = new TextBlock
+        {
+            Text = prop.Label + (prop.Required ? " *" : ""),
+            FontSize = 12,
+            Foreground = Brushes.White,
+            TextWrapping = TextWrapping.Wrap,
+        };
+        var bits = new List<string> { prop.Key, KindName(prop.Kind) };
+        if (!string.IsNullOrEmpty(prop.DefaultValue)) bits.Add("Standard: " + Shorten(prop.DefaultValue!));
+        else if (!string.IsNullOrEmpty(prop.Placeholder)) bits.Add("z. B. " + prop.Placeholder);
+        var detail = new TextBlock
+        {
+            Text = string.Join("  ·  ", bits),
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.Parse("#78909C")),
+            TextWrapping = TextWrapping.Wrap,
+        };
+        return new StackPanel { Spacing = 1, Margin = new Avalonia.Thickness(0, 0, 0, 6), Children = { name, detail } };
+    }
+
+    private static string KindName(PropertyKind k) => k switch
+    {
+        PropertyKind.Boolean => "ja/nein",
+        PropertyKind.Number => "Zahl",
+        PropertyKind.Selector => "Selektor",
+        PropertyKind.Url => "URL",
+        PropertyKind.FilePath => "Pfad",
+        PropertyKind.Dropdown => "Auswahl",
+        PropertyKind.MultilineText or PropertyKind.Code => "Text (mehrzeilig)",
+        _ => "Text",
+    };
+
+    private static string Shorten(string s) =>
+        (s.Length > 40 ? s[..40] + "…" : s).Replace("\n", " ");
 
     private Control BuildLabelField()
     {

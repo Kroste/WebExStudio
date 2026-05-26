@@ -105,11 +105,11 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 |---|---|
 | **Titelleiste** | Eigene Fensterleiste (rahmenlos): ⚙ Einstellungen, ℹ Über, — Minimieren, ▢ Max/Restore, ✕ Schließen. Doppelklick = maximieren. |
 | **Toolbar** | Neuer/öffnen/speichern, KI-Funktionen, Ausführen/Stopp/Pause/Weiter, Fit/Reset-View. |
-| **Node-Palette** (links oben) | Alle Node-Typen nach Kategorie, durchsuchbar. Klick = einfügen, Ziehen = an Position ablegen. |
+| **Node-Palette** (links oben) | Alle Node-Typen nach Kategorie, durchsuchbar. **Klick = Vorschau** rechts (Eigenschaften, Hinweise, Beispiel — wird nicht eingefügt); **Ziehen = in den Flow ablegen** und dort bearbeiten. |
 | **Subnodes** (links unten) | Liste aller benannten Subnodes. Doppelklick öffnet sie als Tab; ＋ neu, ✎ umbenennen, 🗑 löschen; auf den Canvas ziehen erzeugt einen `call`-Node. |
 | **Tab-Leiste** | Offene Tabs (Main + geöffnete Subnodes). Jeder Tab außer Main hat ein ✕. |
 | **Canvas** | Der Flow-Graph: Nodes + Wires. Zoom/Pan, Rechtsklick-Menü. |
-| **Eigenschaften** (rechts) | Felder des ausgewählten Nodes + Bezeichnung + Beschreibung/Beispiel. |
+| **Eigenschaften** (rechts) | Felder des ausgewählten Nodes + Bezeichnung + Beschreibung/Beispiel. Beim **Anklicken eines Palette-Nodes** erscheint hier eine **Nur-Lese-Vorschau** (Eigenschaften + Hinweise/Beispiel) — bearbeitbar wird es erst, wenn der Node im Flow liegt. |
 | **Ausführungsprotokoll** (unten) | Live-Trace pro Node (Running/Success/Error/Skipped) inkl. Debug-Ausgaben. |
 
 ---
@@ -155,7 +155,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 
 | Aktion | So geht's |
 |---|---|
-| **Node hinzufügen** | Rechtsklick auf leere Fläche → Menü; **oder** Palette-Eintrag klicken; **oder** aus der Palette auf den Canvas ziehen. |
+| **Node hinzufügen** | Rechtsklick auf leere Fläche → Menü; **oder** aus der Palette auf den Canvas ziehen (Palette-Klick zeigt nur die Vorschau). |
 | **Subnode-Aufruf einfügen** | Subnode aus der Liste (links unten) auf den Canvas ziehen → erzeugt einen `call`-Node mit gesetztem Ziel. |
 | **Verbinden (Wire)** | Vom **Ausgangs-Port** (unten) zum **Eingangs-Port** (oben) eines anderen Nodes ziehen. Bei mehreren Ausgängen den passenden Port (then/else …) greifen. |
 | **Wire löschen** | Wire anklicken (wird rot) → `Entf`/`Backspace`; **oder** Rechtsklick auf den Wire → „Verbindung löschen". |

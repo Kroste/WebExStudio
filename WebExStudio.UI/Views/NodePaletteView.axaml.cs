@@ -89,7 +89,10 @@ public partial class NodePaletteView : UserControl
 
                 item.PointerReleased += (_, _) =>
                 {
-                    // Ein einfacher Klick fügt NICHTS ein — Nodes werden nur per Drag&Drop übertragen.
+                    // Ein einfacher Klick fügt NICHTS ein, sondern zeigt rechts eine Vorschau
+                    // (Eigenschaften + Hinweise/Beispiel). In den Flow kommt der Node nur per Drag&Drop.
+                    if (_dragDef == d && !_dragging && MainVm?.FlowEditor is { } ed)
+                        ed.PreviewDefinition = d;
                     if (_dragDef == d) { _dragDef = null; _dragging = false; }
                 };
 
