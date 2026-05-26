@@ -20,8 +20,6 @@ nuget.config
 .idea/
 *.sln.iml
 
-# VS Code
-.vscode/
 
 # Publish output
 publish/

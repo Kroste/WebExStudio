@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "WebExStudio (GUI)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/WebExStudio.UI/bin/Debug/net10.0/WebExStudio.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/WebExStudio.UI/bin/Debug/net10.0",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "webex CLI (validate f95)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/WebExStudio.Cli/bin/Debug/net10.0/webex.dll",
+            "args": [
+                "validate",
+                "-f",
+                "${workspaceFolder}/projects/f95zone/f95zoneV2.json"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
