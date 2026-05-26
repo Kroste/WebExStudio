@@ -133,6 +133,109 @@ public sealed class SleepHandler : IActionHandler
     }
 }
 
+public sealed class ScrollHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "scroll";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var selector = ctx.Fmt(node.Get("selector"));
+        var to = node.Get("to", "bottom").ToLowerInvariant();
+        var times = int.TryParse(node.Get("times", "1"), out var n) && n > 0 ? n : 1;
+        var delayMs = int.TryParse(node.Get("delay_ms", "500"), out var d) ? d : 500;
+
+        // Selektor hat Vorrang: gezielt zu einem Element scrollen.
+        if (!string.IsNullOrEmpty(selector))
+        {
+            Log.Debug("Scroll zu Element: {0}", selector);
+            await ctx.Page.Locator(selector).First.ScrollIntoViewIfNeededAsync(new() { Timeout = ctx.Config.TimeoutMs });
+            return;
+        }
+
+        // Sonst Seite nach oben/unten scrollen — mehrfaches Scrollen nach unten lädt
+        // „lazy" nachgeladene Inhalte (z. B. Forenlisten).
+        var js = to == "top" ? "window.scrollTo(0, 0)" : "window.scrollTo(0, document.body.scrollHeight)";
+        for (int i = 0; i < times; i++)
+        {
+            ctx.CancellationToken.ThrowIfCancellationRequested();
+            Log.Debug("Scroll {0} ({1}/{2})", to, i + 1, times);
+            await ctx.Page.EvaluateAsync(js);
+            if (i < times - 1 && delayMs > 0)
+                await Task.Delay(delayMs, ctx.CancellationToken);
+        }
+    }
+}
+
+public sealed class PressKeyHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "press_key";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var key = ctx.Fmt(node.Get("key"));
+        if (string.IsNullOrEmpty(key))
+        {
+            Log.Warn("press_key: keine Taste angegeben");
+            return;
+        }
+        var selector = ctx.Fmt(node.Get("selector"));
+
+        if (!string.IsNullOrEmpty(selector))
+        {
+            Log.Debug("Taste '{0}' auf {1}", key, selector);
+            await ctx.Page.Locator(selector).First.PressAsync(key, new() { Timeout = ctx.Config.TimeoutMs });
+        }
+        else
+        {
+            Log.Debug("Taste '{0}' (Seite)", key);
+            await ctx.Page.Keyboard.PressAsync(key);
+        }
+    }
+}
+
+public sealed class SelectOptionHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "select_option";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var selector = ctx.Fmt(node.Get("selector"));
+        var by = node.Get("by", "value").ToLowerInvariant();
+        var value = ctx.Fmt(node.Get("value"));
+        var locator = ctx.Page.Locator(selector).First;
+        var options = new LocatorSelectOptionOptions { Timeout = ctx.Config.TimeoutMs };
+
+        Log.Debug("select_option: {0} {1}='{2}'", selector, by, value);
+        var choice = by switch
+        {
+            "label" => new SelectOptionValue { Label = value },
+            "index" => new SelectOptionValue { Index = int.TryParse(value, out var i) ? i : 0 },
+            _ => new SelectOptionValue { Value = value },
+        };
+        await locator.SelectOptionAsync(choice, options);
+    }
+}
+
+public sealed class HoverHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "hover";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var text = ctx.Fmt(node.Get("text"));
+        var selector = ctx.Fmt(node.Get("selector"));
+        var locator = !string.IsNullOrEmpty(text)
+            ? ctx.Page.GetByText(text).First
+            : ctx.Page.Locator(selector).First;
+        Log.Debug("Hover: {0}", string.IsNullOrEmpty(text) ? selector : $"text={text}");
+        await locator.HoverAsync(new() { Timeout = ctx.Config.TimeoutMs });
+    }
+}
+
 public sealed class MenuPathHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();

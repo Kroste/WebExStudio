@@ -135,6 +135,59 @@ public static class NodeCatalog
                 new() { Key = "selector_prefix", Label = "Selektor-Präfix", Kind = PropertyKind.Text },
             ]
         },
+        new()
+        {
+            Type = "scroll", DisplayName = "Scrollen", Category = "Interaktion",
+            Description = "Scrollt die Seite nach oben/unten oder zu einem Element. Mehrfaches Scrollen "
+                + "nach unten lädt „lazy\" nachgeladene Inhalte (z. B. Forenlisten) nach.",
+            Color = "#2E7D32", Icon = "↕",
+            Example = "to = bottom, times = 3  →  scrollt dreimal ans Seitenende (lädt mehr Treffer).",
+            Properties =
+            [
+                new() { Key = "to", Label = "Ziel (top/bottom)", Kind = PropertyKind.Dropdown, DefaultValue = "bottom" },
+                new() { Key = "selector", Label = "Zu Element (Selektor, optional)", Kind = PropertyKind.Selector },
+                new() { Key = "times", Label = "Wiederholungen", Kind = PropertyKind.Number, DefaultValue = "1" },
+                new() { Key = "delay_ms", Label = "Pause zwischen (ms)", Kind = PropertyKind.Number, DefaultValue = "500" },
+            ]
+        },
+        new()
+        {
+            Type = "press_key", DisplayName = "Taste drücken", Category = "Interaktion",
+            Description = "Drückt eine (Sonder-)Taste oder Tastenkombination — z. B. Enter zum Absenden, "
+                + "Escape, Tab oder Control+A. Mit Selektor auf einem Element, sonst global.",
+            Color = "#2E7D32", Icon = "⏎",
+            Example = "key = Enter, selector = input[name=q]  →  sendet das Suchfeld ab.",
+            Properties =
+            [
+                new() { Key = "key", Label = "Taste (z. B. Enter, Escape, Control+A)", Kind = PropertyKind.Text, Required = true },
+                new() { Key = "selector", Label = "Selektor (optional)", Kind = PropertyKind.Selector },
+            ]
+        },
+        new()
+        {
+            Type = "select_option", DisplayName = "Dropdown wählen", Category = "Interaktion",
+            Description = "Wählt einen Eintrag in einem <select>-Dropdown — nach Wert, sichtbarem Text (Label) oder Index.",
+            Color = "#2E7D32", Icon = "▼",
+            Example = "selector = select#land, by = label, value = Deutschland  →  wählt „Deutschland\".",
+            Properties =
+            [
+                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true },
+                new() { Key = "by", Label = "Auswahl nach (value/label/index)", Kind = PropertyKind.Dropdown, DefaultValue = "value" },
+                new() { Key = "value", Label = "Wert / Text / Index", Kind = PropertyKind.Text, Required = true },
+            ]
+        },
+        new()
+        {
+            Type = "hover", DisplayName = "Überfahren (Hover)", Category = "Interaktion",
+            Description = "Fährt mit der Maus über ein Element (z. B. um ein Menü/Tooltip einzublenden).",
+            Color = "#2E7D32", Icon = "👆",
+            Example = "selector = .menue-eintrag  →  klappt das Untermenü auf.",
+            Properties =
+            [
+                new() { Key = "selector", Label = "Selektor", Kind = PropertyKind.Selector, Required = true, Aliases = ["xpath"] },
+                new() { Key = "text", Label = "Text (alternativ)", Kind = PropertyKind.Text },
+            ]
+        },
 
         // ── Kontrollfluss ────────────────────────────────────────────────────
         new()

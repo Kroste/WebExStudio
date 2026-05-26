@@ -30,6 +30,10 @@ public sealed class ActionRegistry
         r.Register(new WaitForHandler());
         r.Register(new SleepHandler());
         r.Register(new MenuPathHandler());
+        r.Register(new ScrollHandler());
+        r.Register(new PressKeyHandler());
+        r.Register(new SelectOptionHandler());
+        r.Register(new HoverHandler());
         r.Register(new IfThenElseHandler());
         r.Register(new ForRangeHandler());
         r.Register(new ForeachHandler());

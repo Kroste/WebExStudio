@@ -196,6 +196,10 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | ⏳ | `wait_for` | Warten auf Element | Auf Sichtbarkeit/Existenz warten. | `selector = .ergebnis, state = visible` |
 | 💤 | `sleep` | Pause | Feste Zeit warten. | `seconds = 2` |
 | 📋 | `menu_path` | Menü-Navigation | Hierarchisches Menü durchklicken/hovern. | `path = Datei, Export, PDF` |
+| ↕ | `scroll` | Scrollen | Nach oben/unten oder zu einem Element scrollen; mehrfaches Scrollen lädt „lazy" nachgeladene Inhalte. | `to = bottom, times = 3` |
+| ⏎ | `press_key` | Taste drücken | (Sonder-)Taste/Kombination drücken (Enter, Escape, Tab, `Control+A`), global oder auf einem Element. | `key = Enter, selector = input[name=q]` |
+| ▼ | `select_option` | Dropdown wählen | Eintrag in `<select>` per Wert/Label/Index wählen. | `selector = select#land, by = label, value = Deutschland` |
+| 👆 | `hover` | Überfahren (Hover) | Maus über ein Element bewegen (Menü/Tooltip einblenden). | `selector = .menue-eintrag` |
 
 ### Kontrollfluss
 | | Typ | Name | Ausgänge | Beispiel |
