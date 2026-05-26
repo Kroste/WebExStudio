@@ -50,7 +50,6 @@ public sealed class ActionRegistry
         r.Register(new DownloadUrlHandler());
         r.Register(new ScreenshotHandler());
         r.Register(new DownloadStreamHandler());
-        r.Register(new EvalJsHandler());
         r.Register(new PageFunctionHandler());
         r.Register(new SaveSessionHandler());
         r.Register(new AiQueryHandler());
@@ -59,6 +58,8 @@ public sealed class ActionRegistry
         r.Register(new CaptionHandler());
         // navigate_to is an alias for goto
         r.Register(new AliasHandler("navigate_to", r.Get("goto")!));
+        // eval_js wurde in den Function-Node (page_function) zusammengeführt — Alias für Altbestand.
+        r.Register(new AliasHandler("eval_js", r.Get("page_function")!));
         return r;
     }
 }

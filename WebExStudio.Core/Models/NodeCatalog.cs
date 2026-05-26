@@ -423,33 +423,21 @@ public static class NodeCatalog
         {
             Type = "page_function", DisplayName = "Function", Category = "Erweitert",
             Description = "Führt eine JavaScript-Funktion im Kontext der geöffneten Seite aus, um sie zu "
-                + "bearbeiten. Schreibweise: payload => { … } — das Skript bekommt den aktuellen Payload als "
-                + "Argument; gibt es ein Objekt zurück, werden dessen Felder in den Payload übernommen. "
-                + "Möglichkeiten: Hinweis/Banner einblenden, Elemente hervorheben oder entfernen, Werte zählen/"
-                + "berechnen. (Im Unterschied zu eval_js: Payload rein als Argument, Objekt-Rückgabe wird gemerged.)",
+                + "bearbeiten oder Daten zu lesen. Ohne Selektor: payload => { … }; mit Selektor: "
+                + "(element, payload) => { … }. Das Skript bekommt den aktuellen Payload als Argument. "
+                + "Rückgabe: ist 'ctx_key' gesetzt, landet der Rückgabewert dort; sonst werden bei einem "
+                + "zurückgegebenen Objekt dessen Felder in den Payload übernommen. Möglichkeiten: Hinweis/Banner "
+                + "einblenden, Elemente hervorheben/entfernen, Werte zählen/berechnen, versteckte Werte lesen. "
+                + "Hinweis: Der Code wird NICHT per {payload.x} ersetzt — nutze das payload-Argument.",
             Color = "#4527A0", Icon = "ƒ",
             Example = "code = payload => ({ anzahl: document.querySelectorAll('a').length })  →  {anzahl} im Payload.",
             Properties =
             [
-                new() { Key = "code", Label = "JavaScript-Funktion (payload => { … })", Kind = PropertyKind.Code, Required = true,
+                new() { Key = "code", Label = "JavaScript (payload => { … })", Kind = PropertyKind.Code, Required = true, Aliases = ["script"],
                         DefaultValue = "payload => {\n  // Beispiel: Hinweis einblenden\n  const d = document.createElement('div');\n  d.textContent = 'WebExStudio aktiv';\n  d.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:#222;color:#fff;padding:8px 12px;border-radius:6px;font:14px sans-serif';\n  document.body.appendChild(d);\n  return { hinweis_gesetzt: true };\n}" },
-                new() { Key = "merge", Label = "Rückgabe-Objekt in den Payload übernehmen", Kind = PropertyKind.Boolean, DefaultValue = "true" },
-            ]
-        },
-        new()
-        {
-            Type = "eval_js", DisplayName = "JavaScript ausführen", Category = "Erweitert",
-            Description = "Führt beliebiges JavaScript in der Seite aus (universeller Notausgang). "
-                + "Mit Selektor wird das Element als erstes Argument übergeben (z. B. el => el.textContent). "
-                + "Ein Rückgabewert landet — wenn 'ctx_key' gesetzt ist — im Payload (Strings roh, sonst als JSON). "
-                + "Hinweis: Das Script wird NICHT per {payload.x} ersetzt.",
-            Color = "#4527A0", Icon = "📜",
-            Example = "script = document.querySelectorAll('a').length, ctx_key = anzahl  →  {anzahl}.",
-            Properties =
-            [
-                new() { Key = "script", Label = "JavaScript", Kind = PropertyKind.Code, Required = true },
-                new() { Key = "selector", Label = "Element (Selektor, optional)", Kind = PropertyKind.Selector },
+                new() { Key = "selector", Label = "Element (Selektor, optional → (element, payload))", Kind = PropertyKind.Selector },
                 new() { Key = "ctx_key", Label = "Rückgabe → Payload-Schlüssel (optional)", Kind = PropertyKind.Text },
+                new() { Key = "merge", Label = "Rückgabe-Objekt in den Payload übernehmen", Kind = PropertyKind.Boolean, DefaultValue = "true" },
             ]
         },
         new()

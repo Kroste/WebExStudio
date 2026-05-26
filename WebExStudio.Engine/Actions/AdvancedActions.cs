@@ -103,33 +103,54 @@ public sealed class SaveSessionHandler : IActionHandler
     }
 }
 
-public sealed class EvalJsHandler : IActionHandler
+/// <summary>
+/// „Function"-Node (Node-RED-Stil): führt eine JavaScript-Funktion im Kontext der geöffneten Seite
+/// aus. Das Skript bekommt den aktuellen Payload als Argument — ohne Selektor <c>payload =&gt; { … }</c>,
+/// mit Selektor <c>(element, payload) =&gt; { … }</c>. Auswertung der Rückgabe:
+/// ist <c>ctx_key</c> gesetzt, wird der Rückgabewert dort abgelegt; sonst werden bei einem
+/// zurückgegebenen Objekt dessen Felder in den Payload übernommen (<c>merge</c>).
+/// Vereint den früheren eval_js-Node (als Alias erhalten).
+/// </summary>
+public sealed class PageFunctionHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    public string Type => "eval_js";
+    public string Type => "page_function";
 
     public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
-        var script = node.Get("script");
-        if (string.IsNullOrWhiteSpace(script))
+        // 'code' ist der bevorzugte Schlüssel; 'script' für Altbestand (ehemals eval_js).
+        var code = node.Get("code");
+        if (string.IsNullOrWhiteSpace(code)) code = node.Get("script");
+        if (string.IsNullOrWhiteSpace(code))
         {
-            Log.Warn("eval_js: kein Script angegeben");
+            Log.Warn("function: kein Code angegeben");
             return;
         }
         var ctxKey = node.Get("ctx_key");
+        var merge = node.GetBool("merge", true);
         var selector = ctx.Fmt(node.Get("selector"));
 
-        // Script wird NICHT per Fmt ersetzt — geschweifte Klammern sind in JS allgegenwärtig.
-        Log.Debug("eval_js (selector='{0}')", selector);
-        System.Text.Json.JsonElement? result = string.IsNullOrEmpty(selector)
-            ? await ctx.Page.EvaluateAsync(script)
-            : await ctx.Page.Locator(selector).First.EvaluateAsync(script);
+        // Payload als Objekt übergeben. Der Code wird NICHT per Fmt ersetzt (JS nutzt {} überall).
+        var payloadArg = new Dictionary<string, string>(ctx.Payload);
+        Log.Debug("function: führe Seiten-Skript aus (selector='{0}', {1} Payload-Schlüssel)", selector, payloadArg.Count);
+
+        var result = string.IsNullOrEmpty(selector)
+            ? await ctx.Page.EvaluateAsync(code, payloadArg)
+            : await ctx.Page.Locator(selector).First.EvaluateAsync(code, payloadArg);
 
         if (!string.IsNullOrEmpty(ctxKey))
         {
             var value = ToStringValue(result);
             ctx.Set(ctxKey, value);
-            Log.Debug("eval_js → ctx[{0}] = '{1}'", ctxKey, value);
+            Log.Debug("function → ctx[{0}] = '{1}'", ctxKey, value);
+        }
+        else if (merge)
+        {
+            foreach (var (k, v) in ObjectToPairs(result))
+            {
+                ctx.Set(k, v);
+                Log.Debug("function → ctx[{0}] = '{1}'", k, v);
+            }
         }
     }
 
@@ -144,49 +165,13 @@ public sealed class EvalJsHandler : IActionHandler
             _ => e.GetRawText(),
         };
     }
-}
-
-/// <summary>
-/// Echter „Function"-Node (Node-RED-Stil): führt eine JavaScript-Funktion im Kontext der geöffneten
-/// Seite aus. Das Skript bekommt den aktuellen Payload als Argument (<c>payload =&gt; { … }</c>) und kann
-/// die Seite manipulieren (Hinweis einblenden, Elemente entfernen/hervorheben …). Gibt das Skript ein
-/// Objekt zurück, werden dessen Felder in den Payload übernommen.
-/// </summary>
-public sealed class PageFunctionHandler : IActionHandler
-{
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    public string Type => "page_function";
-
-    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
-    {
-        var code = node.Get("code");
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            Log.Warn("function: kein Code angegeben");
-            return;
-        }
-        var merge = node.GetBool("merge", true);
-
-        // Payload als Objekt an die JS-Funktion übergeben (code = "payload => { … }").
-        var payloadArg = new Dictionary<string, string>(ctx.Payload);
-        Log.Debug("function: führe Seiten-Skript aus ({0} Payload-Schlüssel)", payloadArg.Count);
-
-        var result = await ctx.Page.EvaluateAsync(code, payloadArg);
-
-        if (merge)
-            foreach (var (k, v) in ObjectToPairs(result))
-            {
-                ctx.Set(k, v);
-                Log.Debug("function → ctx[{0}] = '{1}'", k, v);
-            }
-    }
 
     /// <summary>Ein zurückgegebenes JS-Objekt wird zu Payload-Schlüssel/Wert-Paaren (sonst leer).</summary>
     public static IEnumerable<KeyValuePair<string, string>> ObjectToPairs(System.Text.Json.JsonElement? element)
     {
         if (element is { ValueKind: System.Text.Json.JsonValueKind.Object } e)
             foreach (var p in e.EnumerateObject())
-                yield return new KeyValuePair<string, string>(p.Name, EvalJsHandler.ToStringValue(p.Value));
+                yield return new KeyValuePair<string, string>(p.Name, ToStringValue(p.Value));
     }
 }
 
