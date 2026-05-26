@@ -31,6 +31,9 @@
           <Button Content="⚙" Click="OnSettings" ToolTip.Tip="Einstellungen"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="14"/>
+          <Button Content="❓" Click="OnHelp" ToolTip.Tip="Hilfe / Kurzanleitung"
+                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
+                  Width="42" Padding="0" FontSize="14"/>
           <Button Content="ℹ" Click="OnAbout" ToolTip.Tip="Über"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="14"/>

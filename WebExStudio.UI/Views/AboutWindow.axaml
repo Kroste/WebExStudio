@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="WebExStudio.UI.Views.AboutWindow"
         Title="Über WebExStudio"
-        Width="420" Height="320"
+        Width="420" Height="370"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         WindowDecorations="None"
@@ -61,7 +61,13 @@
 
         <Border Height="1" Background="#2E2E4E" Margin="0,18" />
 
-        <TextBlock HorizontalAlignment="Center"
+        <Button Click="OnHelp" HorizontalAlignment="Center"
+                Content="📖  Hilfe / Kurzanleitung"
+                Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                Padding="14,7" FontSize="12" Cursor="Hand"
+                ToolTip.Tip="Kurzanleitung zur Bedienung öffnen" />
+
+        <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0"
                    FontSize="11" Foreground="#546E7A"
                    Text="© 2026 Landeshauptstadt Potsdam" />
       </StackPanel>

@@ -103,7 +103,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 
 | Bereich | Zweck |
 |---|---|
-| **Titelleiste** | Eigene Fensterleiste (rahmenlos): ⚙ Einstellungen, ℹ Über, — Minimieren, ▢ Max/Restore, ✕ Schließen. Doppelklick = maximieren. |
+| **Titelleiste** | Eigene Fensterleiste (rahmenlos): ⚙ Einstellungen, ❓ Hilfe, ℹ Über, — Minimieren, ▢ Max/Restore, ✕ Schließen. Doppelklick = maximieren. |
 | **Toolbar** | Neuer/öffnen/speichern, KI-Funktionen, Ausführen/Stopp/Pause/Weiter, Fit/Reset-View. |
 | **Node-Palette** (links oben) | Alle Node-Typen nach Kategorie, durchsuchbar. **Klick = Vorschau** rechts (Eigenschaften, Hinweise, Beispiel — wird nicht eingefügt); **Ziehen = in den Flow ablegen** und dort bearbeiten. |
 | **Subnodes** (links unten) | Liste aller benannten Subnodes. Doppelklick öffnet sie als Tab; ＋ neu, ✎ umbenennen, 🗑 löschen; auf den Canvas ziehen erzeugt einen `call`-Node. |
@@ -161,7 +161,11 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Wire löschen** | Wire anklicken (wird rot) → `Entf`/`Backspace`; **oder** Rechtsklick auf den Wire → „Verbindung löschen". |
 | **Node verschieben** | Node mit der linken Maustaste ziehen. |
 | **Node löschen** | Node auswählen → `Entf`; **oder** Rechtsklick → „Node löschen". |
+| **Mehrere auswählen** | **Strg**+Klick auf mehrere Nodes; **oder** auf leerer Fläche ein **Auswahlrechteck (Gummiband)** aufziehen. |
+| **Gruppieren** | ≥ 2 Nodes auswählen → Rechtsklick auf leere Fläche → **„📦 Gruppieren"**. |
+| **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"** → Name + Bezeichnung. Die Nodes wandern in einen neuen Subnode-Tab; an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
 | **Bezeichnung vergeben** | Node auswählen → Feld **„Bezeichnung"** oben im Eigenschaften-Panel. |
+| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. |
 | **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |

@@ -24,4 +24,6 @@ public partial class AboutWindow : Window
     }
 
     private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
+
+    private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow().ShowDialog(this);
 }

@@ -38,6 +38,9 @@ public partial class MainWindow : Window
     private async void OnAbout(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         await new AboutWindow().ShowDialog(this);
 
+    private async void OnHelp(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await new HelpWindow().ShowDialog(this);
+
     private async void OnSettings(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var dlg = new SettingsWindow(Vm.RunConfig, Vm.AiOptions);
