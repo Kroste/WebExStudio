@@ -107,11 +107,12 @@ public static class LegacyImporter
 
     private static (string? entry, List<Exit> exits) BuildNode(JsonElement a, Ctx ctx, string tabId)
     {
-        var type = Str(a, "type");
-        if (string.Equals(type, "navigate_to", StringComparison.OrdinalIgnoreCase)) type = "goto";
-
+        // Umbenannte/zusammengeführte Node-Typen auf die aktuellen kanonischen abbilden.
+        var type = CanonicalType(Str(a, "type"));
         var node = NewNode(type, tabId, ctx);
         var cfg = node.Config;
+        if (string.Equals(Str(a, "type"), "open_tab", StringComparison.OrdinalIgnoreCase))
+            cfg["new_tab"] = "true"; // open_tab → goto im neuen Tab
 
         switch (type.ToLowerInvariant())
         {
@@ -360,6 +361,15 @@ public static class LegacyImporter
 
     private static string ResolvePath(string projectDir, string rel) =>
         Path.IsPathRooted(rel) ? rel : Path.Combine(projectDir, rel);
+
+    /// <summary>Bildet alte/umbenannte Legacy-Action-Typen auf die aktuellen Node-Typen ab
+    /// (z. B. open_tab → goto mit new_tab, eval_js → page_function).</summary>
+    public static string CanonicalType(string type) => type.Trim().ToLowerInvariant() switch
+    {
+        "navigate_to" or "open_tab" => "goto",
+        "eval_js" => "page_function",
+        _ => type,
+    };
 
     private static string Str(JsonElement el, string name) =>
         el.TryGetProperty(name, out var v) ? ToStr(v) : "";

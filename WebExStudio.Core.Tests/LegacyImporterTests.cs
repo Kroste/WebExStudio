@@ -39,6 +39,14 @@ public class LegacyImporterTests : IDisposable
 
     public void Dispose() => Directory.Delete(_dir, recursive: true);
 
+    [Theory]
+    [InlineData("open_tab", "goto")]      // open_tab → goto (mit new_tab=true)
+    [InlineData("navigate_to", "goto")]
+    [InlineData("eval_js", "page_function")]
+    [InlineData("click", "click")]
+    public void CanonicalType_MapsRenamedNodes(string input, string expected) =>
+        Assert.Equal(expected, LegacyImporter.CanonicalType(input));
+
     [Fact]
     public void Convert_BuildsMainFunctionForeachAndNamedSubnodes()
     {
