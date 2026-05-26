@@ -230,6 +230,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 | ⬇ | `download_url` | URL herunterladen | Datei von URL laden. | `url = {payload.host}/datei.pdf` |
 | 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
 | 📜 | `eval_js` | JavaScript ausführen | Beliebiges JS in der Seite; Rückgabe optional ins Payload (`ctx_key`). Mit Selektor wird das Element als Argument übergeben. | `script = document.title, ctx_key = titel` |
+| 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. Mit der Einstellung „Sitzung wiederverwenden" wird sie beim nächsten Start geladen → Login/Captcha entfällt. | nach dem Login einfügen; Pfad leer = `session.json` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
 
 ### Anmerkung (reine Anzeige)
@@ -430,6 +431,7 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 | **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Den Download-Button mit einem `click`-Node + **`expect_download = true`** auslösen: der Node wartet auf den Download und speichert ihn mit **echtem Namen** dorthin (sonst legt Playwright ihn nur temporär mit GUID-Namen ab und löscht ihn beim Schließen). |
 | **Headless** | Browser ohne sichtbares Fenster ausführen. |
 | **Maximiert starten** | Öffnet das sichtbare Browserfenster maximiert (`--start-maximized`) und lässt die Seite die volle Fenstergröße nutzen (statt des festen 1280×720-Viewports). Wirkt nur bei Chromium-basierten Browsern (Chromium/Chrome/Edge/Brave) und nicht im Headless-Modus. Gilt für alle Tabs des Laufs, auch für per `open_tab` geöffnete. |
+| **Sitzung wiederverwenden** | Lädt beim Start eine gespeicherte Sitzung (Cookies + localStorage) aus der **Sitzungsdatei** (leer = `session.json` im Projektordner), sofern vorhanden → **Login und Captcha entfallen**. Geschrieben wird die Sitzung mit dem **`save_session`**-Node (z. B. direkt nach dem erfolgreichen Login). |
 
 **Tab „Netzwerk" (Proxy)** — gilt **für den Browser und für KI-Anfragen**:
 

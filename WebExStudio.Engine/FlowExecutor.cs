@@ -384,13 +384,31 @@ public sealed class FlowExecutor
     public static bool UseWindowViewport(RunConfig config) =>
         config.Maximized && !config.Headless;
 
-    /// <summary>Erzeugt die Kontext-Optionen (Downloads + ggf. fenstergroßer Viewport).</summary>
+    /// <summary>Erzeugt die Kontext-Optionen (Downloads, ggf. fenstergroßer Viewport, ggf. Sitzung).</summary>
     private static BrowserNewContextOptions NewContextOptions(RunConfig config, bool acceptDownloads)
     {
         var options = new BrowserNewContextOptions { AcceptDownloads = acceptDownloads };
         if (UseWindowViewport(config))
             options.ViewportSize = ViewportSize.NoViewport;
+
+        // Gespeicherte Sitzung (Cookies + localStorage) laden → Login/Captcha entfällt.
+        var session = ResolveSessionPath(config);
+        if (session is not null && File.Exists(session))
+        {
+            options.StorageStatePath = session;
+            Log.Info("Sitzung geladen: {0}", session);
+        }
         return options;
+    }
+
+    /// <summary>Pfad zur Sitzungsdatei, wenn Wiederverwendung aktiv ist — sonst null.</summary>
+    public static string? ResolveSessionPath(RunConfig config)
+    {
+        if (!config.SessionPersist) return null;
+        var path = config.SessionFile;
+        if (string.IsNullOrWhiteSpace(path))
+            return Path.Combine(string.IsNullOrEmpty(config.ProjectDir) ? "." : config.ProjectDir, "session.json");
+        return Path.IsPathRooted(path) ? path : Path.Combine(config.ProjectDir, path);
     }
 }
 

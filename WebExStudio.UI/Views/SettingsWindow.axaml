@@ -105,6 +105,18 @@
                         Foreground="#B0BEC5"/>
               <CheckBox x:Name="MaximizedBox" Content="Browserfenster maximiert starten (Chromium/Chrome/Edge/Brave)"
                         Foreground="#B0BEC5"/>
+
+              <StackPanel Spacing="4">
+                <CheckBox x:Name="SessionPersistBox"
+                          Content="Sitzung wiederverwenden (Cookies/Login) — mit „Sitzung speichern“-Node speichern"
+                          Foreground="#B0BEC5"/>
+                <TextBlock Text="Sitzungsdatei (leer = session.json im Projektordner)"
+                           FontSize="12" Foreground="#B0BEC5"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                  <TextBox Grid.Column="0" x:Name="SessionFileBox" PlaceholderText="z. B. /home/user/projekt/session.json"/>
+                  <Button Grid.Column="1" Content="…" Click="OnBrowseSession" Padding="12,0"/>
+                </Grid>
+              </StackPanel>
             </StackPanel>
           </ScrollViewer>
         </TabItem>

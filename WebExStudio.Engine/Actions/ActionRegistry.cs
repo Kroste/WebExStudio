@@ -50,6 +50,7 @@ public sealed class ActionRegistry
         r.Register(new DownloadUrlHandler());
         r.Register(new ScreenshotHandler());
         r.Register(new EvalJsHandler());
+        r.Register(new SaveSessionHandler());
         r.Register(new CaptchaGuardHandler());
         r.Register(new LabelHandler());
         r.Register(new CaptionHandler());

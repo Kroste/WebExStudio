@@ -389,6 +389,20 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "save_session", DisplayName = "Sitzung speichern", Category = "Erweitert",
+            Description = "Speichert die aktuelle Sitzung (Cookies + localStorage) in eine Datei. "
+                + "Wenn in den Einstellungen „Sitzung wiederverwenden\" aktiv ist, wird sie beim nächsten "
+                + "Start automatisch geladen → Login und Captcha entfallen. Pfad leer = Einstellungs-Pfad "
+                + "bzw. session.json im Projektordner.",
+            Color = "#4527A0", Icon = "🔐",
+            Example = "Nach erfolgreichem Login einfügen  →  nächster Lauf startet bereits angemeldet.",
+            Properties =
+            [
+                new() { Key = "path", Label = "Pfad (optional)", Kind = PropertyKind.FilePath },
+            ]
+        },
+        new()
+        {
             Type = "eval_js", DisplayName = "JavaScript ausführen", Category = "Erweitert",
             Description = "Führt beliebiges JavaScript in der Seite aus (universeller Notausgang). "
                 + "Mit Selektor wird das Element als erstes Argument übergeben (z. B. el => el.textContent). "

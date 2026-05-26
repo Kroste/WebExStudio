@@ -30,6 +30,15 @@ public sealed class RunConfig
     [JsonPropertyName("slow_mo_ms")]
     public int SlowMoMs { get; set; } = 0;
 
+    /// <summary>Sitzung (Cookies + localStorage) beim Start laden und so Login/Captcha
+    /// wiederverwenden. Geschrieben wird die Sitzung über den <c>save_session</c>-Node.</summary>
+    [JsonPropertyName("session_persist")]
+    public bool SessionPersist { get; set; } = false;
+
+    /// <summary>Pfad zur Sitzungsdatei (storageState-JSON). Leer = <c>session.json</c> im Projektordner.</summary>
+    [JsonPropertyName("session_file")]
+    public string SessionFile { get; set; } = string.Empty;
+
     [JsonPropertyName("timeout_ms")]
     public int TimeoutMs { get; set; } = 30000;
 

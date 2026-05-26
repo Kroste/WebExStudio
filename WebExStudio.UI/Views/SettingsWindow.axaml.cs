@@ -29,6 +29,8 @@ public partial class SettingsWindow : Window
         DownloadDirBox.Text = _config.DownloadDir;
         HeadlessBox.IsChecked = _config.Headless;
         MaximizedBox.IsChecked = _config.Maximized;
+        SessionPersistBox.IsChecked = _config.SessionPersist;
+        SessionFileBox.Text = _config.SessionFile;
 
         ProxyServerBox.Text = _config.ProxyServer;
         ProxyBypassBox.Text = _config.ProxyBypass;
@@ -100,6 +102,17 @@ public partial class SettingsWindow : Window
         if (folders.Count > 0) DownloadDirBox.Text = folders[0].Path.LocalPath;
     }
 
+    private async void OnBrowseSession(object? sender, RoutedEventArgs e)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Sitzungsdatei wählen",
+            SuggestedFileName = "session.json",
+            DefaultExtension = "json",
+        });
+        if (file is not null) SessionFileBox.Text = file.Path.LocalPath;
+    }
+
     private void OnSave(object? sender, RoutedEventArgs e)
     {
         _config.Browser = (BrowserBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "chromium";
@@ -109,6 +122,8 @@ public partial class SettingsWindow : Window
         _config.DownloadDir = DownloadDirBox.Text ?? string.Empty;
         _config.Headless = HeadlessBox.IsChecked == true;
         _config.Maximized = MaximizedBox.IsChecked == true;
+        _config.SessionPersist = SessionPersistBox.IsChecked == true;
+        _config.SessionFile = SessionFileBox.Text ?? string.Empty;
 
         _config.ProxyServer = ProxyServerBox.Text ?? string.Empty;
         _config.ProxyBypass = ProxyBypassBox.Text ?? string.Empty;

@@ -78,6 +78,31 @@ public sealed class ScreenshotHandler : IActionHandler
     }
 }
 
+public sealed class SaveSessionHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "save_session";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var path = ResolveSavePath(ctx.ProjectDir, ctx.Config.SessionFile, ctx.Fmt(node.Get("path")));
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+
+        Log.Info("save_session: Sitzung (Cookies + localStorage) speichern → {0}", path);
+        await ctx.Page.Context.StorageStateAsync(new BrowserContextStorageStateOptions { Path = path });
+    }
+
+    /// <summary>Zielpfad: Node-Pfad &gt; Einstellungs-Pfad &gt; <c>session.json</c> im Projektordner.</summary>
+    public static string ResolveSavePath(string projectDir, string? configFile, string? nodePath)
+    {
+        var p = !string.IsNullOrWhiteSpace(nodePath) ? nodePath
+              : !string.IsNullOrWhiteSpace(configFile) ? configFile
+              : Path.Combine(string.IsNullOrEmpty(projectDir) ? "." : projectDir, "session.json");
+        return Path.IsPathRooted(p) ? p : Path.Combine(projectDir, p);
+    }
+}
+
 public sealed class EvalJsHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
