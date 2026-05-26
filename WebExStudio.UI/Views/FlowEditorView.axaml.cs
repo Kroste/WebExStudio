@@ -140,7 +140,6 @@ public partial class FlowEditorView : UserControl
     {
         var ctrl = new NodeControl(nodeVm);
         ctrl.PointerPressed += OnNodePointerPressed;
-        ctrl.DoubleTapped += OnNodeDoubleTapped;
         ctrl.DeleteRequested += OnNodeDeleteRequested;
         _nodeControls[nodeVm.Id] = ctrl;
         Canvas.Children.Add(ctrl);
@@ -166,6 +165,21 @@ public partial class FlowEditorView : UserControl
     {
         if (sender is not NodeControl ctrl || Vm is null) return;
         Log.Debug("Node ausgewählt: {0} ({1})", ctrl.ViewModel.Id, ctrl.ViewModel.ActionType);
+
+        // Doppelklick auf einen call-Node öffnet den referenzierten Subnode. Direkt hier
+        // prüfen (statt über DoubleTapped), weil der Node-Drag den PointerPressed als Handled
+        // markiert und so die Tap-Gesten-Erkennung unterdrückt.
+        if (e.ClickCount == 2 && ctrl.ViewModel.ActionType == "call")
+        {
+            var target = ctrl.ViewModel.Model.Get("target");
+            if (Vm.OpenSubnodeByName(target))
+            {
+                Log.Info("Subnode per Doppelklick öffnen: {0}", target);
+                e.Handled = true;
+                return;
+            }
+            Log.Warn("Doppelklick auf call-Node {0}: Subnode '{1}' nicht gefunden", ctrl.ViewModel.Id, target);
+        }
 
         var ctrlKey = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         if (ctrlKey)
@@ -197,24 +211,6 @@ public partial class FlowEditorView : UserControl
         {
             Canvas.BeginNodeDrag(ctrl.ViewModel, Vm.SelectedNodes.ToList(), e.GetPosition(Canvas), e);
             e.Handled = true;
-        }
-    }
-
-    /// <summary>Doppelklick auf einen call-Node öffnet den referenzierten Subnode.</summary>
-    private void OnNodeDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is not NodeControl ctrl || Vm is null) return;
-        if (ctrl.ViewModel.ActionType != "call") return;
-
-        var target = ctrl.ViewModel.Model.Get("target");
-        if (Vm.OpenSubnodeByName(target))
-        {
-            Log.Info("Subnode per Doppelklick öffnen: {0}", target);
-            e.Handled = true;
-        }
-        else
-        {
-            Log.Warn("Doppelklick auf call-Node {0}: Subnode '{1}' nicht gefunden", ctrl.ViewModel.Id, target);
         }
     }
 
