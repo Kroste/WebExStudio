@@ -113,6 +113,46 @@ public partial class SettingsWindow : Window
         if (file is not null) SessionFileBox.Text = file.Path.LocalPath;
     }
 
+    private async void OnDetectLocalAi(object? sender, RoutedEventArgs e)
+    {
+        DetectLocalAiButton.IsEnabled = false;
+        LocalAiStatus.Text = "Suche lokale KI…";
+        try
+        {
+            // Kein Proxy für localhost — sonst scheitert die Erkennung hinter einem System-Proxy.
+            using var http = new System.Net.Http.HttpClient(new System.Net.Http.HttpClientHandler { UseProxy = false })
+            {
+                Timeout = TimeSpan.FromSeconds(8),
+            };
+            var result = await LocalLlmDetector.DetectAsync(http);
+            if (result is null)
+            {
+                LocalAiStatus.Text = "Keine lokale KI gefunden (Ollama / LM Studio / llama.cpp / Jan).";
+                return;
+            }
+
+            SelectCombo(AiProviderBox, result.Provider);
+            AiBaseUrlBox.Text = result.BaseUrl;
+            if (result.Models.Count > 0 && string.IsNullOrWhiteSpace(AiModelBox.Text))
+                AiModelBox.Text = result.Models[0];
+            // OpenAI-kompatible lokale Server akzeptieren meist einen beliebigen Key.
+            if (result.Provider == "openai" && string.IsNullOrWhiteSpace(AiApiKeyBox.Text))
+                AiApiKeyBox.Text = "local";
+
+            LocalAiStatus.Text = result.Models.Count > 0
+                ? $"Gefunden: {result.Provider} @ {result.BaseUrl} — {result.Models.Count} Modell(e): {string.Join(", ", result.Models.Take(4))}"
+                : $"Gefunden: {result.Provider} @ {result.BaseUrl} (keine Modelle installiert)";
+        }
+        catch (Exception ex)
+        {
+            LocalAiStatus.Text = $"Erkennung fehlgeschlagen: {ex.Message}";
+        }
+        finally
+        {
+            DetectLocalAiButton.IsEnabled = true;
+        }
+    }
+
     private void OnSave(object? sender, RoutedEventArgs e)
     {
         _config.Browser = (BrowserBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "chromium";

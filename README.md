@@ -509,6 +509,12 @@ Modell und Basis-URL sind pro Anbieter überschreibbar. Die Anbindung ist im Pro
 `WebExStudio.AI` über die Schnittstelle `ILlmClient` gekapselt — weitere Anbieter lassen
 sich dort ergänzen, ohne den Generator zu ändern.
 
+**Lokale KI automatisch finden:** Der Button **🔍 Lokale KI suchen** (Einstellungen → KI)
+prüft auf Knopfdruck gängige lokale LLM-Server und trägt Anbieter, Basis-URL und ein
+gefundenes Modell automatisch ein — **Ollama** (`localhost:11434`, z. B. via Pinokio) sowie
+**OpenAI-kompatible** Server **LM Studio** (`1234`), **llama.cpp** (`8080`) und **Jan** (`1337`).
+Best-Effort über diese bekannten Ports; abweichende Ports trägt man manuell ein.
+
 ### KI-Chat
 
 Der Toolbar-Button **💬 KI-Chat** öffnet ein Chat-Fenster mit der KI (mehrere Turns, der

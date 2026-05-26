@@ -170,6 +170,13 @@
                   <ComboBoxItem Content="perplexity"/>
                   <ComboBoxItem Content="ollama"/>
                 </ComboBox>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                  <Button Grid.Column="0" x:Name="DetectLocalAiButton" Content="🔍 Lokale KI suchen"
+                          Click="OnDetectLocalAi" Padding="10,4"
+                          ToolTip.Tip="Prüft lokal laufende LLM-Server (Ollama, LM Studio, llama.cpp, Jan)"/>
+                  <TextBlock Grid.Column="1" x:Name="LocalAiStatus" VerticalAlignment="Center"
+                             FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"/>
+                </Grid>
               </StackPanel>
 
               <StackPanel Spacing="4">
