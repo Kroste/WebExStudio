@@ -81,7 +81,8 @@ public sealed class FlowExecutor
         IProgress<TraceEntry>? progress = null,
         CancellationToken ct = default,
         Func<string, Task>? onPause = null,
-        Func<FlowNode, Task>? pauseGate = null)
+        Func<FlowNode, Task>? pauseGate = null,
+        Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
         ApplyDriverPath(config);
@@ -107,7 +108,7 @@ public sealed class FlowExecutor
             try
             {
                 var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
-                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach, downloads.Save);
+                var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach, downloads.Save, aiComplete);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
             finally
@@ -234,7 +235,8 @@ public sealed class FlowExecutor
         string projectDir, FlowDocument2 doc,
         IProgress<TraceEntry>? progress, CancellationToken ct,
         Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null,
-        Action<IPage>? attachDownloads = null, Func<IDownload, Task>? saveDownload = null)
+        Action<IPage>? attachDownloads = null, Func<IDownload, Task>? saveDownload = null,
+        Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)
@@ -242,6 +244,7 @@ public sealed class FlowExecutor
             Document = doc,
             AttachDownloads = attachDownloads,
             SaveDownload = saveDownload,
+            AiComplete = aiComplete,
             // call → run a named subnode's tab as a fresh wired traversal.
             RunSubTabCallback = (tabId, c) => c.Document is null
                 ? Task.CompletedTask

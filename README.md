@@ -233,6 +233,11 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 | 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. Mit der Einstellung „Sitzung wiederverwenden" wird sie beim nächsten Start geladen → Login/Captcha entfällt. | nach dem Login einfügen; Pfad leer = `session.json` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
 
+### KI
+| | Typ | Name | Zweck | Beispiel |
+|---|---|---|---|---|
+| 🧠 | `ai_query` | KI-Abfrage | Schickt den Seiteninhalt (Text/HTML, optional nur ein Element) mit einer Anweisung an die KI; Antwort → Payload (`ctx_key`). `json = true` erzwingt JSON, `max_chars` begrenzt die Textmenge. Erfordert eine konfigurierte KI (Einstellungen → KI). | `prompt = Extrahiere alle Threads als JSON {titel,url}, json = true, ctx_key = daten` |
+
 ### Anmerkung (reine Anzeige)
 | | Typ | Name | Zweck |
 |---|---|---|---|

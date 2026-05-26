@@ -432,6 +432,28 @@ public static class NodeCatalog
             ]
         },
 
+        // ── KI ───────────────────────────────────────────────────────────────
+        new()
+        {
+            Type = "ai_query", DisplayName = "KI-Abfrage", Category = "KI",
+            Description = "Schickt den Inhalt der aktuellen Seite (Text oder HTML) zusammen mit einer Anweisung "
+                + "an die KI und legt die Antwort im Payload ab. Beispiel: „Extrahiere alle Produktnamen und "
+                + "Preise als JSON.\" Mit Selektor nur ein Element senden; mit json=true reine JSON-Antwort "
+                + "erzwingen; max_chars begrenzt die gesendete Textmenge (Kosten/Token). Erfordert eine "
+                + "konfigurierte KI (Einstellungen → KI).",
+            Color = "#00838F", Icon = "🧠",
+            Example = "prompt = Extrahiere alle Threads als JSON {titel,url}, ctx_key = daten, json = true  →  {daten}.",
+            Properties =
+            [
+                new() { Key = "prompt", Label = "Anweisung an die KI", Kind = PropertyKind.MultilineText, Required = true },
+                new() { Key = "ctx_key", Label = "Antwort → Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "ai_result" },
+                new() { Key = "selector", Label = "Nur dieses Element (Selektor, optional)", Kind = PropertyKind.Selector },
+                new() { Key = "source", Label = "Inhalt (text/html)", Kind = PropertyKind.Dropdown, DefaultValue = "text" },
+                new() { Key = "max_chars", Label = "Max. Zeichen", Kind = PropertyKind.Number, DefaultValue = "12000" },
+                new() { Key = "json", Label = "JSON-Antwort erzwingen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+            ]
+        },
+
         // ── Anmerkung (reine Anzeige, keine Funktion) ─────────────────────────
         new()
         {

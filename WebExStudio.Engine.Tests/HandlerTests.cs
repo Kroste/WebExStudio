@@ -15,6 +15,22 @@ public class HandlerTests
     public void CaptchaGuard_TimeoutZeroOrNegative_MeansUnlimited(int timeoutSec, bool expected) =>
         Assert.Equal(expected, CaptchaGuardHandler.IsUnlimitedTimeout(timeoutSec));
 
+    [Theory]
+    [InlineData("kurz", 10, "kurz")]
+    [InlineData("123456789", 5, "12345\n…[gekürzt]")]
+    public void AiQuery_Truncate_LimitsLength(string input, int max, string expected) =>
+        Assert.Equal(expected, AiQueryHandler.Truncate(input, max));
+
+    [Fact]
+    public async Task AiQuery_NoClient_IsNoOp()
+    {
+        // Ohne konfigurierte KI (AiComplete == null) darf der Node nichts schreiben und nicht werfen.
+        var ctx = Ctx.Make();
+        var node = new FlowNode { Type = "ai_query", Config = new() { ["prompt"] = "extrahiere", ["ctx_key"] = "r" } };
+        await new AiQueryHandler().ExecuteAsync(ctx, node);
+        Assert.Equal("", ctx.Get("r"));
+    }
+
     [Fact]
     public void EvalJs_ToStringValue_CoercesReturnKinds()
     {

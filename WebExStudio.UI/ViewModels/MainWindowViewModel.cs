@@ -214,12 +214,25 @@ public sealed class MainWindowViewModel : ViewModelBase
                     : Environment.CurrentDirectory;
 
             var ct = _runCts.Token;
+            // KI-Callback für den ai_query-Node: baut bei Bedarf den konfigurierten LLM-Client
+            // (gleicher Proxy wie der Browser) und liefert die Antwort zurück. null = KI aus.
+            Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null;
+            if (AiOptions.IsConfigured)
+                aiComplete = async (system, user, json, token) =>
+                {
+                    using var http = ProxyFactory.CreateHttpClient(
+                        RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
+                        TimeSpan.FromMinutes(2));
+                    var client = LlmClientFactory.Create(AiOptions, http);
+                    return await client.ChatAsync(system, [new ChatMessage(ChatRole.User, user)], json, token);
+                };
+
             // Run the executor on a background thread so the UI thread stays free to
             // render node highlights; trace updates marshal back via Progress<T>.
             await Task.Run(() =>
                 executor.RunDocumentAsync(doc, RunConfig,
                     new TargetConfig { Name = "Lokal", Enabled = true },
-                    progress, ct, OnPauseRequested, PauseGateAsync), ct);
+                    progress, ct, OnPauseRequested, PauseGateAsync, aiComplete), ct);
             StatusText = "Ausführung abgeschlossen";
         }
         catch (OperationCanceledException)

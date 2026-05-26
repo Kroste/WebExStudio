@@ -60,6 +60,10 @@ public sealed class ExecutionContext
     /// <summary>Speichert einen erkannten Download im Zielordner (für expect_download-Klicks).</summary>
     public Func<IDownload, Task>? SaveDownload { get; init; }
 
+    /// <summary>Schickt (System-Prompt, User-Prompt, jsonMode) an die KI und liefert die Antwort.
+    /// Von der UI mit dem konfigurierten LLM-Client verdrahtet (null = KI nicht verfügbar).</summary>
+    public Func<string, string, bool, CancellationToken, Task<string>>? AiComplete { get; init; }
+
     public ExecutionContext(
         IPage page,
         TargetConfig target,
@@ -122,6 +126,7 @@ public sealed class ExecutionContext
             PauseGate = PauseGate,
             AttachDownloads = AttachDownloads,
             SaveDownload = SaveDownload,
+            AiComplete = AiComplete,
         };
 
     /// <summary>Creates a child context for a called tab, adding tabId to the callstack.</summary>
@@ -136,6 +141,7 @@ public sealed class ExecutionContext
             PauseGate = PauseGate,
             AttachDownloads = AttachDownloads,
             SaveDownload = SaveDownload,
+            AiComplete = AiComplete,
         };
 
     public void Report(TraceEntry entry) => _progress?.Report(entry);
