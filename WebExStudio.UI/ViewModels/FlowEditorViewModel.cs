@@ -223,6 +223,18 @@ public sealed class FlowEditorViewModel : ViewModelBase
         SwitchTab(tab);
     }
 
+    /// <summary>Öffnet den Subnode, den ein call-Node über sein 'target' referenziert
+    /// (z. B. per Doppelklick auf den Node). Gibt true zurück, wenn ein Subnode gefunden wurde.</summary>
+    public bool OpenSubnodeByName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        var sub = Subnodes.FirstOrDefault(s =>
+            string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
+        if (sub is null) return false;
+        OpenTab(sub);
+        return true;
+    }
+
     /// <summary>Closes an open tab (the main tab cannot be closed).</summary>
     public void CloseTab(FlowTabViewModel tab)
     {

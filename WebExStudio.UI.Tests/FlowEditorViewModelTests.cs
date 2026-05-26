@@ -16,6 +16,28 @@ public class FlowEditorViewModelTests
     }
 
     [Fact]
+    public void OpenSubnodeByName_OpensMatchingSubnode_AsActiveTab()
+    {
+        var vm = NewEditor();
+        var sub = vm.CreateSubnode("assets", "f95.Assets");
+        Assert.NotNull(sub);
+        // Doppelklick-Logik: call-Node referenziert den Subnode über 'target'.
+        Assert.True(vm.OpenSubnodeByName("assets"));
+        Assert.Equal(sub, vm.ActiveTab);
+        Assert.Contains(sub!, vm.OpenTabs);
+    }
+
+    [Fact]
+    public void OpenSubnodeByName_ReturnsFalse_ForUnknownOrEmpty()
+    {
+        var vm = NewEditor();
+        vm.CreateSubnode("assets", "f95.Assets");
+        Assert.False(vm.OpenSubnodeByName("does-not-exist"));
+        Assert.False(vm.OpenSubnodeByName(""));
+        Assert.False(vm.OpenSubnodeByName(null));
+    }
+
+    [Fact]
     public void NewDocument_HasMainTab_OpenAndActive()
     {
         var vm = NewEditor();

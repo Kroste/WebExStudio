@@ -119,7 +119,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 ### Flow, Tabs & Subnodes
 - Ein **Flow** ist ein einziges JSON-Dokument (Version 2) mit mehreren **Tabs** und allen **Nodes**.
 - Der **Main**-Tab ist der Einstieg. Ausführung beginnt bei allen Nodes ohne eingehende Verbindung (Entry-Nodes).
-- **Subnodes** sind benannte, wiederverwendbare Tabs (z. B. `login`, `configuration.general.identification`). Sie werden per **`call`**-Node *namentlich* aufgerufen — der `call`-Node zeigt den Subnode-Namen direkt an.
+- **Subnodes** sind benannte, wiederverwendbare Tabs (z. B. `login`, `configuration.general.identification`). Sie werden per **`call`**-Node *namentlich* aufgerufen — der `call`-Node zeigt den Subnode-Namen direkt an. **Doppelklick auf einen `call`-Node** im Flow öffnet den referenzierten Subnode als Tab.
 
 ### Nodes, Ports & Wires
 - Jeder Node hat (meist) **einen Eingang oben** und **Ausgänge unten**.
@@ -166,7 +166,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
 | **Subnode anlegen/umbenennen/löschen** | Subnodes-Panel: **＋ / ✎ / 🗑**. |
-| **Subnode öffnen** | Doppelklick im Subnodes-Panel → öffnet als Tab. |
+| **Subnode öffnen** | Doppelklick im Subnodes-Panel **oder** Doppelklick auf den `call`-Node im Flow → öffnet als Tab. |
 | **Tab schließen** | **✕** am Tab (Main bleibt immer offen). |
 
 ---
