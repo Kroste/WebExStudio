@@ -38,20 +38,6 @@ public partial class MainWindow : Window
     private void ToggleMaximize() =>
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        // F11: Vollbild umschalten. Eigener Pfad (FullScreen statt Maximized) – hilft, wenn der
-        // Fenstermanager das Maximieren randloser Fenster nicht zuverlässig umsetzt
-        // (z. B. unter manchen Wayland-Compositors).
-        if (e.Key == Key.F11)
-        {
-            WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
-            e.Handled = true;
-            return;
-        }
-        base.OnKeyDown(e);
-    }
-
     private void OnCloseWindow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Close();
 
@@ -176,13 +162,22 @@ public partial class MainWindow : Window
     private async void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         await RunFlowAsync();
 
-    /// <summary>F5 startet den Flow (wie der ▶-Button).</summary>
+    /// <summary>F5 startet den Flow (wie der ▶-Button); F11 schaltet Vollbild um.</summary>
     protected override async void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.F5)
         {
             e.Handled = true;
             await RunFlowAsync();
+            return;
+        }
+        // F11: Vollbild umschalten. Eigener Pfad (FullScreen statt Maximized) – hilft, wenn der
+        // Fenstermanager das Maximieren randloser Fenster nicht zuverlässig umsetzt
+        // (z. B. unter manchen Wayland-Compositors).
+        if (e.Key == Key.F11)
+        {
+            WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
+            e.Handled = true;
             return;
         }
         base.OnKeyDown(e);
