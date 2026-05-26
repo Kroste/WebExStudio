@@ -34,11 +34,15 @@ public partial class FlowEditorView : UserControl
         DataContextChanged += OnDataContextChanged;
         PointerPressed += OnCanvasPointerPressed;
 
-        // Palette drag-and-drop target
-        DragDrop.SetAllowDrop(Canvas, true);
-        Canvas.AddHandler(DragDrop.DragOverEvent, OnDragOver);
-        Canvas.AddHandler(DragDrop.DropEvent, OnDrop);
-        Canvas.AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
+        // Drop-Ziel ist die untransformierte Viewport-Fläche (CanvasArea), NICHT der gezoomte/
+        // gescrollte NodeCanvas: dessen Trefferfläche ist nach Zoom/Scroll nur ein verschobenes
+        // Band. Außerhalb davon kam Drag&Drop aus der Palette nicht mehr an (Ghost verschwand,
+        // kein Drop). CanvasArea deckt immer das ganze Sichtfeld ab; die Drop-Position wird
+        // ohnehin relativ zu CanvasArea gemessen und per CanvasToWorld umgerechnet.
+        DragDrop.SetAllowDrop(CanvasArea, true);
+        CanvasArea.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        CanvasArea.AddHandler(DragDrop.DropEvent, OnDrop);
+        CanvasArea.AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
     }
 
     /// <summary>Mausrad auf der untransformierten Viewport-Fläche → an den Canvas weiterreichen.</summary>
