@@ -229,7 +229,7 @@ public partial class FlowEditorView : UserControl
             && outPort < 0
             && !ctrl.IsOnInputPort(pos))
         {
-            Canvas.BeginNodeDrag(ctrl.ViewModel, Vm.SelectedNodes.ToList(), e.GetPosition(Canvas), e);
+            Canvas.BeginNodeDrag(ctrl.ViewModel, Vm.SelectedNodes.ToList(), e.GetPosition(CanvasArea), e);
             e.Handled = true;
         }
     }
@@ -310,7 +310,7 @@ public partial class FlowEditorView : UserControl
             {
                 var members = MembersOf(t.Group);
                 if (members.Count > 0)
-                    Canvas.BeginNodeDrag(members[0], members, t.Args.GetPosition(Canvas), t.Args);
+                    Canvas.BeginNodeDrag(members[0], members, t.Args.GetPosition(CanvasArea), t.Args);
             };
             _groupControls[g.Id] = ctrl;
             Canvas.Children.Add(ctrl);
@@ -351,7 +351,8 @@ public partial class FlowEditorView : UserControl
 
         Focus();
         var props = e.GetCurrentPoint(this).Properties;
-        var canvasPos = e.GetPosition(Canvas);
+        // Position relativ zur untransformierten Viewport-Fläche messen (siehe NodeCanvas.ViewportPos).
+        var canvasPos = e.GetPosition(CanvasArea);
         var hitWire = ConnectionRenderer.HitTest(Canvas.CanvasToWorld(canvasPos));
 
         if (props.IsRightButtonPressed)
@@ -488,7 +489,7 @@ public partial class FlowEditorView : UserControl
     {
         DragGhost.IsVisible = false;
         if (Vm is null) return;
-        var world = Canvas.CanvasToWorld(e.GetPosition(Canvas));
+        var world = Canvas.CanvasToWorld(e.GetPosition(CanvasArea));
 
         // Subnode dragged from the list → create a call node targeting it.
         if (e.DataTransfer.TryGetValue(SubnodePanelView.SubnodeNameFormat) is string subnode && !string.IsNullOrEmpty(subnode))

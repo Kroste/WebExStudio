@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Controls;
@@ -90,11 +91,21 @@ public sealed class NodeCanvas : Canvas
         UpdateTransform();
     }
 
-    public Point CanvasToWorld(Point screen) =>
-        new((screen.X - _panOffsetX) / _scale, (screen.Y - _panOffsetY) / _scale);
+    /// <summary>Aktuelle Zoom-/Pan-Transformation als reiner (testbarer) Wert.</summary>
+    private ViewTransform View => new(_scale, _panOffsetX, _panOffsetY);
 
-    public Point WorldToCanvas(Point world) =>
-        new(world.X * _scale + _panOffsetX, world.Y * _scale + _panOffsetY);
+    public Point CanvasToWorld(Point viewport) => View.ToWorld(viewport);
+
+    public Point WorldToCanvas(Point world) => View.ToScreen(world);
+
+    /// <summary>
+    /// Zeiger-Position im <b>untransformierten</b> Viewport (Eltern-Container). Notwendig, weil
+    /// <c>GetPosition(this)</c> wegen des RenderTransforms bereits Welt-Koordinaten liefert –
+    /// die dürfen nicht noch einmal durch <see cref="CanvasToWorld"/>. Relativ zum Eltern-
+    /// Element gemessen erhalten wir hingegen echte Viewport-Koordinaten.
+    /// </summary>
+    private Point ViewportPos(PointerEventArgs e) =>
+        e.GetCurrentPoint(this.GetVisualParent() ?? this).Position;
 
     internal void BeginNodeDrag(NodeViewModel node, IEnumerable<NodeViewModel> alsoMove, Point canvasPos, PointerPressedEventArgs e)
     {
@@ -156,11 +167,12 @@ public sealed class NodeCanvas : Canvas
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var pt = e.GetCurrentPoint(this);
+        var viewport = ViewportPos(e);
         if (pt.Properties.IsMiddleButtonPressed ||
             (pt.Properties.IsLeftButtonPressed && e.KeyModifiers.HasFlag(KeyModifiers.Alt)))
         {
             _isPanning = true;
-            _panStart = pt.Position;
+            _panStart = viewport;
             e.Pointer.Capture(this);
             e.Handled = true;
         }
@@ -169,13 +181,13 @@ public sealed class NodeCanvas : Canvas
             // Plain left press on empty canvas: arm a rubber-band. We don't capture or handle
             // yet so the view still gets the click for wire selection; a drag promotes it.
             _rubberPending = true;
-            _rubberStartWorld = CanvasToWorld(pt.Position);
+            _rubberStartWorld = CanvasToWorld(viewport);
         }
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        var pos = e.GetCurrentPoint(this).Position;
+        var pos = ViewportPos(e);
 
         if (_isPanning)
         {
@@ -233,7 +245,7 @@ public sealed class NodeCanvas : Canvas
         if (_wireDragSource is not null)
         {
             e.Pointer.Capture(null);
-            var worldPos = CanvasToWorld(e.GetPosition(this));
+            var worldPos = CanvasToWorld(ViewportPos(e));
             WireDropped?.Invoke(this, new WireDropEventArgs(_wireDragSource, _wireDragOutputPort, worldPos));
             _wireDragSource = null;
             ConnectionRenderer?.ClearDragPreview();
@@ -242,7 +254,7 @@ public sealed class NodeCanvas : Canvas
         else if (_rubberActive)
         {
             e.Pointer.Capture(null);
-            var rect = Normalize(_rubberStartWorld, CanvasToWorld(e.GetPosition(this)));
+            var rect = Normalize(_rubberStartWorld, CanvasToWorld(ViewportPos(e)));
             ConnectionRenderer?.ClearSelectionRect();
             SelectionCompleted?.Invoke(this, rect);
             e.Handled = true;
@@ -267,12 +279,10 @@ public sealed class NodeCanvas : Canvas
     {
         if (mods.HasFlag(KeyModifiers.Control))
         {
-            var d = Math.Pow(1.1, delta.Y);
-            var newScale = Math.Clamp(_scale * d, MinScale, MaxScale);
-            var factor = newScale / _scale;
-            _panOffsetX = pos.X - factor * (pos.X - _panOffsetX);
-            _panOffsetY = pos.Y - factor * (pos.Y - _panOffsetY);
-            _scale = newScale;
+            var zoomed = View.ZoomAround(pos, Math.Pow(1.1, delta.Y), MinScale, MaxScale);
+            _scale = zoomed.Scale;
+            _panOffsetX = zoomed.PanX;
+            _panOffsetY = zoomed.PanY;
         }
         else if (mods.HasFlag(KeyModifiers.Shift))
         {
