@@ -89,9 +89,7 @@ public partial class NodePaletteView : UserControl
 
                 item.PointerReleased += (_, _) =>
                 {
-                    // Plain click (no drag) → add at a cascading default position
-                    if (_dragDef == d && !_dragging)
-                        MainVm?.FlowEditor.AddNode(d.Type, 200, 80 + MainVm.FlowEditor.Nodes.Count * 90.0);
+                    // Ein einfacher Klick fügt NICHTS ein — Nodes werden nur per Drag&Drop übertragen.
                     if (_dragDef == d) { _dragDef = null; _dragging = false; }
                 };
 

@@ -29,6 +29,7 @@ public class ActionRegistryTests
     [InlineData("screenshot")]
     [InlineData("eval_js")]
     [InlineData("save_session")]
+    [InlineData("use_session")]
     [InlineData("ai_query")]
     [InlineData("download_stream")]
     [InlineData("page_function")]

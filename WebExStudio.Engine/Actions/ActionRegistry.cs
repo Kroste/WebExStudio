@@ -52,6 +52,7 @@ public sealed class ActionRegistry
         r.Register(new DownloadStreamHandler());
         r.Register(new PageFunctionHandler());
         r.Register(new SaveSessionHandler());
+        r.Register(new UseSessionHandler());
         r.Register(new AiQueryHandler());
         r.Register(new CaptchaGuardHandler());
         r.Register(new LabelHandler());

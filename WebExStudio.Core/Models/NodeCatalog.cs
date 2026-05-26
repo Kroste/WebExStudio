@@ -411,6 +411,23 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "use_session", DisplayName = "Sitzung verwenden", Category = "Erweitert",
+            Description = "Prüft, ob eine gespeicherte Sitzung existiert (und – bei max_age_hours > 0 – nicht "
+                + "zu alt ist). Falls ja, werden deren Cookies in den laufenden Browser geladen und der "
+                + "Ausgang 'geladen' genommen; sonst 'keine Sitzung'. Damit: bei vorhandener Sitzung direkt "
+                + "zur Seite navigieren, sonst den Login ausführen (und mit save_session sichern). "
+                + "localStorage wird nicht wiederhergestellt — für cookie-basierte Logins.",
+            Color = "#4527A0", Icon = "🔓",
+            OutputPorts = 2, OutputLabels = ["geladen", "keine Sitzung"],
+            Example = "Ausgang 'geladen' → Navigate zur Seite; Ausgang 'keine Sitzung' → Login + save_session.",
+            Properties =
+            [
+                new() { Key = "path", Label = "Pfad (optional, leer = Einstellungs-Pfad)", Kind = PropertyKind.FilePath },
+                new() { Key = "max_age_hours", Label = "Max. Alter in Stunden (0 = unbegrenzt)", Kind = PropertyKind.Number, DefaultValue = "0" },
+            ]
+        },
+        new()
+        {
             Type = "save_session", DisplayName = "Sitzung speichern", Category = "Erweitert",
             Description = "Speichert die aktuelle Sitzung (Cookies + localStorage) in eine Datei. "
                 + "Wenn in den Einstellungen „Sitzung wiederverwenden\" aktiv ist, wird sie beim nächsten "
