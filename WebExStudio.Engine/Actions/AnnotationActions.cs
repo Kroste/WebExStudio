@@ -15,3 +15,10 @@ public sealed class CaptionHandler : IActionHandler
     public string Type => "caption";
     public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) => Task.CompletedTask;
 }
+
+/// <summary>Visual-only annotation node (Überschrift oder Kommentar je nach 'style'), tut nichts.</summary>
+public sealed class NoteHandler : IActionHandler
+{
+    public string Type => "note";
+    public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) => Task.CompletedTask;
+}

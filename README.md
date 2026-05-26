@@ -242,8 +242,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 ### Anmerkung (reine Anzeige)
 | | Typ | Name | Zweck |
 |---|---|---|---|
-| 🏷 | `caption` | Caption / Überschrift | Große Überschrift auf der Fläche. |
-| 💬 | `label` | Label / Kommentar | Kommentartext auf der Fläche. |
+| 🏷 | `note` | Notiz | Text auf der Fläche: `style = heading` (große Überschrift) oder `comment` (Kommentar). Ersetzt die früheren `caption`/`label` (bleiben als Alias). |
 
 ---
 

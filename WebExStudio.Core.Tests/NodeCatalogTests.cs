@@ -35,12 +35,9 @@ public class NodeCatalogTests
     [Fact]
     public void Annotations_HaveNoPorts()
     {
-        foreach (var t in new[] { "label", "caption" })
-        {
-            var def = NodeCatalog.Get(t)!;
-            Assert.Equal(0, def.InputPorts);
-            Assert.Equal(0, def.OutputPorts);
-        }
+        var def = NodeCatalog.Get("note")!;
+        Assert.Equal(0, def.InputPorts);
+        Assert.Equal(0, def.OutputPorts);
     }
 
     [Fact]
@@ -52,7 +49,8 @@ public class NodeCatalogTests
     [Fact]
     public void EveryNode_HasDescriptionAndExample()
     {
-        foreach (var def in NodeCatalog.All)
+        // Versteckte/veraltete Alias-Nodes (z. B. caption/label) brauchen kein Beispiel.
+        foreach (var def in NodeCatalog.All.Where(d => !d.Hidden))
         {
             Assert.False(string.IsNullOrWhiteSpace(def.Description), $"{def.Type} ohne Beschreibung");
             Assert.False(string.IsNullOrWhiteSpace(def.Example), $"{def.Type} ohne Beispiel");

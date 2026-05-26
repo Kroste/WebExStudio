@@ -423,7 +423,7 @@ public partial class FlowEditorView : UserControl
         foreach (var category in Core.Models.NodeCatalog.Categories)
         {
             var header = new MenuItem { Header = category };
-            foreach (var def in Core.Models.NodeCatalog.GetByCategory(category))
+            foreach (var def in Core.Models.NodeCatalog.GetByCategory(category).Where(d => !d.Hidden))
             {
                 var d = def;
                 var item = new MenuItem { Header = $"{d.Icon}  {d.DisplayName}" };

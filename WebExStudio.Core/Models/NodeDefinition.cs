@@ -26,6 +26,10 @@ public sealed class NodeDefinition
 
     /// <summary>Labels for each output port (e.g. ["then","else"]). May be empty.</summary>
     public string[] OutputLabels { get; init; } = [];
+
+    /// <summary>Veraltete/ersetzte Typen: weiterhin gültig (Validierung, Laden alter Flows),
+    /// aber nicht in der Palette/im Hinzufügen-Menü sichtbar.</summary>
+    public bool Hidden { get; init; } = false;
 }
 
 public sealed class PropertyDefinition

@@ -56,6 +56,7 @@ public sealed class ActionRegistry
         r.Register(new CaptchaGuardHandler());
         r.Register(new LabelHandler());
         r.Register(new CaptionHandler());
+        r.Register(new NoteHandler());
         // navigate_to is an alias for goto
         r.Register(new AliasHandler("navigate_to", r.Get("goto")!));
         // eval_js wurde in den Function-Node (page_function) zusammengeführt — Alias für Altbestand.

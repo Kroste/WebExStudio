@@ -41,6 +41,7 @@ public partial class NodePaletteView : UserControl
         PaletteContent.Children.Clear();
 
         var filtered = NodeCatalog.All
+            .Where(d => !d.Hidden)
             .Where(d => string.IsNullOrEmpty(_search) ||
                         d.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
                         d.Type.Contains(_search, StringComparison.OrdinalIgnoreCase));

@@ -179,7 +179,7 @@ public static class FlowValidator
     // ── Helfer ─────────────────────────────────────────────────────────────────
 
     private static bool IsAnnotation(string type) =>
-        type is "label" or "caption";
+        type is "label" or "caption" or "note";
 
     private static bool HasValue(FlowNode node, PropertyDefinition prop)
     {

@@ -116,10 +116,12 @@ public sealed class NodeControl : Panel
                 }
             }
         };
-        // Annotation nodes (label/caption): text only, no box, no ports.
+        // Annotation nodes (note, früher label/caption): text only, no box, no ports.
         if (vm.IsAnnotation)
         {
-            var isCaption = vm.ActionType == "caption";
+            // Überschrift: altes caption ODER neues note mit style=heading.
+            var isCaption = vm.ActionType == "caption"
+                || (vm.ActionType == "note" && vm.Model.Get("style") == "heading");
             Width = 280;
             Height = isCaption ? 48 : 60;
             _annotation = new TextBlock

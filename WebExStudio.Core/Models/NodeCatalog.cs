@@ -481,27 +481,35 @@ public static class NodeCatalog
         // ── Anmerkung (reine Anzeige, keine Funktion) ─────────────────────────
         new()
         {
-            Type = "caption", DisplayName = "Caption / Überschrift", Category = "Anmerkung",
-            Description = "Zeigt eine große Überschrift auf der Arbeitsfläche an. Keine Funktion.",
+            Type = "note", DisplayName = "Notiz", Category = "Anmerkung",
+            Description = "Zeigt Text auf der Arbeitsfläche an (keine Funktion). Stil 'heading' = große "
+                + "Überschrift, 'comment' = kleiner Kommentar. Ersetzt die früheren caption/label-Nodes "
+                + "(die als Alias erhalten bleiben).",
             Color = "#37474F", Icon = "🏷",
             InputPorts = 0, OutputPorts = 0,
-            Example = "text = Konfiguration  →  große Überschrift zur Gliederung des Flows.",
+            Example = "style = heading, text = Konfiguration  →  große Überschrift zur Gliederung des Flows.",
             Properties =
             [
-                new() { Key = "text", Label = "Text", Kind = PropertyKind.Text, DefaultValue = "Überschrift" },
+                new() { Key = "style", Label = "Stil (heading/comment)", Kind = PropertyKind.Dropdown, DefaultValue = "comment" },
+                new() { Key = "text", Label = "Text", Kind = PropertyKind.MultilineText, DefaultValue = "Kommentar" },
             ]
+        },
+        // Ersetzt durch 'note' — als versteckte Aliase erhalten, damit alte Flows gültig bleiben.
+        new()
+        {
+            Type = "caption", DisplayName = "Caption / Überschrift", Category = "Anmerkung", Hidden = true,
+            Description = "Zeigt eine große Überschrift auf der Arbeitsfläche an. Keine Funktion. (Ersetzt durch 'note'.)",
+            Color = "#37474F", Icon = "🏷",
+            InputPorts = 0, OutputPorts = 0,
+            Properties = [ new() { Key = "text", Label = "Text", Kind = PropertyKind.Text, DefaultValue = "Überschrift" } ]
         },
         new()
         {
-            Type = "label", DisplayName = "Label / Kommentar", Category = "Anmerkung",
-            Description = "Zeigt einen Kommentartext auf der Arbeitsfläche an. Keine Funktion.",
+            Type = "label", DisplayName = "Label / Kommentar", Category = "Anmerkung", Hidden = true,
+            Description = "Zeigt einen Kommentartext auf der Arbeitsfläche an. Keine Funktion. (Ersetzt durch 'note'.)",
             Color = "#37474F", Icon = "💬",
             InputPorts = 0, OutputPorts = 0,
-            Example = "text = Hier wird eingeloggt  →  kleiner Kommentar zur Erläuterung.",
-            Properties =
-            [
-                new() { Key = "text", Label = "Text", Kind = PropertyKind.MultilineText, DefaultValue = "Kommentar" },
-            ]
+            Properties = [ new() { Key = "text", Label = "Text", Kind = PropertyKind.MultilineText, DefaultValue = "Kommentar" } ]
         },
     ];
 

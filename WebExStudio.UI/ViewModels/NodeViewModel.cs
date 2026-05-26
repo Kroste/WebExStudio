@@ -112,8 +112,8 @@ public sealed class NodeViewModel : ViewModelBase
         return new Point(x, Y + Height);
     }
 
-    /// <summary>Visual-only annotation node (label/caption) — no ports, no execution.</summary>
-    public bool IsAnnotation => ActionType is "label" or "caption";
+    /// <summary>Visual-only annotation node (note, früher label/caption) — no ports, no execution.</summary>
+    public bool IsAnnotation => ActionType is "label" or "caption" or "note";
 
     /// <summary>The on-canvas title. A call node shows the referenced subnode's name.</summary>
     public string Title =>

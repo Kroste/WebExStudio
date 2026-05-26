@@ -42,6 +42,7 @@ public class ActionRegistryTests
     [InlineData("captcha_guard")]
     [InlineData("label")]
     [InlineData("caption")]
+    [InlineData("note")]
     [InlineData("navigate_to")] // alias for goto
     public void CreateDefault_RegistersHandler(string type)
     {
