@@ -19,6 +19,7 @@
 - [Beispiele](#beispiele)
 - [Payload & Platzhalter](#payload--platzhalter)
 - [Anmeldedaten-Tresor (Secrets)](#anmeldedaten-tresor-secrets)
+- [Plugins (eigene Nodes)](#plugins-eigene-nodes)
 - [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
 - [Logging](#logging)
 - [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
@@ -585,6 +586,41 @@ künftig automatisch berücksichtigen. Hinweise kurz halten, damit die KI sie gu
 
 Im **KI-Chat** hat jede Antwort einen Knopf **„📌 Als Hinweis merken"** — er übernimmt die
 (gekürzte) Antwort direkt in die Hinweisliste (danach in den Einstellungen editierbar).
+
+---
+
+## Plugins (eigene Nodes)
+
+Eigene Node-Typen lassen sich als Plugin nachladen — ohne die App neu zu bauen.
+
+**Ein Plugin schreiben:**
+1. Klassenbibliothek (`net10.0`) anlegen, die **`WebExStudio.Core`** und **`WebExStudio.Engine`** referenziert.
+2. Pro Node einen `IActionHandler` implementieren (`string Type` + `ExecuteAsync(ExecutionContext, FlowNode)`)
+   und eine `NodeDefinition` (Metadaten für Palette/Eigenschaften) bereitstellen.
+3. Eine Klasse mit **`INodePlugin`** (parameterloser Konstruktor) implementieren, die beide als
+   `NodePluginNode(Definition, Handler)` zurückgibt.
+
+```csharp
+public sealed class MyPlugin : INodePlugin
+{
+    public IEnumerable<NodePluginNode> CreateNodes() =>
+    [
+        new(new NodeDefinition { Type = "my_hello", DisplayName = "Hallo", Category = "Plugins",
+                                 Description = "…", Example = "…",
+                                 Properties = [ new() { Key = "text", Label = "Text", Kind = PropertyKind.Text } ] },
+            new MyHelloHandler()),
+    ];
+}
+```
+
+**Laden:** Die kompilierte DLL in einen `plugins/`-Ordner legen — neben der Anwendung **oder** unter
+`%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). Beim Start wird sie geladen;
+die Nodes erscheinen in **Palette, Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
+
+> **Sicherheit:** Plugins sind **beliebiger Code mit vollen App-Rechten** (Browser, Datei, Netz) — nur
+> vertrauenswürdige Plugins laden. Sie müssen gegen die **passende Core/Engine-Version** kompiliert sein;
+> ein bereits vorhandener Node-Typ wird nicht überschrieben. Eigene Property-Editoren gibt es (noch) nicht —
+> nur die vorhandenen Feldtypen.
 
 ---
 

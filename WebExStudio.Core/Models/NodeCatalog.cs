@@ -554,6 +554,17 @@ public static class NodeCatalog
 
     public static IReadOnlyList<NodeDefinition> All => _all;
 
+    /// <summary>Registriert einen zusätzlichen Node-Typ (z. B. aus einem Plugin). Bereits vorhandene
+    /// Typen werden NICHT überschrieben (Built-ins haben Vorrang). True, wenn neu aufgenommen.</summary>
+    public static bool Register(NodeDefinition def)
+    {
+        if (def is null || string.IsNullOrWhiteSpace(def.Type) || _byType.ContainsKey(def.Type))
+            return false;
+        _all.Add(def);
+        _byType[def.Type] = def;
+        return true;
+    }
+
     public static IEnumerable<string> Categories =>
         _all.Select(d => d.Category).Distinct();
 

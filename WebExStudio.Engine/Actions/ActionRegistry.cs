@@ -18,6 +18,12 @@ public sealed class ActionRegistry
 
     public IReadOnlyCollection<IActionHandler> All => _handlers.Values;
 
+    /// <summary>Von Plugins beigesteuerte Handler — werden in jede neue Default-Registry aufgenommen.</summary>
+    private static readonly List<IActionHandler> _pluginHandlers = [];
+
+    /// <summary>Registriert einen Handler aus einem Plugin (siehe NodePluginLoader).</summary>
+    public static void RegisterPlugin(IActionHandler handler) => _pluginHandlers.Add(handler);
+
     public static ActionRegistry CreateDefault()
     {
         var r = new ActionRegistry();
@@ -64,6 +70,9 @@ public sealed class ActionRegistry
         r.Register(new AliasHandler("eval_js", r.Get("page_function")!));
         // credential_store ist nur ein Marker/Anker im Flow (entsperrt wird beim Start) → No-Op.
         r.Register(new AliasHandler("credential_store", r.Get("noop")!));
+        // Von Plugins beigesteuerte Handler (überschreiben keine Built-ins — Register ersetzt nur gleiche Typen).
+        foreach (var h in _pluginHandlers)
+            if (r.Get(h.Type) is null) r.Register(h);
         return r;
     }
 }
