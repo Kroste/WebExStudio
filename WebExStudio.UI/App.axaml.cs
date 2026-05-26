@@ -17,9 +17,9 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Plugins VOR dem ViewModel laden, damit die Palette die zusätzlichen Nodes kennt.
-            NodePluginLoader.LoadAndRegister(
-                Path.Combine(AppContext.BaseDirectory, "plugins"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WebExStudio", "plugins"));
+            var disabled = new HashSet<string>(AppSettings.LoadDisabledPlugins(), StringComparer.OrdinalIgnoreCase);
+            NodePluginLoader.IsDisabled = disabled.Contains;
+            NodePluginLoader.LoadAndRegister(AppSettings.PluginDirs);
 
             var vm = new MainWindowViewModel();
             AppSettings.Load(vm.RunConfig);

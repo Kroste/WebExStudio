@@ -32,6 +32,13 @@ public static class AppSettings
     /// <summary>Pfad zur verschlüsselten Anmeldedaten-Tresor-Datei.</summary>
     public static string CredentialVaultPath => Path.Combine(ConfigDir, "credentials.enc");
 
+    /// <summary>Plugin-Ordner: neben der Anwendung und im Konfig-Ordner (beide werden durchsucht).</summary>
+    public static string[] PluginDirs =>
+    [
+        Path.Combine(AppContext.BaseDirectory, "plugins"),
+        Path.Combine(ConfigDir, "plugins"),
+    ];
+
     private sealed class Model
     {
         public string Browser { get; set; } = "chromium";
@@ -61,6 +68,9 @@ public static class AppSettings
         // Oberfläche
         public bool SuggestionsEnabled { get; set; } = true;
         public List<string> RecentFiles { get; set; } = [];
+
+        // Plugins (Dateinamen deaktivierter Plugins)
+        public List<string> DisabledPlugins { get; set; } = [];
     }
 
     private static Model ReadModel()
@@ -158,6 +168,15 @@ public static class AppSettings
     {
         var m = ReadModel();
         m.RecentFiles = files;
+        WriteModel(m);
+    }
+
+    public static List<string> LoadDisabledPlugins() => ReadModel().DisabledPlugins;
+
+    public static void SaveDisabledPlugins(List<string> files)
+    {
+        var m = ReadModel();
+        m.DisabledPlugins = files;
         WriteModel(m);
     }
 

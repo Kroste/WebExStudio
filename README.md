@@ -613,14 +613,24 @@ public sealed class MyPlugin : INodePlugin
 }
 ```
 
+Optional die Ziel-API-Version markieren, damit der Loader bei Inkompatibilität warnt:
+```csharp
+[assembly: WebExStudioPlugin(PluginApi.Version)]
+```
+
 **Laden:** Die kompilierte DLL in einen `plugins/`-Ordner legen — neben der Anwendung **oder** unter
-`%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). Beim Start wird sie geladen;
-die Nodes erscheinen in **Palette, Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
+`%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). Beim Start wird sie in einem
+**isolierten Ladekontext** (`AssemblyLoadContext`) geladen: gemeinsame Host-Assemblies (WebExStudio, System,
+Avalonia, NLog) teilt sie mit der App, eigene Abhängigkeiten kommen über die `*.deps.json` des Plugins —
+so kollidieren Plugin-Bibliotheken nicht mit denen der App. Die Nodes erscheinen in **Palette,
+Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
+
+**Verwalten:** Über-Fenster (**ℹ**) → **🧩 Plugins** zeigt die gefundenen Plugins mit Status und erlaubt
+**Aktivieren/Deaktivieren** (wirkt nach Neustart) sowie das Öffnen des Plugin-Ordners.
 
 > **Sicherheit:** Plugins sind **beliebiger Code mit vollen App-Rechten** (Browser, Datei, Netz) — nur
-> vertrauenswürdige Plugins laden. Sie müssen gegen die **passende Core/Engine-Version** kompiliert sein;
-> ein bereits vorhandener Node-Typ wird nicht überschrieben. Eigene Property-Editoren gibt es (noch) nicht —
-> nur die vorhandenen Feldtypen.
+> vertrauenswürdige Plugins laden; es gibt keine Sandbox. Ein bereits vorhandener Node-Typ wird nicht
+> überschrieben. Eigene Property-Editoren gibt es (noch) nicht — nur die vorhandenen Feldtypen.
 
 ---
 

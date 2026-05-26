@@ -16,3 +16,18 @@ public interface INodePlugin
     /// <summary>Liefert die Nodes dieses Plugins (Definition + Handler).</summary>
     IEnumerable<NodePluginNode> CreateNodes();
 }
+
+/// <summary>Aktuelle Plugin-API-Version. Plugins markieren ihre Ziel-Version mit
+/// <see cref="WebExStudioPluginAttribute"/>; bei Abweichung warnt der Loader.</summary>
+public static class PluginApi
+{
+    public const int Version = 1;
+}
+
+/// <summary>Optionales Assembly-Attribut: gegen welche Plugin-API-Version wurde gebaut.
+/// Beispiel: <c>[assembly: WebExStudioPlugin(PluginApi.Version)]</c>.</summary>
+[AttributeUsage(AttributeTargets.Assembly)]
+public sealed class WebExStudioPluginAttribute(int apiVersion) : Attribute
+{
+    public int ApiVersion { get; } = apiVersion;
+}

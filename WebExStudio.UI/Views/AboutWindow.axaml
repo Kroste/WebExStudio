@@ -65,11 +65,18 @@
 
         <Border Height="1" Background="#2E2E4E" Margin="0,18" />
 
-        <Button Click="OnHelp" HorizontalAlignment="Center"
-                Content="📖  Hilfe / Kurzanleitung"
-                Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
-                Padding="14,7" FontSize="12" Cursor="Hand"
-                ToolTip.Tip="Kurzanleitung zur Bedienung öffnen" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+          <Button Click="OnHelp"
+                  Content="📖  Hilfe / Kurzanleitung"
+                  Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                  Padding="14,7" FontSize="12" Cursor="Hand"
+                  ToolTip.Tip="Kurzanleitung zur Bedienung öffnen" />
+          <Button Click="OnPlugins"
+                  Content="🧩  Plugins"
+                  Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                  Padding="14,7" FontSize="12" Cursor="Hand"
+                  ToolTip.Tip="Geladene Plugins anzeigen / aktivieren" />
+        </StackPanel>
 
         <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0"
                    FontSize="11" Foreground="#546E7A"
