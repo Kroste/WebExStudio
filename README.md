@@ -229,6 +229,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 |---|---|---|---|---|
 | ⬇ | `download_url` | URL herunterladen | Datei von URL laden. | `url = {payload.host}/datei.pdf` |
 | 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
+| 📜 | `eval_js` | JavaScript ausführen | Beliebiges JS in der Seite; Rückgabe optional ins Payload (`ctx_key`). Mit Selektor wird das Element als Argument übergeben. | `script = document.title, ctx_key = titel` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
 
 ### Anmerkung (reine Anzeige)

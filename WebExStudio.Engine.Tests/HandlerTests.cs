@@ -16,6 +16,20 @@ public class HandlerTests
         Assert.Equal(expected, CaptchaGuardHandler.IsUnlimitedTimeout(timeoutSec));
 
     [Fact]
+    public void EvalJs_ToStringValue_CoercesReturnKinds()
+    {
+        using var str = System.Text.Json.JsonDocument.Parse("\"hallo\"");
+        using var num = System.Text.Json.JsonDocument.Parse("42");
+        using var bln = System.Text.Json.JsonDocument.Parse("true");
+        using var nul = System.Text.Json.JsonDocument.Parse("null");
+        Assert.Equal("hallo", EvalJsHandler.ToStringValue(str.RootElement)); // String roh, ohne Anführungszeichen
+        Assert.Equal("42", EvalJsHandler.ToStringValue(num.RootElement));
+        Assert.Equal("true", EvalJsHandler.ToStringValue(bln.RootElement));
+        Assert.Equal("", EvalJsHandler.ToStringValue(nul.RootElement));
+        Assert.Equal("", EvalJsHandler.ToStringValue(null));
+    }
+
+    [Fact]
     public async Task Assert_PayloadContains_PassesWhenPresent()
     {
         var ctx = Ctx.Make(new() { ["visited"] = "/a/\n/b/" });

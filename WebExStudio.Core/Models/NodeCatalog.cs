@@ -389,6 +389,22 @@ public static class NodeCatalog
         },
         new()
         {
+            Type = "eval_js", DisplayName = "JavaScript ausführen", Category = "Erweitert",
+            Description = "Führt beliebiges JavaScript in der Seite aus (universeller Notausgang). "
+                + "Mit Selektor wird das Element als erstes Argument übergeben (z. B. el => el.textContent). "
+                + "Ein Rückgabewert landet — wenn 'ctx_key' gesetzt ist — im Payload (Strings roh, sonst als JSON). "
+                + "Hinweis: Das Script wird NICHT per {payload.x} ersetzt.",
+            Color = "#4527A0", Icon = "📜",
+            Example = "script = document.querySelectorAll('a').length, ctx_key = anzahl  →  {anzahl}.",
+            Properties =
+            [
+                new() { Key = "script", Label = "JavaScript", Kind = PropertyKind.Code, Required = true },
+                new() { Key = "selector", Label = "Element (Selektor, optional)", Kind = PropertyKind.Selector },
+                new() { Key = "ctx_key", Label = "Rückgabe → Payload-Schlüssel (optional)", Kind = PropertyKind.Text },
+            ]
+        },
+        new()
+        {
             Type = "captcha_guard", DisplayName = "CAPTCHA-Schutz", Category = "Erweitert",
             Description = "Erkennt CAPTCHA, klickt (optional) die erste „Ich bin kein Roboter\"-Checkbox "
                 + "und wartet dann auf die (ggf. manuelle) Lösung. timeout_s = 0 bedeutet kein Zeitlimit "

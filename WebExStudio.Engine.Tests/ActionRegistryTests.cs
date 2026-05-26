@@ -27,6 +27,7 @@ public class ActionRegistryTests
     [InlineData("quit")]
     [InlineData("assert")]
     [InlineData("screenshot")]
+    [InlineData("eval_js")]
     [InlineData("get_value")]
     [InlineData("set_payload")]
     [InlineData("debug")]

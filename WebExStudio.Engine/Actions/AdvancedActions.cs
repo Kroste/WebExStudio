@@ -78,6 +78,49 @@ public sealed class ScreenshotHandler : IActionHandler
     }
 }
 
+public sealed class EvalJsHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "eval_js";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var script = node.Get("script");
+        if (string.IsNullOrWhiteSpace(script))
+        {
+            Log.Warn("eval_js: kein Script angegeben");
+            return;
+        }
+        var ctxKey = node.Get("ctx_key");
+        var selector = ctx.Fmt(node.Get("selector"));
+
+        // Script wird NICHT per Fmt ersetzt — geschweifte Klammern sind in JS allgegenwärtig.
+        Log.Debug("eval_js (selector='{0}')", selector);
+        System.Text.Json.JsonElement? result = string.IsNullOrEmpty(selector)
+            ? await ctx.Page.EvaluateAsync(script)
+            : await ctx.Page.Locator(selector).First.EvaluateAsync(script);
+
+        if (!string.IsNullOrEmpty(ctxKey))
+        {
+            var value = ToStringValue(result);
+            ctx.Set(ctxKey, value);
+            Log.Debug("eval_js → ctx[{0}] = '{1}'", ctxKey, value);
+        }
+    }
+
+    /// <summary>Wandelt den JS-Rückgabewert in einen String fürs Payload (String roh, Rest als JSON).</summary>
+    public static string ToStringValue(System.Text.Json.JsonElement? element)
+    {
+        if (element is not { } e) return string.Empty;
+        return e.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => e.GetString() ?? string.Empty,
+            System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => string.Empty,
+            _ => e.GetRawText(),
+        };
+    }
+}
+
 public sealed class CaptchaGuardHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
