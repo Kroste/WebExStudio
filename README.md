@@ -20,6 +20,7 @@
 - [Payload & Platzhalter](#payload--platzhalter)
 - [Anmeldedaten-Tresor (Secrets)](#anmeldedaten-tresor-secrets)
 - [Plugins (eigene Nodes)](#plugins-eigene-nodes)
+- [Kommandozeile (CLI / headless)](#kommandozeile-cli--headless)
 - [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
 - [Logging](#logging)
 - [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
@@ -662,6 +663,41 @@ Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
 
 ---
 
+## Kommandozeile (CLI / headless)
+
+Flows lassen sich **ohne GUI** ausführen — ideal für `cron`/Aufgabenplanung, CI oder Server. Das
+Projekt **`WebExStudio.Cli`** erzeugt das Kommando **`webex`** und nutzt **dieselben Plugins, denselben
+Anmeldedaten-Tresor und denselben Validator/Executor** wie die App.
+
+```bash
+dotnet build WebExStudio.Cli -c Release          # baut die ausführbare Datei "webex"
+
+webex run      -f projects/f95zone/f95zoneV2.json -c '<tresor-pw>'   # ausführen (standardmäßig headless)
+webex validate -f flow.json                       # nur validieren (kein Browser)
+webex secrets  -f flow.json                       # welche {secret[..]}-Einträge braucht der Flow?
+```
+
+**Optionen für `run`:**
+
+| Option | Wirkung |
+|---|---|
+| `-f, --flow <pfad>` | Pfad zur Flow-Datei (Pflicht) |
+| `-c, --credential <pw>` | Tresor-Passwort. Besser: Umgebungsvariable `WEBEX_VAULT_PW` oder interaktive Eingabe — ein Passwort als Argument landet in der Shell-History/Prozessliste. |
+| `--var key=value` | Startwert im Payload-Kontext (mehrfach möglich) → Flow parametrisieren |
+| `--headful` | Browser sichtbar starten (sonst headless) |
+| `--browser <name>` | `chromium` (Standard), `firefox`, `webkit` |
+| `--timeout <ms>` | Standard-Timeout je Aktion |
+| `--download-dir <d>` | Zielordner für Downloads |
+| `--out <datei.json>` | Lauf-Bericht (Node-Status, Fehler) als JSON schreiben |
+
+**Exit-Codes** (für cron/CI): `0` OK · `1` Lauffehler (ein Node fehlgeschlagen) · `2` Validierung/Aufruf ·
+`3` Tresor (Passwort fehlt/falsch) · `130` Abbruch (Strg+C).
+
+Der Tresor wird nur entsperrt, wenn der Flow tatsächlich `{secret[..]}` verwendet. Vor jedem Lauf wird
+wie in der GUI validiert (Fehler brechen ab). KI-Nodes (`ai_query`) sind in der CLI nicht aktiv.
+
+---
+
 ## Legacy-Projekte importieren
 
 Alte Python-WebEX-Projekte (Ordner mit `actions/*.json`, verschachtelten `call`/`then_actions_file`-Verweisen und `targets.json`) werden in ein einziges v2-Flow konvertiert.
@@ -790,6 +826,7 @@ Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, 
 | `WebExStudio.Core` | Datenmodelle (`FlowDocument2`, `FlowNode`, `FlowTab`, `NodeCatalog`), Serialisierung (`FlowSerializer2`), Legacy-Konverter (`LegacyImporter`). |
 | `WebExStudio.Engine` | Flow-Executor (Wire-Traversierung), Playwright-Integration, Action-Handler, Tracing. |
 | `WebExStudio.UI` | Avalonia-Desktop-App: Canvas, Node-/Wire-Rendering, Palette, Subnode-Panel, Eigenschaften, Trace, Einstellungen, About. |
+| `WebExStudio.Cli` | Headless-Runner `webex` (`run`/`validate`/`secrets`) — Flows ohne GUI ausführen (cron/CI). |
 | `WebExStudio.AI` | KI-Anbindung: Node-Schema-Export, Prompt-Bau, `FlowGenerator` und Provider (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
 Technik: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.
