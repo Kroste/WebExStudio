@@ -48,7 +48,7 @@ public class LegacyImporterTests : IDisposable
         var main = doc.Tabs.Single(t => !t.IsSubFlow);
         var mainNodes = doc.Nodes.Where(n => n.TabId == main.Id).ToList();
         Assert.Contains(mainNodes, n => n.Type == "function");
-        var foreachNode = Assert.Single(mainNodes.Where(n => n.Type == "foreach"));
+        var foreachNode = Assert.Single(mainNodes, n => n.Type == "foreach");
 
         // Subnodes for each referenced file
         Assert.NotNull(doc.GetTabByName("start"));
@@ -69,7 +69,7 @@ public class LegacyImporterTests : IDisposable
 
         // The if in 'start' has 2 output ports; its 'then' (port 0) leads to call(usv).
         var start = doc.GetTabByName("start")!;
-        var ifNode = Assert.Single(doc.Nodes.Where(n => n.TabId == start.Id && n.Type == "if_then_else"));
+        var ifNode = Assert.Single(doc.Nodes, n => n.TabId == start.Id && n.Type == "if_then_else");
         Assert.True(ifNode.Wires.Count >= 1);
         var thenTarget = doc.GetNode(ifNode.Wires[0][0])!;
         Assert.Equal("call", thenTarget.Type);

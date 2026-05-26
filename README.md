@@ -208,6 +208,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | 🚪 | `quit` | Beenden | 0 | Stoppt den Flow hier |
 
 **`if_then_else`-Bedingungen** (`condition`): `element_exists`, `element_visible`, `element_text`, `page_title`, `page_url`, `page_contains`, `page_matches` (Regex), `payload_equals`, `payload_contains`. Mit `negate = true` invertieren; mit `regex = true` Wert als Regex behandeln.
+Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selector` und der Vergleichswert in `value` (z. B. `selector = visited`, `value = {payload.link}` → prüft, ob `visited` den Link enthält). Ist `selector` leer, wird ersatzweise das Feld `key` verwendet.
 
 ### Daten
 | | Typ | Name | Zweck | Beispiel |

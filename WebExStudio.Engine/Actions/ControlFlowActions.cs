@@ -18,6 +18,16 @@ public sealed class IfThenElseHandler : IActionHandler
         var regex = node.GetBool("regex");
         var negate = node.GetBool("negate");
 
+        // Bei payload_*/ctx_*-Bedingungen steht der Payload-Schlüssel in 'selector'.
+        // Ist 'selector' leer, auf das alternative Feld 'key' zurückfallen — sonst würde
+        // ctx.Get("") leer liefern und die Bedingung wäre stillschweigend immer false.
+        if (string.IsNullOrEmpty(selector) && IsPayloadCondition(CanonicalCondition(condition)))
+        {
+            selector = ctx.Fmt(node.Get("key"));
+            if (string.IsNullOrEmpty(selector))
+                Log.Warn("if_then_else: {0} ohne Payload-Schlüssel (weder 'selector' noch 'key' gesetzt) — Ergebnis false.", condition);
+        }
+
         var result = await EvaluateCondition(ctx, condition, selector, value, regex);
         if (negate) result = !result;
         Log.Debug("if_then_else: {0} value='{1}' selector='{2}' → {3}", condition, value, selector, result);
@@ -39,6 +49,10 @@ public sealed class IfThenElseHandler : IActionHandler
         "element_text_contains" or "element_contains" => "element_text",
         var other => other,
     };
+
+    /// <summary>True für Bedingungen, deren Vergleichsquelle ein Payload-/Kontext-Schlüssel ist.</summary>
+    private static bool IsPayloadCondition(string canonical) =>
+        canonical is "payload_equals" or "ctx_equals" or "payload_contains" or "ctx_contains";
 
     private static async Task<bool> EvaluateCondition(
         ExecutionContext ctx, string condition, string selector, string value, bool useRegex)

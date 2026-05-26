@@ -58,6 +58,26 @@ public class ExecutorRoutingTests
     }
 
     [Fact]
+    public async Task If_PayloadContains_FallsBackToKey_WhenSelectorEmpty()
+    {
+        // Regressionstest: payload_contains liest den Schlüssel aus 'selector'. Ist dieser leer,
+        // muss auf 'key' zurückgefallen werden (sonst war die Bedingung still immer false →
+        // f95-„Link bereits besucht?" sprang immer in den else-Zweig).
+        var doc = Doc(
+            N("f", "function", new() { ["payload"] = """{ "visited": "/threads/a/\n/threads/b/" }""" }, ["seed"]),
+            N("seed", "set_payload", new() { ["key"] = "link", ["value"] = "/threads/b/" }, ["if1"]),
+            N("if1", "if_then_else",
+                new() { ["condition"] = "payload_contains", ["selector"] = "", ["key"] = "visited", ["value"] = "{payload.link}" },
+                ["tn"], ["en"]),
+            N("tn", "set_payload", new() { ["key"] = "b", ["value"] = "THEN" }),
+            N("en", "set_payload", new() { ["key"] = "b", ["value"] = "ELSE" }));
+
+        var rec = await Run(doc);
+        Assert.True(rec.Ran("tn"));  // Link ist in 'visited' enthalten → then-Zweig
+        Assert.False(rec.Ran("en"));
+    }
+
+    [Fact]
     public async Task Foreach_RunsBodyPerItem_ThenDoneOnce()
     {
         var doc = Doc(
