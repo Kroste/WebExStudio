@@ -2,6 +2,8 @@
 
 **Visuelle Desktop-App zum Erstellen und Ausführen von Web-Automatisierungen** — Browser-Abläufe werden als Node-Graph modelliert (im Stil von Node-RED) und direkt per [Playwright](https://playwright.dev/dotnet/) ausgeführt. Oberfläche: [Avalonia UI](https://avaloniaui.net/).
 
+> **Idee & Konzept:** Lars Oste (Ideengeber). **Programmierung & Umsetzung:** Claude (Anthropic) — umgesetzt mit Claude Code. Lars gibt Ideen und Anforderungen vor; die technische Umsetzung übernimmt die KI.
+
 > **Screenshots:** Die Bilder liegen unter [`docs/images/`](docs/images). Falls dort noch Platzhalter stehen, einfach echte PNGs mit den genannten Dateinamen ablegen — die README bindet sie automatisch ein. Zusätzlich gibt es zu jedem Bereich eine ASCII-Skizze, damit alles auch ohne Bilder verständlich ist.
 
 ![Hauptfenster](docs/images/main-window.png)
@@ -165,7 +167,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Gruppieren** | ≥ 2 Nodes auswählen → Rechtsklick auf leere Fläche → **„📦 Gruppieren"**. |
 | **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"** → Name + Bezeichnung. Die Nodes wandern in einen neuen Subnode-Tab; an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
 | **Bezeichnung vergeben** | Node auswählen → Feld **„Bezeichnung"** oben im Eigenschaften-Panel. |
-| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. |
+| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. Das Hilfefenster zeigt **diese README** (eingebettet gerendert) — Doku und Hilfe bleiben dadurch immer gleich. |
 | **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |

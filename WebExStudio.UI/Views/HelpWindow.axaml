@@ -2,25 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="WebExStudio.UI.Views.HelpWindow"
         Title="Hilfe / Kurzanleitung"
-        Width="560" Height="680"
+        Width="640" Height="720"
         WindowStartupLocation="CenterOwner"
         WindowDecorations="None"
         Background="#12121F">
-
-  <Window.Styles>
-    <Style Selector="TextBlock.h">
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="#4FC3F7"/>
-      <Setter Property="Margin" Value="0,14,0,4"/>
-    </Style>
-    <Style Selector="TextBlock.b">
-      <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="#B0BEC5"/>
-      <Setter Property="TextWrapping" Value="Wrap"/>
-      <Setter Property="Margin" Value="0,0,0,3"/>
-    </Style>
-  </Window.Styles>
 
   <Border BorderBrush="#2E2E4E" BorderThickness="1">
     <Grid RowDefinitions="Auto,*">
@@ -39,54 +24,9 @@
         </Grid>
       </Border>
 
-      <!-- Inhalt -->
-      <ScrollViewer Grid.Row="1" Padding="22,16,22,18">
-        <StackPanel>
-
-          <TextBlock Classes="b" Foreground="#90A4AE"
-                     Text="WebExStudio baut Web-Automatisierungen aus Nodes (wie Node-RED) und führt sie über Playwright aus. Die wichtigsten Handgriffe:"/>
-
-          <TextBlock Classes="h" Text="🧩 Nodes hinzufügen &amp; ansehen"/>
-          <TextBlock Classes="b" Text="• Links die Node-Palette. Ein Node-Eintrag anklicken = Vorschau rechts (Eigenschaften, Hinweise, Beispiel) — er wird NICHT eingefügt."/>
-          <TextBlock Classes="b" Text="• Zum Einfügen den Eintrag aus der Palette auf die Fläche ziehen (Drag &amp; Drop). Alternativ Rechtsklick auf leere Fläche → Node-Menü."/>
-          <TextBlock Classes="b" Text="• Einen Node im Flow anklicken → rechts seine Eigenschaften bearbeiten; oben die „Bezeichnung“ legt den angezeigten Namen fest."/>
-
-          <TextBlock Classes="h" Text="🔗 Verbinden"/>
-          <TextBlock Classes="b" Text="• Von einem Ausgangs-Port (unten am Node) auf den Eingang (oben) eines anderen Nodes ziehen."/>
-          <TextBlock Classes="b" Text="• Verbindung anklicken und mit Entf löschen (oder Rechtsklick auf die Linie)."/>
-          <TextBlock Classes="b" Text="• Kontroll-Nodes (If/Else, Schleifen, „Sitzung verwenden“) haben mehrere Ausgänge (then/else, Schleife/fertig …)."/>
-
-          <TextBlock Classes="h" Text="📦 Mehrere auswählen, gruppieren &amp; Subnode erstellen"/>
-          <TextBlock Classes="b" Text="• Mehrfachauswahl: Strg+Klick auf mehrere Nodes ODER mit der Maus auf leerer Fläche ein Auswahlrechteck (Gummiband) aufziehen."/>
-          <TextBlock Classes="b" Text="• Gruppieren: Rechtsklick auf leere Fläche → „📦 Gruppieren“ (erscheint bei ≥ 2 ausgewählten Nodes)."/>
-          <TextBlock Classes="b" Text="• Subnode daraus machen: Rechtsklick auf die KOPFLEISTE der Gruppe → „📦 Subnode einrichten“ → Name + Bezeichnung. Die Nodes wandern in einen neuen Subnode-Tab; an ihrer Stelle bleibt ein „call“-Node, externe Verbindungen werden automatisch umgehängt."/>
-          <TextBlock Classes="b" Text="• Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen“."/>
-
-          <TextBlock Classes="h" Text="🧷 Subnodes"/>
-          <TextBlock Classes="b" Text="• Liste links unten („Subnodes“): ＋ neu, ✎ umbenennen, 🗑 löschen. Doppelklick öffnet den Subnode als Tab."/>
-          <TextBlock Classes="b" Text="• Einen Subnode aus der Liste auf die Fläche ziehen = „call“-Node, der ihn aufruft."/>
-          <TextBlock Classes="b" Text="• Doppelklick auf einen „call“-Node im Flow öffnet den referenzierten Subnode."/>
-
-          <TextBlock Classes="h" Text="▶ Ausführen, Pause &amp; Einzelschritt"/>
-          <TextBlock Classes="b" Text="• ▶ Ausführen startet den Browser und den Flow, ⏹ Stopp bricht ab."/>
-          <TextBlock Classes="b" Text="• ⏸ Pause hält vor dem nächsten Node; 👣 Schritt führt genau einen Node aus und pausiert wieder; ⏭ Weiter setzt fort."/>
-          <TextBlock Classes="b" Text="• Der als Nächstes auszuführende Node ist cyan umrandet — seine Werte kannst du im pausierten Zustand noch anpassen."/>
-
-          <TextBlock Classes="h" Text="🔐 Sitzungen (Login nur einmal)"/>
-          <TextBlock Classes="b" Text="• „Sitzung speichern“-Node nach dem Login einfügen → schreibt die Cookies."/>
-          <TextBlock Classes="b" Text="• „Sitzung verwenden“-Node verzweigt: ist eine Sitzung vorhanden → Ausgang „geladen“ (Cookies werden geladen, direkt weiternavigieren), sonst → „keine Sitzung“ (Login ausführen)."/>
-
-          <TextBlock Classes="h" Text="🤖 KI"/>
-          <TextBlock Classes="b" Text="• In den Einstellungen (⚙) Anbieter + API-Schlüssel hinterlegen (Anthropic, OpenAI, Gemini, Perplexity, Ollama)."/>
-          <TextBlock Classes="b" Text="• Werkzeugleiste: 🤖 KI-Flow (aus Beschreibung), 💬 Chat, 🧾 Erklären, 💡 Node-Vorschlag."/>
-          <TextBlock Classes="b" Text="• „KI-Abfrage“-Node schickt den Seiteninhalt mit einer Anweisung an die KI; Antwort landet im Payload."/>
-
-          <TextBlock Classes="h" Text="💡 Tipps"/>
-          <TextBlock Classes="b" Text="• Werte überall per {payload.schlüssel} bzw. {schlüssel} einsetzen (z. B. url = {payload.host}/login)."/>
-          <TextBlock Classes="b" Text="• Scrollen = Ansicht verschieben, Strg+Mausrad = Zoom."/>
-          <TextBlock Classes="b" Text="• Ausführliche Dokumentation aller Node-Typen: README.md im Projektverzeichnis."/>
-
-        </StackPanel>
+      <!-- Inhalt: zur Laufzeit aus der eingebetteten README gerendert -->
+      <ScrollViewer Grid.Row="1" Padding="22,14,22,18">
+        <ContentControl x:Name="HelpContent"/>
       </ScrollViewer>
     </Grid>
   </Border>

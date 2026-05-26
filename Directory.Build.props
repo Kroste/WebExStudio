@@ -6,6 +6,6 @@
     CI überschreibt die Version bei Releases per -p:Version aus dem Git-Tag.
   -->
   <PropertyGroup>
-    <Version>0.37.0</Version>
+    <Version>0.38.0</Version>
   </PropertyGroup>
 </Project>

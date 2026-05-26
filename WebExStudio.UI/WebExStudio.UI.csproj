@@ -27,6 +27,8 @@
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- README wird eingebettet und im Hilfefenster gerendert → Hilfe = immer aktuelle README. -->
+    <EmbeddedResource Include="..\README.md" Link="README.md" LogicalName="WebExStudio.UI.README.md" />
   </ItemGroup>
 
   <ItemGroup>
