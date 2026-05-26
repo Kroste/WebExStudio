@@ -162,6 +162,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Node verschieben** | Node mit der linken Maustaste ziehen; **oder** Node(s) auswählen und mit den **Pfeiltasten** verschieben (ein Rasterschritt; **Umschalt+Pfeil** = feinstufig 1 px). |
 | **Am Raster ausrichten** | Toolbar **▦ Ausrichten** — rundet alle Nodes des aktiven Tabs auf das Raster. |
 | **Node löschen** | Node auswählen → `Entf`; **oder** Rechtsklick → „Node löschen". |
+| **Flow starten** | Toolbar **▶ Ausführen** **oder** Taste **F5**. |
 | **Rückgängig / Wiederholen** | **Strg+Z** / **Strg+Y**; **oder** Toolbar **↶ / ↷**. |
 | **Kopieren / Einfügen / Duplizieren** | **Strg+C** / **Strg+V** (auch tab-übergreifend) / **Strg+D**. Verbindungen innerhalb der Auswahl bleiben erhalten. |
 | **Node suchen / springen** | **Strg+F** **oder** Toolbar **🔎 Suchen** → tippen, Enter springt zum Node (auch in Subnodes). |

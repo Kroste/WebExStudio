@@ -156,6 +156,18 @@ public partial class MainWindow : Window
     private void OnRun(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.StartRun();
 
+    /// <summary>F5 startet den Flow (wie der ▶-Button), wenn nicht bereits ein Lauf aktiv ist.</summary>
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.F5)
+        {
+            if (Vm.CanRun) Vm.StartRun();
+            e.Handled = true;
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
         if (!_closing)
