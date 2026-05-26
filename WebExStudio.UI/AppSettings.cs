@@ -34,6 +34,7 @@ public static class AppSettings
         public string BrowserExecutablePath { get; set; } = "";
         public string DriverPath { get; set; } = "";
         public bool Headless { get; set; }
+        public bool Maximized { get; set; }
         public string DownloadDir { get; set; } = "";
 
         // Netzwerk / Proxy
@@ -89,6 +90,7 @@ public static class AppSettings
         config.BrowserExecutablePath = m.BrowserExecutablePath;
         config.DriverPath = m.DriverPath;
         config.Headless = m.Headless;
+        config.Maximized = m.Maximized;
         config.DownloadDir = m.DownloadDir;
         config.ProxyServer = m.ProxyServer;
         config.ProxyBypass = m.ProxyBypass;
@@ -105,6 +107,7 @@ public static class AppSettings
         m.BrowserExecutablePath = config.BrowserExecutablePath;
         m.DriverPath = config.DriverPath;
         m.Headless = config.Headless;
+        m.Maximized = config.Maximized;
         m.DownloadDir = config.DownloadDir;
         m.ProxyServer = config.ProxyServer;
         m.ProxyBypass = config.ProxyBypass;

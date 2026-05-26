@@ -103,6 +103,8 @@
 
               <CheckBox x:Name="HeadlessBox" Content="Headless (ohne sichtbares Browserfenster)"
                         Foreground="#B0BEC5"/>
+              <CheckBox x:Name="MaximizedBox" Content="Browserfenster maximiert starten (Chromium/Chrome/Edge/Brave)"
+                        Foreground="#B0BEC5"/>
             </StackPanel>
           </ScrollViewer>
         </TabItem>

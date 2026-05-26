@@ -28,6 +28,7 @@ public partial class SettingsWindow : Window
         DriverPathBox.Text = _config.DriverPath;
         DownloadDirBox.Text = _config.DownloadDir;
         HeadlessBox.IsChecked = _config.Headless;
+        MaximizedBox.IsChecked = _config.Maximized;
 
         ProxyServerBox.Text = _config.ProxyServer;
         ProxyBypassBox.Text = _config.ProxyBypass;
@@ -107,6 +108,7 @@ public partial class SettingsWindow : Window
         _config.DriverPath = DriverPathBox.Text ?? string.Empty;
         _config.DownloadDir = DownloadDirBox.Text ?? string.Empty;
         _config.Headless = HeadlessBox.IsChecked == true;
+        _config.Maximized = MaximizedBox.IsChecked == true;
 
         _config.ProxyServer = ProxyServerBox.Text ?? string.Empty;
         _config.ProxyBypass = ProxyBypassBox.Text ?? string.Empty;

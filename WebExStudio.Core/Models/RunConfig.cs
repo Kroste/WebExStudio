@@ -22,6 +22,11 @@ public sealed class RunConfig
     [JsonPropertyName("headless")]
     public bool Headless { get; set; } = false;
 
+    /// <summary>Startet das (sichtbare) Browserfenster maximiert. Nur bei Chromium-basierten
+    /// Browsern (Chromium/Chrome/Edge/Brave) und nicht im Headless-Modus wirksam.</summary>
+    [JsonPropertyName("maximized")]
+    public bool Maximized { get; set; } = false;
+
     [JsonPropertyName("slow_mo_ms")]
     public int SlowMoMs { get; set; } = 0;
 

@@ -36,7 +36,7 @@ public sealed class FlowExecutor
                 ct.ThrowIfCancellationRequested();
                 Log.Info("Target startet: {0} ({1})", target.Name, target.Host);
                 // Explicit context so handlers (e.g. open_tab) can create additional pages.
-                var context = await browser.NewContextAsync();
+                var context = await browser.NewContextAsync(NewContextOptions(config, acceptDownloads: false));
                 var page = await context.NewPageAsync();
                 try
                 {
@@ -90,7 +90,7 @@ public sealed class FlowExecutor
         try
         {
             // Explicit context so handlers (e.g. open_tab) can create additional pages.
-            var context = await browser.NewContextAsync(new BrowserNewContextOptions { AcceptDownloads = true });
+            var context = await browser.NewContextAsync(NewContextOptions(config, acceptDownloads: true));
             var page = await context.NewPageAsync();
 
             // Browser-Downloads mit echtem Namen im Zielordner speichern (statt GUID-Temp).
@@ -317,6 +317,15 @@ public sealed class FlowExecutor
             // Datei schreibt der DownloadCollector per SaveAsAsync mit echtem Namen ins Ziel.
         };
 
+        // Maximiert starten: nur Chromium versteht --start-maximized; zusammen mit dem
+        // deaktivierten Viewport (siehe NewContextOptions) füllt die Seite das ganze Fenster.
+        var launchArgs = MaximizeArgs(config);
+        if (launchArgs.Count > 0)
+        {
+            options.Args = launchArgs;
+            Log.Info("Browser-Fenster maximiert (--start-maximized)");
+        }
+
         if (config.BrowserChannel.Equals("brave", StringComparison.OrdinalIgnoreCase))
         {
             // Brave ist kein Playwright-Channel → als Chromium mit der Brave-Programmdatei starten.
@@ -357,6 +366,31 @@ public sealed class FlowExecutor
             "webkit" => await pw.Webkit.LaunchAsync(options),
             _ => await pw.Chromium.LaunchAsync(options),
         };
+    }
+
+    /// <summary>True für Chromium-basierte Browser (Chromium/Chrome/Edge/Brave laufen über den
+    /// Chromium-Launcher) — Firefox und WebKit kennen <c>--start-maximized</c> nicht.</summary>
+    private static bool IsChromiumBased(RunConfig config) =>
+        config.Browser.Trim().ToLowerInvariant() is not "firefox" and not "webkit";
+
+    /// <summary>Chromium-Startargumente, um das sichtbare Fenster maximiert zu öffnen.</summary>
+    public static IReadOnlyList<string> MaximizeArgs(RunConfig config) =>
+        config.Maximized && !config.Headless && IsChromiumBased(config)
+            ? ["--start-maximized"]
+            : [];
+
+    /// <summary>Bei maximiertem, sichtbarem Fenster den festen Standard-Viewport (1280×720)
+    /// deaktivieren, damit die Seite die volle Fenstergröße nutzt.</summary>
+    public static bool UseWindowViewport(RunConfig config) =>
+        config.Maximized && !config.Headless;
+
+    /// <summary>Erzeugt die Kontext-Optionen (Downloads + ggf. fenstergroßer Viewport).</summary>
+    private static BrowserNewContextOptions NewContextOptions(RunConfig config, bool acceptDownloads)
+    {
+        var options = new BrowserNewContextOptions { AcceptDownloads = acceptDownloads };
+        if (UseWindowViewport(config))
+            options.ViewportSize = ViewportSize.NoViewport;
+        return options;
     }
 }
 

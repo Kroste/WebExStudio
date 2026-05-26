@@ -422,6 +422,7 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 | **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). Darunter ein Link zur manuellen/Offline-Installation der Browser (z. B. hinter Firmen-Proxy). |
 | **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Den Download-Button mit einem `click`-Node + **`expect_download = true`** auslösen: der Node wartet auf den Download und speichert ihn mit **echtem Namen** dorthin (sonst legt Playwright ihn nur temporär mit GUID-Namen ab und löscht ihn beim Schließen). |
 | **Headless** | Browser ohne sichtbares Fenster ausführen. |
+| **Maximiert starten** | Öffnet das sichtbare Browserfenster maximiert (`--start-maximized`) und lässt die Seite die volle Fenstergröße nutzen (statt des festen 1280×720-Viewports). Wirkt nur bei Chromium-basierten Browsern (Chromium/Chrome/Edge/Brave) und nicht im Headless-Modus. Gilt für alle Tabs des Laufs, auch für per `open_tab` geöffnete. |
 
 **Tab „Netzwerk" (Proxy)** — gilt **für den Browser und für KI-Anfragen**:
 
