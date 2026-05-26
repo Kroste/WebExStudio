@@ -48,6 +48,7 @@ Exec=WebExStudio
 Icon=webexstudio
 Categories=Development;Utility;
 Terminal=false
+StartupWMClass=WebExStudio
 EOF
 install -Dm644 "$appdir/$APP.desktop" "$appdir/usr/share/applications/$APP.desktop"
 

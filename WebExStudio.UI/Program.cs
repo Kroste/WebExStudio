@@ -39,6 +39,10 @@ class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // Feste Fenster-Identität (WM_CLASS) unter Linux/X11 (auch XWayland): unabhängig vom
+            // Prozessnamen (der sich bei AppImage-/Single-File-Extraktion ändern kann), damit
+            // KWin-Fensterregeln und Taskleisten-Zuordnung überall gleich greifen.
+            .With(new X11PlatformOptions { WmClass = "WebExStudio" })
             .UseReactiveUI(_ => { })
             .WithInterFont()
             .LogToTrace();

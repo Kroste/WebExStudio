@@ -181,7 +181,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
-| **Fenster maximieren / Vollbild** | Titelleiste **☐** bzw. Doppelklick auf die Titelleiste; **Vollbild** mit **F11**. (Maximieren randloser Fenster kann je nach Linux-Fenstermanager/Wayland-Compositor klemmen — dann hilft meist F11.) |
+| **Fenster maximieren / Vollbild** | Titelleiste **☐** bzw. Doppelklick auf die Titelleiste; **Vollbild** mit **F11**. (Maximieren randloser Fenster kann je nach Linux-Fenstermanager/Wayland-Compositor klemmen. Das Fenster hat die feste Klasse **`WebExStudio`** — darüber lässt sich z. B. unter KDE eine Fensterregel „maximiert erzwingen" anlegen.) |
 | **Subnode anlegen/umbenennen/löschen** | Subnodes-Panel: **＋ / ✎ / 🗑**. |
 | **Subnode öffnen** | Doppelklick im Subnodes-Panel **oder** Doppelklick auf den `call`-Node im Flow → öffnet als Tab. |
 | **Tab schließen** | **✕** am Tab (Main bleibt immer offen). |
