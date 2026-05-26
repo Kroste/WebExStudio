@@ -10,10 +10,16 @@ public partial class HelpWindow : Window
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public HelpWindow()
+    public HelpWindow() : this(null) { }
+
+    public HelpWindow(System.Action<string>? onLoadExample)
     {
         InitializeComponent();
-        HelpContent.Content = MarkdownRenderer.Build(LoadReadme());
+        // Beispiel-JSON aus der Hilfe in den Flow übernehmen und das Hilfefenster schließen.
+        System.Action<string>? load = onLoadExample is null
+            ? null
+            : json => { onLoadExample(json); Close(); };
+        HelpContent.Content = MarkdownRenderer.Build(LoadReadme(), load);
     }
 
     /// <summary>Liest die eingebettete README (Quelle der Hilfe → bleibt automatisch synchron).</summary>
@@ -42,6 +48,13 @@ public partial class HelpWindow : Window
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             BeginMoveDrag(e);
+    }
+
+    private void OnResizePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (sender is Control { Tag: string edge } && System.Enum.TryParse<WindowEdge>(edge, out var we))
+            BeginResizeDrag(we, e);
     }
 
     private void OnTitleClose(object? _, RoutedEventArgs e) => Close();

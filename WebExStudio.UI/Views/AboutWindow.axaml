@@ -43,7 +43,7 @@
 
         <Border Height="1" Background="#2E2E4E" Margin="0,18" />
 
-        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
               HorizontalAlignment="Center" ColumnSpacing="16" RowSpacing="6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Organisation"
                      FontSize="12" Foreground="#607D8B" />
@@ -53,9 +53,13 @@
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="1" Grid.Column="1" Text="54.2"
                      FontSize="12" Foreground="#B0BEC5" />
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="Entwickler"
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Idee &amp; Konzept"
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="Lars Oste"
+                     FontSize="12" Foreground="#B0BEC5" />
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Umsetzung"
+                     FontSize="12" Foreground="#607D8B" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Text="Claude (Anthropic) · Claude Code"
                      FontSize="12" Foreground="#B0BEC5" />
         </Grid>
 

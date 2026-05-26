@@ -7,8 +7,13 @@ namespace WebExStudio.UI.Views;
 
 public partial class AboutWindow : Window
 {
-    public AboutWindow()
+    private readonly System.Action<string>? _onLoadExample;
+
+    public AboutWindow() : this(null) { }
+
+    public AboutWindow(System.Action<string>? onLoadExample)
     {
+        _onLoadExample = onLoadExample;
         InitializeComponent();
 
         var rawVer = Assembly.GetExecutingAssembly()
@@ -25,5 +30,5 @@ public partial class AboutWindow : Window
 
     private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
 
-    private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow().ShowDialog(this);
+    private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow(_onLoadExample).ShowDialog(this);
 }

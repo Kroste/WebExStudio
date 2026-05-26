@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using WebExStudio.Core.Serialization;
 using WebExStudio.UI.ViewModels;
 using WebExStudio.UI.Views;
 
@@ -36,10 +37,26 @@ public partial class MainWindow : Window
         Close();
 
     private async void OnAbout(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        await new AboutWindow().ShowDialog(this);
+        await new AboutWindow(LoadExampleFlow).ShowDialog(this);
 
     private async void OnHelp(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        await new HelpWindow().ShowDialog(this);
+        await new HelpWindow(LoadExampleFlow).ShowDialog(this);
+
+    /// <summary>Lädt ein Beispiel-JSON aus der Hilfe in den Editor (ersetzt den aktuellen Flow).</summary>
+    private void LoadExampleFlow(string json)
+    {
+        try
+        {
+            var doc = FlowSerializer2.Deserialize(json);
+            Vm.FlowEditor.LoadDocument(doc);
+            Vm.FlowEditor.MarkDirty();
+            Vm.StatusText = "Beispiel aus der Hilfe geladen — bitte prüfen und speichern";
+        }
+        catch (System.Exception ex)
+        {
+            Vm.StatusText = $"Beispiel konnte nicht geladen werden: {ex.Message}";
+        }
+    }
 
     private async void OnSettings(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -174,6 +191,31 @@ public partial class MainWindow : Window
 
     private void OnResume(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Vm.Resume();
+
+    private void OnSnapToGrid(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        Vm.FlowEditor.SnapAllToGrid();
+
+    private async void OnConvert(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Alten Flow-Projektordner wählen (Python)",
+            AllowMultiple = false,
+        });
+        if (folders.Count == 0) return;
+        var dir = folders[0].Path.LocalPath;
+        try
+        {
+            var doc = await Task.Run(() => LegacyImporter.Convert(dir));
+            Vm.FlowEditor.LoadDocument(doc);
+            Vm.FlowEditor.MarkDirty();
+            Vm.StatusText = $"Konvertiert: {doc.Tabs.Count} Tabs, {doc.Nodes.Count} Nodes — bitte prüfen und speichern";
+        }
+        catch (System.Exception ex)
+        {
+            Vm.StatusText = $"Konvertierung fehlgeschlagen: {ex.Message}";
+        }
+    }
 
     private void OnFitView(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         (this.FindControl<FlowEditorView>("FlowEditorView"))?.FitToView();

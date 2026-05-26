@@ -4,8 +4,6 @@
 
 > **Idee & Konzept:** Lars Oste (Ideengeber). **Programmierung & Umsetzung:** Claude (Anthropic) — umgesetzt mit Claude Code. Lars gibt Ideen und Anforderungen vor; die technische Umsetzung übernimmt die KI.
 
-> **Screenshots:** Die Bilder liegen unter [`docs/images/`](docs/images). Falls dort noch Platzhalter stehen, einfach echte PNGs mit den genannten Dateinamen ablegen — die README bindet sie automatisch ein. Zusätzlich gibt es zu jedem Bereich eine ASCII-Skizze, damit alles auch ohne Bilder verständlich ist.
-
 ![Hauptfenster](docs/images/main-window.png)
 
 ---
@@ -81,9 +79,9 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  🌐 WebExStudio                                              ⚙  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
+│  🌐 WebExStudio                                          ⚙  ❓  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✨ Neuer Flow  📄 Flow öffnen  💾 Speichern │ ▶ Ausführen ⏹ Stopp ⏸ Pause 👣 Schritt ⏭ Weiter │ ⊞ Fit 🔍 Reset │ ← Toolbar
+│ ✨ Neuer  📄 Öffnen  💾 Speichern  ♻ Convert │ ▶ Ausführen ⏹ ⏸ 👣 ⏭ │ ▦ Ausrichten ⊞ Fit 🔍 Reset │ ← Toolbar
 ├───────────────┬──────────────────────────────────────────────┬───────────────┤
 │ Node-Palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Eigenschaften │
 │  Suchen…      │                                              │               │
@@ -161,13 +159,15 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Subnode-Aufruf einfügen** | Subnode aus der Liste (links unten) auf den Canvas ziehen → erzeugt einen `call`-Node mit gesetztem Ziel. |
 | **Verbinden (Wire)** | Vom **Ausgangs-Port** (unten) zum **Eingangs-Port** (oben) eines anderen Nodes ziehen. Bei mehreren Ausgängen den passenden Port (then/else …) greifen. |
 | **Wire löschen** | Wire anklicken (wird rot) → `Entf`/`Backspace`; **oder** Rechtsklick auf den Wire → „Verbindung löschen". |
-| **Node verschieben** | Node mit der linken Maustaste ziehen. |
+| **Node verschieben** | Node mit der linken Maustaste ziehen; **oder** Node(s) auswählen und mit den **Pfeiltasten** verschieben (ein Rasterschritt; **Umschalt+Pfeil** = feinstufig 1 px). |
+| **Am Raster ausrichten** | Toolbar **▦ Ausrichten** — rundet alle Nodes des aktiven Tabs auf das Raster. |
 | **Node löschen** | Node auswählen → `Entf`; **oder** Rechtsklick → „Node löschen". |
 | **Mehrere auswählen** | **Strg**+Klick auf mehrere Nodes; **oder** auf leerer Fläche ein **Auswahlrechteck (Gummiband)** aufziehen. |
 | **Gruppieren** | ≥ 2 Nodes auswählen → Rechtsklick auf leere Fläche → **„📦 Gruppieren"**. |
 | **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"** → Name + Bezeichnung. Die Nodes wandern in einen neuen Subnode-Tab; an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
 | **Bezeichnung vergeben** | Node auswählen → Feld **„Bezeichnung"** oben im Eigenschaften-Panel. |
-| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. Das Hilfefenster zeigt **diese README** (eingebettet gerendert) — Doku und Hilfe bleiben dadurch immer gleich. |
+| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. Das Hilfefenster zeigt **diese README** (eingebettet gerendert) — Doku und Hilfe bleiben dadurch immer gleich. Es ist **frei skalierbar**, und die JSON-**Beispiele** lassen sich per Button **„📥 In den Flow laden"** direkt übernehmen. |
+| **Alten Flow konvertieren** | Toolbar **♻ Convert** → Projektordner (Python-Flow) wählen → wird ins neue Format überführt und geladen (Alternative zum CLI `--convert`). |
 | **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
@@ -551,7 +551,11 @@ Im **KI-Chat** hat jede Antwort einen Knopf **„📌 Als Hinweis merken"** — 
 
 ## Legacy-Projekte importieren
 
-Alte Python-WebEX-Projekte (Ordner mit `actions/*.json`, verschachtelten `call`/`then_actions_file`-Verweisen und `targets.json`) werden in ein einziges v2-Flow konvertiert:
+Alte Python-WebEX-Projekte (Ordner mit `actions/*.json`, verschachtelten `call`/`then_actions_file`-Verweisen und `targets.json`) werden in ein einziges v2-Flow konvertiert.
+
+**In der App:** Toolbar **♻ Convert** → den alten Projektordner wählen → der konvertierte Flow wird direkt in den Editor geladen (anschließend prüfen und speichern).
+
+**Über die Kommandozeile:**
 
 ```bash
 dotnet run --project WebExStudio.UI -- --convert <legacyProjektOrdner> <ausgabe.json>

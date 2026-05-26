@@ -352,6 +352,22 @@ public partial class FlowEditorView : UserControl
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        // Pfeiltasten verschieben die Auswahl (Umschalt = fein, sonst ein Rasterschritt).
+        if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down && Vm?.SelectedNodes.Count > 0)
+        {
+            var step = e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? 1.0 : FlowEditorViewModel.GridSize;
+            var (dx, dy) = e.Key switch
+            {
+                Key.Left => (-step, 0.0),
+                Key.Right => (step, 0.0),
+                Key.Up => (0.0, -step),
+                _ => (0.0, step),
+            };
+            Vm.MoveSelectedBy(dx, dy);
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key is Key.Delete or Key.Back)
         {
             if (_selectedWire is not null)

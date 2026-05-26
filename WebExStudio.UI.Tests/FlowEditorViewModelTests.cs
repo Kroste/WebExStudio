@@ -16,6 +16,26 @@ public class FlowEditorViewModelTests
     }
 
     [Fact]
+    public void SnapAllToGrid_RoundsNodePositions()
+    {
+        var vm = NewEditor();
+        var n = vm.AddNode("click", 33, 51);
+        vm.SnapAllToGrid(20);
+        Assert.Equal(40, n.X);
+        Assert.Equal(60, n.Y);
+    }
+
+    [Fact]
+    public void MoveSelectedBy_ShiftsSelectedNodes()
+    {
+        var vm = NewEditor();
+        var n = vm.AddNode("click", 100, 100); // wird automatisch ausgewählt
+        vm.MoveSelectedBy(20, -10);
+        Assert.Equal(120, n.X);
+        Assert.Equal(90, n.Y);
+    }
+
+    [Fact]
     public void OpenSubnodeByName_OpensMatchingSubnode_AsActiveTab()
     {
         var vm = NewEditor();

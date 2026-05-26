@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 
@@ -74,7 +76,7 @@ public static class MarkdownRenderer
     private static readonly IBrush HeaderBg = new SolidColorBrush(Color.Parse("#1E2A38"));
     private static readonly FontFamily Mono = new("Monospace");
 
-    public static Control Build(string markdown)
+    public static Control Build(string markdown, Action<string>? onLoadJson = null)
     {
         var root = new StackPanel { Spacing = 3 };
         var lines = markdown.Replace("\r\n", "\n").Split('\n');
@@ -85,14 +87,19 @@ public static class MarkdownRenderer
             var line = lines[i];
             var trimmed = line.Trim();
 
-            // Code-Block ```
+            // Code-Block ``` (mit optionaler Sprache, z. B. ```json)
             if (trimmed.StartsWith("```"))
             {
+                var lang = trimmed[3..].Trim().ToLowerInvariant();
                 var code = new StringBuilder();
                 i++;
                 while (i < lines.Length && !lines[i].TrimStart().StartsWith("```")) code.AppendLine(lines[i++]);
                 i++; // schließendes ```
-                root.Children.Add(CodeBlock(code.ToString().TrimEnd('\n')));
+                var codeText = code.ToString().TrimEnd('\n');
+                root.Children.Add(CodeBlock(codeText));
+                // JSON-Beispiele (volle Flows) per Klick in den Editor übernehmen.
+                if (lang == "json" && onLoadJson is not null)
+                    root.Children.Add(LoadButton(codeText, onLoadJson));
                 continue;
             }
 
@@ -198,6 +205,25 @@ public static class MarkdownRenderer
         grid.Children.Add(dot);
         grid.Children.Add(body);
         return grid;
+    }
+
+    private static Button LoadButton(string json, Action<string> onLoad)
+    {
+        var btn = new Button
+        {
+            Content = "📥 In den Flow laden",
+            Background = new SolidColorBrush(Color.Parse("#2979FF")),
+            Foreground = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.Parse("#82B1FF")),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 7),
+            Margin = new Thickness(0, 2, 0, 10),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Cursor = new Cursor(StandardCursorType.Hand),
+        };
+        btn.Click += (_, _) => onLoad(json);
+        return btn;
     }
 
     private static Border CodeBlock(string code) => new()

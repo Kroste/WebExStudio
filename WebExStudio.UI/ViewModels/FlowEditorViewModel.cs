@@ -116,6 +116,29 @@ public sealed class FlowEditorViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Standard-Rastergröße (passend zum Hintergrund-Punktraster).</summary>
+    public const double GridSize = 20.0;
+
+    /// <summary>Verschiebt alle ausgewählten Nodes um (dx, dy) — z. B. per Pfeiltasten.</summary>
+    public void MoveSelectedBy(double dx, double dy)
+    {
+        if (SelectedNodes.Count == 0) return;
+        foreach (var n in SelectedNodes) { n.X += dx; n.Y += dy; }
+        MarkDirty();
+    }
+
+    /// <summary>Richtet alle Nodes des aktiven Tabs am Raster aus (rundet X/Y auf Vielfache).</summary>
+    public void SnapAllToGrid(double grid = GridSize)
+    {
+        if (_activeTab is null || grid <= 0) return;
+        foreach (var n in _activeTab.Nodes)
+        {
+            n.X = System.Math.Round(n.X / grid) * grid;
+            n.Y = System.Math.Round(n.Y / grid) * grid;
+        }
+        MarkDirty();
+    }
+
     /// <summary>Selects all nodes on the active tab whose bounds intersect the (world) rectangle.</summary>
     public void SelectInRect(Avalonia.Rect rect)
     {

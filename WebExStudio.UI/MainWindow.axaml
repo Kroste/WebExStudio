@@ -60,6 +60,8 @@
         <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
         <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
                 IsEnabled="{Binding FlowEditor.CanSave}"/>
+        <Button Content="♻ Convert"         Click="OnConvert"     Padding="8,4"
+                ToolTip.Tip="Alten (Python-)Flow aus einem Projektordner in das neue Format konvertieren"/>
         <Button Content="🤖 KI-Flow"        Click="OnGenerateFlow" Padding="8,4"
                 ToolTip.Tip="Flow aus einer Beschreibung erzeugen"/>
         <Button Content="💬 KI-Chat"        Click="OnChat" Padding="8,4"
@@ -91,6 +93,8 @@
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
+        <Button Content="▦ Ausrichten"  Click="OnSnapToGrid" Padding="8,4"
+                ToolTip.Tip="Alle Nodes am Raster ausrichten"/>
         <Button Content="⊞ Fit"         Click="OnFitView"   Padding="8,4"/>
         <Button Content="🔍 Reset View" Click="OnResetView" Padding="8,4"/>
       </StackPanel>
