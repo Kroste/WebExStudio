@@ -189,31 +189,49 @@ public sealed class FlowExecutor
         }
         else
         {
-            try
+            // Optionale Wiederholversuche pro Node (Config "retry" = Anzahl, "retry_delay_ms" = Pause).
+            // Praktisch bei flaky Seiten/Netz; 0 = wie bisher (ein Versuch). Quit/Abbruch nie wiederholen.
+            var maxRetries = int.TryParse(node.Get("retry"), out var r) && r > 0 ? r : 0;
+            var retryDelayMs = int.TryParse(node.Get("retry_delay_ms"), out var d) && d > 0 ? d : 0;
+
+            for (var attempt = 0; ; attempt++)
             {
-                await handler.ExecuteAsync(ctx, node);
-                Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
-            }
-            catch (QuitException)
-            {
-                Log.Info("Quit: {0} ({1})", node.Type, node.Id);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
-                throw;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Node fehlgeschlagen: {0} ({1}): {2}", node.Type, node.Id, ex.Message);
-                ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
-                    DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
-                    ErrorMessage: ex.Message));
-                return; // stop this path on error
+                try
+                {
+                    await handler.ExecuteAsync(ctx, node);
+                    Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
+                    ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
+                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+                    break;
+                }
+                catch (QuitException)
+                {
+                    Log.Info("Quit: {0} ({1})", node.Type, node.Id);
+                    ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
+                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
+                    throw;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex) when (attempt < maxRetries)
+                {
+                    Log.Warn("Node fehlgeschlagen (Versuch {0}/{1}): {2} ({3}): {4} — wird wiederholt",
+                        attempt + 1, maxRetries + 1, node.Type, node.Id, ex.Message);
+                    ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
+                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                        $"Fehler – Wiederholung {attempt + 1}/{maxRetries}: {ex.Message}"));
+                    if (retryDelayMs > 0) await Task.Delay(retryDelayMs, ctx.CancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Node fehlgeschlagen: {0} ({1}): {2}", node.Type, node.Id, ex.Message);
+                    ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Error,
+                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                        ErrorMessage: ex.Message));
+                    return; // stop this path on error
+                }
             }
         }
 

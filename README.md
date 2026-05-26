@@ -190,6 +190,12 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 
 > Beim ausgewählten Node stehen Beschreibung **und** ein Beispiel rechts im Eigenschaften-Panel.
 
+> **Fehlerbehandlung (jeder Node):** Im Eigenschaften-Panel unter *„Fehlerbehandlung"* lässt sich pro
+> Node **Wiederholungen bei Fehler** (`retry`, 0 = aus) und eine **Wartezeit zwischen Versuchen**
+> (`retry_delay_ms`) setzen. Schlägt der Node fehl, wird er bis zu `retry`-mal erneut versucht (mit Pause);
+> erst danach gilt der Pfad als fehlerhaft. Abbruch (Stopp) und `quit` werden nie wiederholt — praktisch
+> für flaky Seiten/Netz (z. B. ein wackeliger `goto` oder `get_value`).
+
 ### Start
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|

@@ -96,6 +96,25 @@ public partial class PropertiesPanelView : UserControl
         foreach (var prop in _currentNode.Definition.Properties)
             PropertiesPanel.Children.Add(BuildField(prop));
 
+        // Universelle Fehlerbehandlung (für jeden Node): Wiederholversuche bei Fehlern.
+        // BuildField bindet automatisch an Model.Config[Key].
+        PropertiesPanel.Children.Add(new TextBlock
+        {
+            Text = "Fehlerbehandlung",
+            FontWeight = FontWeight.SemiBold,
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
+            Margin = new Avalonia.Thickness(0, 10, 0, 2),
+        });
+        PropertiesPanel.Children.Add(BuildField(new PropertyDefinition
+        {
+            Key = "retry", Label = "Wiederholungen bei Fehler (0 = aus)", Kind = PropertyKind.Number, DefaultValue = "0",
+        }));
+        PropertiesPanel.Children.Add(BuildField(new PropertyDefinition
+        {
+            Key = "retry_delay_ms", Label = "Wartezeit zwischen Versuchen (ms)", Kind = PropertyKind.Number, DefaultValue = "0",
+        }));
+
         // Description + example box (under the properties)
         PropertiesPanel.Children.Add(BuildInfoBox(_currentNode.Definition));
     }
