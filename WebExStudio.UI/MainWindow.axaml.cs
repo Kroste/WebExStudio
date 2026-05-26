@@ -38,6 +38,20 @@ public partial class MainWindow : Window
     private void ToggleMaximize() =>
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        // F11: Vollbild umschalten. Eigener Pfad (FullScreen statt Maximized) – hilft, wenn der
+        // Fenstermanager das Maximieren randloser Fenster nicht zuverlässig umsetzt
+        // (z. B. unter manchen Wayland-Compositors).
+        if (e.Key == Key.F11)
+        {
+            WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
+            e.Handled = true;
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
     private void OnCloseWindow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         Close();
 
