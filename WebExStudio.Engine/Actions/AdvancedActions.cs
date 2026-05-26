@@ -53,9 +53,13 @@ public sealed class CaptchaGuardHandler : IActionHandler
         "[data-sitekey]",
     ];
 
+    /// <summary>Ein Timeout von 0 (oder negativ) bedeutet „kein Zeitlimit" — warte, bis gelöst.</summary>
+    public static bool IsUnlimitedTimeout(int timeoutSec) => timeoutSec <= 0;
+
     public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
     {
         var timeoutSec = int.TryParse(node.Get("timeout_s", "120"), out var t) ? t : 120;
+        var unlimited = IsUnlimitedTimeout(timeoutSec);
 
         var detected = false;
         foreach (var sel in CaptchaSelectors)
@@ -74,7 +78,8 @@ public sealed class CaptchaGuardHandler : IActionHandler
             return;
         }
 
-        Log.Warn("captcha_guard: CAPTCHA erkannt, warte auf Lösung (timeout={0}s)", timeoutSec);
+        Log.Warn("captcha_guard: CAPTCHA erkannt, warte auf Lösung ({0})",
+            unlimited ? "ohne Zeitlimit" : $"timeout={timeoutSec}s");
 
         // Erste Checkbox („Ich bin kein Roboter") selbst anklicken — reicht oft schon aus;
         // ein evtl. folgendes Bild-Rätsel löst der Nutzer dann im Wartefenster.
@@ -82,9 +87,11 @@ public sealed class CaptchaGuardHandler : IActionHandler
             await TryClickFirstCheckboxAsync(ctx);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.CancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(timeoutSec));
+        if (!unlimited)
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSec));
 
-        var deadline = DateTime.Now.AddSeconds(timeoutSec);
+        // Ohne Zeitlimit läuft die Schleife bis zur Lösung oder bis der Nutzer „Stopp" drückt.
+        var deadline = unlimited ? DateTime.MaxValue : DateTime.Now.AddSeconds(timeoutSec);
         while (DateTime.Now < deadline)
         {
             cts.Token.ThrowIfCancellationRequested();

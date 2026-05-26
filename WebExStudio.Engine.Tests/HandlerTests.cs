@@ -7,6 +7,14 @@ namespace WebExStudio.Engine.Tests;
 /// <summary>Handlers that don't touch the browser page can be tested directly.</summary>
 public class HandlerTests
 {
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(-1, true)]
+    [InlineData(1, false)]
+    [InlineData(120, false)]
+    public void CaptchaGuard_TimeoutZeroOrNegative_MeansUnlimited(int timeoutSec, bool expected) =>
+        Assert.Equal(expected, CaptchaGuardHandler.IsUnlimitedTimeout(timeoutSec));
+
     [Fact]
     public async Task SetPayload_WritesKey()
     {

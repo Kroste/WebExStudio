@@ -304,12 +304,13 @@ public static class NodeCatalog
         {
             Type = "captcha_guard", DisplayName = "CAPTCHA-Schutz", Category = "Erweitert",
             Description = "Erkennt CAPTCHA, klickt (optional) die erste „Ich bin kein Roboter\"-Checkbox "
-                + "und wartet dann auf die (ggf. manuelle) Lösung.",
+                + "und wartet dann auf die (ggf. manuelle) Lösung. timeout_s = 0 bedeutet kein Zeitlimit "
+                + "(wartet, bis gelöst, oder bis der Nutzer „Stopp\" drückt).",
             Color = "#4527A0", Icon = "🤖",
-            Example = "auto_click = true, timeout_s = 120  →  klickt die Checkbox; ein folgendes Bild-Rätsel löst der Nutzer.",
+            Example = "auto_click = true, timeout_s = 120  →  klickt die Checkbox; ein folgendes Bild-Rätsel löst der Nutzer. timeout_s = 0 → wartet unbegrenzt.",
             Properties =
             [
-                new() { Key = "timeout_s", Label = "Timeout (Sek.)", Kind = PropertyKind.Number, DefaultValue = "120" },
+                new() { Key = "timeout_s", Label = "Timeout (Sek., 0 = unbegrenzt)", Kind = PropertyKind.Number, DefaultValue = "120" },
                 new() { Key = "auto_click", Label = "Erste Checkbox automatisch klicken", Kind = PropertyKind.Boolean, DefaultValue = "true" },
             ]
         },
