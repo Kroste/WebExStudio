@@ -208,6 +208,24 @@ public partial class PropertiesPanelView : UserControl
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
         };
 
+        // Special case: ai_query.provider → dropdown der gängigen KI-Anbieter (leer = Einstellungen).
+        if (_currentNode?.ActionType == "ai_query" && prop.Key == "provider")
+        {
+            var providers = new List<string> { "", "anthropic", "openai", "gemini", "perplexity", "ollama" };
+            if (!string.IsNullOrEmpty(currentValue) && !providers.Contains(currentValue))
+                providers.Insert(1, currentValue);
+            var combo = new ComboBox { ItemsSource = providers, SelectedItem = currentValue, HorizontalAlignment = HorizontalAlignment.Stretch };
+            combo.SelectionChanged += (_, _) =>
+            {
+                if (_currentNode is not null && combo.SelectedItem is string s)
+                {
+                    _currentNode.Model.Config[prop.Key] = s;
+                    _flowEditor?.MarkDirty();
+                }
+            };
+            return new StackPanel { Spacing = 2, Margin = new Avalonia.Thickness(0, 0, 0, 4), Children = { label, combo } };
+        }
+
         // Special case: call.target → dropdown of available subnode names.
         if (_currentNode?.ActionType == "call" && prop.Key == "target")
         {

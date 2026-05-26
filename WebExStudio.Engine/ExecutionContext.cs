@@ -5,6 +5,10 @@ using WebExStudio.Core.Models;
 
 namespace WebExStudio.Engine;
 
+/// <summary>Eine KI-Anfrage des ai_query-Nodes. Provider/Model leer = Standard aus den Einstellungen.</summary>
+public sealed record AiRequest(string SystemPrompt, string UserPrompt, bool JsonMode,
+    string? Provider = null, string? Model = null);
+
 /// <summary>
 /// Holds all runtime state for a single execution.
 /// There is a single data store — the payload — that flows through wires and
@@ -60,9 +64,10 @@ public sealed class ExecutionContext
     /// <summary>Speichert einen erkannten Download im Zielordner (für expect_download-Klicks).</summary>
     public Func<IDownload, Task>? SaveDownload { get; init; }
 
-    /// <summary>Schickt (System-Prompt, User-Prompt, jsonMode) an die KI und liefert die Antwort.
-    /// Von der UI mit dem konfigurierten LLM-Client verdrahtet (null = KI nicht verfügbar).</summary>
-    public Func<string, string, bool, CancellationToken, Task<string>>? AiComplete { get; init; }
+    /// <summary>Schickt eine <see cref="AiRequest"/> an die KI und liefert die Antwort. Von der UI mit
+    /// dem konfigurierten LLM-Client verdrahtet (null = KI nicht verfügbar). Der Request kann Anbieter/
+    /// Modell überschreiben (für die Auswahl im ai_query-Node).</summary>
+    public Func<AiRequest, CancellationToken, Task<string>>? AiComplete { get; init; }
 
     public ExecutionContext(
         IPage page,

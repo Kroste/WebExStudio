@@ -216,15 +216,30 @@ public sealed class MainWindowViewModel : ViewModelBase
             var ct = _runCts.Token;
             // KI-Callback für den ai_query-Node: baut bei Bedarf den konfigurierten LLM-Client
             // (gleicher Proxy wie der Browser) und liefert die Antwort zurück. null = KI aus.
-            Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null;
+            Func<AiRequest, CancellationToken, Task<string>>? aiComplete = null;
             if (AiOptions.IsConfigured)
-                aiComplete = async (system, user, json, token) =>
+                aiComplete = async (req, token) =>
                 {
+                    // Optionale Anbieter-/Modell-Auswahl des Nodes anwenden (sonst Einstellungen).
+                    var opts = AiOptions;
+                    if (!string.IsNullOrWhiteSpace(req.Provider) || !string.IsNullOrWhiteSpace(req.Model))
+                    {
+                        var providerChanged = !string.IsNullOrWhiteSpace(req.Provider)
+                            && !string.Equals(req.Provider, AiOptions.Provider, StringComparison.OrdinalIgnoreCase);
+                        opts = new AiOptions
+                        {
+                            Provider = string.IsNullOrWhiteSpace(req.Provider) ? AiOptions.Provider : req.Provider!,
+                            // Modell: explizit > bei anderem Anbieter dessen Standard ("") > Einstellungen
+                            Model = !string.IsNullOrWhiteSpace(req.Model) ? req.Model! : providerChanged ? "" : AiOptions.Model,
+                            ApiKey = AiOptions.ApiKey,
+                            BaseUrl = providerChanged ? "" : AiOptions.BaseUrl,
+                        };
+                    }
                     using var http = ProxyFactory.CreateHttpClient(
                         RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
                         TimeSpan.FromMinutes(2));
-                    var client = LlmClientFactory.Create(AiOptions, http);
-                    return await client.ChatAsync(system, [new ChatMessage(ChatRole.User, user)], json, token);
+                    var client = LlmClientFactory.Create(opts, http);
+                    return await client.ChatAsync(req.SystemPrompt, [new ChatMessage(ChatRole.User, req.UserPrompt)], req.JsonMode, token);
                 };
 
             // Run the executor on a background thread so the UI thread stays free to

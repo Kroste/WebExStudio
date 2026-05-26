@@ -466,14 +466,17 @@ public static class NodeCatalog
             Description = "Schickt den Inhalt der aktuellen Seite (Text oder HTML) zusammen mit einer Anweisung "
                 + "an die KI und legt die Antwort im Payload ab. Beispiel: „Extrahiere alle Produktnamen und "
                 + "Preise als JSON.\" Mit Selektor nur ein Element senden; mit json=true reine JSON-Antwort "
-                + "erzwingen; max_chars begrenzt die gesendete Textmenge (Kosten/Token). Erfordert eine "
-                + "konfigurierte KI (Einstellungen → KI).",
+                + "erzwingen; max_chars begrenzt die gesendete Textmenge (Kosten/Token). Anbieter/Modell sind "
+                + "optional pro Node wählbar (leer = Standard aus den Einstellungen; es wird der dort hinterlegte "
+                + "API-Schlüssel verwendet). Erfordert eine konfigurierte KI (Einstellungen → KI).",
             Color = "#00838F", Icon = "🧠",
             Example = "prompt = Extrahiere alle Threads als JSON {titel,url}, ctx_key = daten, json = true  →  {daten}.",
             Properties =
             [
                 new() { Key = "prompt", Label = "Anweisung an die KI", Kind = PropertyKind.MultilineText, Required = true },
                 new() { Key = "ctx_key", Label = "Antwort → Payload-Schlüssel", Kind = PropertyKind.Text, DefaultValue = "ai_result" },
+                new() { Key = "provider", Label = "Anbieter (leer = aus Einstellungen)", Kind = PropertyKind.Dropdown },
+                new() { Key = "model", Label = "Modell (leer = Standard des Anbieters)", Kind = PropertyKind.Text },
                 new() { Key = "selector", Label = "Nur dieses Element (Selektor, optional)", Kind = PropertyKind.Selector },
                 new() { Key = "source", Label = "Inhalt (text/html)", Kind = PropertyKind.Dropdown, DefaultValue = "text" },
                 new() { Key = "max_chars", Label = "Max. Zeichen", Kind = PropertyKind.Number, DefaultValue = "12000" },

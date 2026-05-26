@@ -32,6 +32,9 @@ public sealed class AiQueryHandler : IActionHandler
         var source = node.Get("source", "text").ToLowerInvariant();
         var maxChars = int.TryParse(node.Get("max_chars", "12000"), out var mc) && mc > 0 ? mc : 12000;
         var json = node.GetBool("json");
+        // Optionale Anbieter-/Modell-Auswahl (leer = Standard aus den Einstellungen).
+        var provider = NullIfBlank(node.Get("provider"));
+        var model = NullIfBlank(node.Get("model"));
 
         var content = Truncate(await GrabContentAsync(ctx, selector, source), maxChars);
 
@@ -41,10 +44,11 @@ public sealed class AiQueryHandler : IActionHandler
         var user = $"{prompt}\n\n--- Seiteninhalt ---\n{content}";
 
         // KI-Anfrage/-Antwort protokollieren (maskiert, da Seiteninhalt Geheimnisse enthalten kann).
-        Log.Info("ai_query: Anfrage an KI ({0} Zeichen Inhalt, json={1})", content.Length, json);
+        Log.Info("ai_query: Anfrage an KI ({0} Zeichen Inhalt, json={1}, provider={2}, model={3})",
+            content.Length, json, provider ?? "(Einstellungen)", model ?? "(Standard)");
         Log.Debug("ai_query Anfrage: {0}", SecretMasker.Mask(user));
 
-        var answer = await ctx.AiComplete(system, user, json, ctx.CancellationToken) ?? string.Empty;
+        var answer = await ctx.AiComplete(new AiRequest(system, user, json, provider, model), ctx.CancellationToken) ?? string.Empty;
         Log.Debug("ai_query Antwort: {0}", SecretMasker.Mask(answer));
 
         ctx.Set(ctxKey, answer);
@@ -62,6 +66,8 @@ public sealed class AiQueryHandler : IActionHandler
         }
         return html ? await ctx.Page.ContentAsync() : await ctx.Page.InnerTextAsync("body");
     }
+
+    private static string? NullIfBlank(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
     /// <summary>Kürzt den Seiteninhalt, um Token/Kosten zu begrenzen.</summary>
     public static string Truncate(string s, int max) =>

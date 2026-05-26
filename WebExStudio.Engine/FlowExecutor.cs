@@ -82,7 +82,7 @@ public sealed class FlowExecutor
         CancellationToken ct = default,
         Func<string, Task>? onPause = null,
         Func<FlowNode, Task>? pauseGate = null,
-        Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null)
+        Func<AiRequest, CancellationToken, Task<string>>? aiComplete = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
         ApplyDriverPath(config);
@@ -236,7 +236,7 @@ public sealed class FlowExecutor
         IProgress<TraceEntry>? progress, CancellationToken ct,
         Func<string, Task>? onPause = null, Func<FlowNode, Task>? pauseGate = null,
         Action<IPage>? attachDownloads = null, Func<IDownload, Task>? saveDownload = null,
-        Func<string, string, bool, CancellationToken, Task<string>>? aiComplete = null)
+        Func<AiRequest, CancellationToken, Task<string>>? aiComplete = null)
     {
         return new ExecutionContext(page, target, config, projectDir,
             progress: progress, cancellationToken: ct)

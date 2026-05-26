@@ -236,7 +236,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 ### KI
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
-| 🧠 | `ai_query` | KI-Abfrage | Schickt den Seiteninhalt (Text/HTML, optional nur ein Element) mit einer Anweisung an die KI; Antwort → Payload (`ctx_key`). `json = true` erzwingt JSON, `max_chars` begrenzt die Textmenge. Erfordert eine konfigurierte KI (Einstellungen → KI). | `prompt = Extrahiere alle Threads als JSON {titel,url}, json = true, ctx_key = daten` |
+| 🧠 | `ai_query` | KI-Abfrage | Schickt den Seiteninhalt (Text/HTML, optional nur ein Element) mit einer Anweisung an die KI; Antwort → Payload (`ctx_key`). `json = true` erzwingt JSON, `max_chars` begrenzt die Textmenge. **Anbieter/Modell** sind pro Node wählbar (leer = Standard aus den Einstellungen; nutzt den dort hinterlegten API-Schlüssel). Erfordert eine konfigurierte KI (Einstellungen → KI). | `prompt = Extrahiere alle Threads als JSON {titel,url}, provider = gemini, json = true, ctx_key = daten` |
 
 ### Anmerkung (reine Anzeige)
 | | Typ | Name | Zweck |
