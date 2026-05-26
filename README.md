@@ -192,7 +192,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
 | 🖱 | `click` | Klicken | Element klicken (mit Scroll/Retry). Für Download-Buttons `expect_download = true` → wartet auf den Download und speichert ihn. | `selector = a.download, expect_download = true` |
-| ⌨ | `send_keys` | Tastatureingabe | Text in Eingabefeld tippen. | `selector = input[name=q], value = {payload.suchwort}` |
+| ⌨ | `send_keys` | Text eingeben | Text in Eingabefeld tippen (füllt das Feld). Für Enter/Tab/Escape → `press_key`. | `selector = input[name=q], value = {payload.suchwort}` |
 | ⏳ | `wait_for` | Warten auf Element | Auf Sichtbarkeit/Existenz warten. | `selector = .ergebnis, state = visible` |
 | 💤 | `sleep` | Pause | Feste Zeit warten. | `seconds = 2` |
 | 📋 | `menu_path` | Menü-Navigation | Hierarchisches Menü durchklicken/hovern. | `path = Datei, Export, PDF` |

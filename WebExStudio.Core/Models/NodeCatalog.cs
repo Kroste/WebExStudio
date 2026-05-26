@@ -87,8 +87,9 @@ public static class NodeCatalog
         },
         new()
         {
-            Type = "send_keys", DisplayName = "Tastatureingabe", Category = "Interaktion",
-            Description = "Gibt Text in ein Eingabefeld ein.",
+            Type = "send_keys", DisplayName = "Text eingeben", Category = "Interaktion",
+            Description = "Gibt Text in ein Eingabefeld ein (füllt das Feld). Für einzelne (Sonder-)Tasten "
+                + "wie Enter/Tab/Escape den 'Taste drücken'-Node (press_key) verwenden.",
             Color = "#2E7D32", Icon = "⌨",
             Example = "selector = input[name=q], value = {payload.suchwort}  →  tippt den Suchbegriff ein.",
             Properties =
