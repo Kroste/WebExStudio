@@ -36,13 +36,19 @@ jobs:
       - name: Tests
         run: dotnet test WebExStudio.slnx -c Release --no-build --verbosity normal
 
-  # ── 2) Release-Build (linux-x64) ───────────────────────────────────────────
+  # ── 2) Release-Builds (Linux + Windows) ────────────────────────────────────
   # Läuft NUR bei Tags (v*) oder manuell — nicht bei jedem Push/PR. Das vermeidet, dass
   # bei jedem Commit große Self-Contained-Artefakte hochgeladen werden (Speicherkontingent).
   release:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+          - rid: win-x64
     steps:
       - uses: actions/checkout@v4
 
@@ -60,25 +66,31 @@ jobs:
             echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish (linux-x64)
+      - name: Publish (${{ matrix.rid }})
         run: |
           dotnet publish WebExStudio.UI/WebExStudio.UI.csproj \
-            -c Release -r linux-x64 --self-contained true \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
             -p:PublishSingleFile=true \
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ steps.ver.outputs.version }} \
-            -o publish/linux-x64
+            -o publish/${{ matrix.rid }}
 
       - name: Paket schnüren
         run: |
-          cd publish/linux-x64
-          tar -czf "../../WebExStudio-${{ steps.ver.outputs.version }}-linux-x64.tar.gz" .
+          cd publish/${{ matrix.rid }}
+          if [[ "${{ matrix.rid }}" == win-* ]]; then
+            zip -r "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.zip" .
+          else
+            tar -czf "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.tar.gz" .
+          fi
 
       - name: Artefakt hochladen (kurze Aufbewahrung, spart Speicher)
         uses: actions/upload-artifact@v4
         with:
-          name: WebExStudio-linux-x64
-          path: WebExStudio-*-linux-x64.tar.gz
+          name: WebExStudio-${{ matrix.rid }}
+          path: |
+            WebExStudio-*-${{ matrix.rid }}.zip
+            WebExStudio-*-${{ matrix.rid }}.tar.gz
           retention-days: 7
           if-no-files-found: ignore
 
@@ -86,6 +98,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: WebExStudio-*-linux-x64.tar.gz
+          files: |
+            WebExStudio-*-${{ matrix.rid }}.zip
+            WebExStudio-*-${{ matrix.rid }}.tar.gz
           fail_on_unmatched_files: false
           generate_release_notes: true

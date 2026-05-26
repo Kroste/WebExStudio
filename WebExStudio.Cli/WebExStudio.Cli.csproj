@@ -16,4 +16,9 @@
     <ProjectReference Include="..\WebExStudio.Engine\WebExStudio.Engine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Argument-Parsing (internal) im Test-Projekt prüfbar machen. -->
+    <InternalsVisibleTo Include="WebExStudio.Cli.Tests" />
+  </ItemGroup>
+
 </Project>

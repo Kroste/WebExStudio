@@ -806,16 +806,17 @@ dotnet test
 | `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
 | `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs/Gruppen, ohne Rendering) und die **Validierungs-Blockade vor dem Lauf**. |
 | `WebExStudio.AI.Tests` | **KI-Flow-Generator** (Prompt → Parsen → Validieren) mit Fake-Client und die Anbieter-Auswahl der `LlmClientFactory` — ohne Netzwerk. |
+| `WebExStudio.Cli.Tests` | Argument-Parsing des Headless-Runners `webex` (`Options.Parse`: Befehle, Flags, `--var`, Fehlerfälle). |
 
-Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen.
+Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen. Browser-/IO-lastige Pfade (Playwright-Handler, Drag&Drop, der `run`-Befehl der CLI) werden nicht unit-getestet; geprüft wird die zugrunde liegende Logik (z. B. `Options.Parse`, `SecretReferenceScanner`, `ViewTransform`).
 
 ### GitHub Actions
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **`test`** — baut die Solution und führt `dotnet test` aus.
-2. **`release`** (nur wenn Tests grün) — erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)**, packt sie (`.tar.gz` / `.zip`) und stellt sie als **Actions-Artefakte** zum Download bereit.
-3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden die Pakete zusätzlich an ein **GitHub-Release** angehängt.
+1. **`test`** — baut die Solution (Release) und führt `dotnet test` aus (bei jedem Push/PR).
+2. **`release`** — läuft **nur bei einem Tag `v*` oder manuell** (*workflow_dispatch*) und nur, wenn die Tests grün sind — **nicht** bei jedem Push (spart Artefakt-Speicher). Erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)**, packt sie (`.tar.gz` / `.zip`) und lädt sie als **Actions-Artefakte** (7 Tage Aufbewahrung) hoch.
+3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden beide Pakete zusätzlich an ein **GitHub-Release** angehängt.
 
 ---
 

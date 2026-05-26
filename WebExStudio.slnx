@@ -7,6 +7,7 @@
   <Project Path="WebExStudio.Core.Tests/WebExStudio.Core.Tests.csproj" />
   <Project Path="WebExStudio.Engine.Tests/WebExStudio.Engine.Tests.csproj" />
   <Project Path="WebExStudio.UI.Tests/WebExStudio.UI.Tests.csproj" />
+  <Project Path="WebExStudio.Cli.Tests/WebExStudio.Cli.Tests.csproj" />
   <Folder Name="/samples/">
     <Project Path="samples/FileCheckPlugin/FileCheckPlugin.csproj" />
     <Project Path="samples/HttpRequestPlugin/HttpRequestPlugin.csproj" />
