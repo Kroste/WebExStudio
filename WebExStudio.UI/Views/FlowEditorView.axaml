@@ -39,8 +39,9 @@
       </ItemsControl>
     </Border>
 
-    <!-- Canvas area -->
-    <Grid ClipToBounds="True">
+    <!-- Canvas area: untransformierte Viewport-Fläche → fängt das Mausrad immer ab -->
+    <Grid x:Name="CanvasArea" ClipToBounds="True" Background="Transparent"
+          PointerWheelChanged="OnCanvasAreaWheel">
       <!-- Background grid (not transformed) -->
       <controls:GridOverlay x:Name="GridOverlay" IsHitTestVisible="False"/>
 
@@ -51,6 +52,16 @@
       <!-- Connection renderer (same transform as canvas) -->
       <controls:ConnectionRenderer x:Name="ConnectionRenderer"
                                     IsHitTestVisible="False"/>
+
+      <!-- Vorschau beim Ziehen aus der Palette (folgt dem Cursor) -->
+      <Border x:Name="DragGhost" IsHitTestVisible="False" IsVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top"
+              CornerRadius="6" Padding="8,6" BorderThickness="1" Opacity="0.85">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock x:Name="GhostIcon" FontSize="16" VerticalAlignment="Center"/>
+          <TextBlock x:Name="GhostName" Foreground="White" FontSize="12" VerticalAlignment="Center"/>
+        </StackPanel>
+      </Border>
 
       <!-- Hint text -->
       <TextBlock Text="Rechtsklick → Node hinzufügen  |  Scrollen zum Verschieben  |  Strg+Mausrad zum Zoomen  |  Ausgangsport ziehen → Verbindung erstellen"

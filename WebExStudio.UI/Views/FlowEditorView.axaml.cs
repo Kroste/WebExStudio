@@ -34,6 +34,14 @@ public partial class FlowEditorView : UserControl
         DragDrop.SetAllowDrop(Canvas, true);
         Canvas.AddHandler(DragDrop.DragOverEvent, OnDragOver);
         Canvas.AddHandler(DragDrop.DropEvent, OnDrop);
+        Canvas.AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
+    }
+
+    /// <summary>Mausrad auf der untransformierten Viewport-Fläche → an den Canvas weiterreichen.</summary>
+    private void OnCanvasAreaWheel(object? sender, PointerWheelEventArgs e)
+    {
+        Canvas.ApplyWheel(e.Delta, e.GetPosition(CanvasArea), e.KeyModifiers);
+        e.Handled = true;
     }
 
     private void SelectWire(WireViewModel? wire)
@@ -424,14 +432,49 @@ public partial class FlowEditorView : UserControl
 
     // ── Palette drag-and-drop ─────────────────────────────────────────────────
 
-    private void OnDragOver(object? sender, DragEventArgs e) =>
-        e.DragEffects = e.DataTransfer.Contains(NodePaletteView.NodeTypeFormat)
-                     || e.DataTransfer.Contains(SubnodePanelView.SubnodeNameFormat)
-            ? DragDropEffects.Copy
-            : DragDropEffects.None;
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        var ok = e.DataTransfer.Contains(NodePaletteView.NodeTypeFormat)
+              || e.DataTransfer.Contains(SubnodePanelView.SubnodeNameFormat);
+        e.DragEffects = ok ? DragDropEffects.Copy : DragDropEffects.None;
+        if (ok) UpdateDragGhost(e);
+        else DragGhost.IsVisible = false;
+    }
+
+    private void OnDragLeave(object? sender, DragEventArgs e) => DragGhost.IsVisible = false;
+
+    /// <summary>Zeigt eine Vorschau (Icon + Name) des gezogenen Nodes am Cursor.</summary>
+    private void UpdateDragGhost(DragEventArgs e)
+    {
+        string? icon = null, name = null, color = null;
+        if (e.DataTransfer.TryGetValue(NodePaletteView.NodeTypeFormat) is string type && !string.IsNullOrEmpty(type))
+        {
+            var def = Core.Models.NodeCatalog.Get(type);
+            icon = def?.Icon ?? "⬚";
+            name = def?.DisplayName ?? type;
+            color = def?.Color ?? "#607D8B";
+        }
+        else if (e.DataTransfer.TryGetValue(SubnodePanelView.SubnodeNameFormat) is string sub && !string.IsNullOrEmpty(sub))
+        {
+            icon = "📞";
+            name = sub;
+            color = "#F57F17";
+        }
+        if (name is null) { DragGhost.IsVisible = false; return; }
+
+        GhostIcon.Text = icon;
+        GhostName.Text = name;
+        var c = Avalonia.Media.Color.Parse(color!);
+        DragGhost.Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(60, c.R, c.G, c.B));
+        DragGhost.BorderBrush = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(150, c.R, c.G, c.B));
+        var p = e.GetPosition(CanvasArea);
+        DragGhost.RenderTransform = new Avalonia.Media.TranslateTransform(p.X + 8, p.Y + 8);
+        DragGhost.IsVisible = true;
+    }
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
+        DragGhost.IsVisible = false;
         if (Vm is null) return;
         var world = Canvas.CanvasToWorld(e.GetPosition(Canvas));
 

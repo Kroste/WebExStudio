@@ -68,7 +68,9 @@ public sealed class NodeCanvas : Canvas
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
-        PointerWheelChanged += OnPointerWheelChanged;
+        // Hinweis: Das Mausrad wird NICHT hier, sondern auf der untransformierten Canvas-Fläche
+        // behandelt (FlowEditorView → ApplyWheel). Sonst wandert die Trefferfläche mit dem Pan
+        // und Scrollen stoppt, sobald der Cursor außerhalb des verschobenen Canvas liegt.
     }
 
     public void ResetView()
@@ -258,28 +260,29 @@ public sealed class NodeCanvas : Canvas
         _rubberActive = false;
     }
 
-    private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    /// <summary>Zoom/Pan per Mausrad. <paramref name="pos"/> ist die Cursor-Position in der
+    /// untransformierten Viewport-Fläche (FlowEditorView reicht sie durch), damit das Scrollen
+    /// unabhängig vom aktuellen Pan/Zoom über die gesamte Ansicht funktioniert.</summary>
+    public void ApplyWheel(Vector delta, Point pos, KeyModifiers mods)
     {
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        if (mods.HasFlag(KeyModifiers.Control))
         {
-            var mouse = e.GetPosition(this);
-            var delta = Math.Pow(1.1, e.Delta.Y);
-            var newScale = Math.Clamp(_scale * delta, MinScale, MaxScale);
+            var d = Math.Pow(1.1, delta.Y);
+            var newScale = Math.Clamp(_scale * d, MinScale, MaxScale);
             var factor = newScale / _scale;
-            _panOffsetX = mouse.X - factor * (mouse.X - _panOffsetX);
-            _panOffsetY = mouse.Y - factor * (mouse.Y - _panOffsetY);
+            _panOffsetX = pos.X - factor * (pos.X - _panOffsetX);
+            _panOffsetY = pos.Y - factor * (pos.Y - _panOffsetY);
             _scale = newScale;
         }
-        else if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        else if (mods.HasFlag(KeyModifiers.Shift))
         {
-            _panOffsetX += e.Delta.Y * 100;
+            _panOffsetX += delta.Y * 100;
         }
         else
         {
-            _panOffsetY += e.Delta.Y * 100;
+            _panOffsetY += delta.Y * 100;
         }
         UpdateTransform();
-        e.Handled = true;
     }
 
     private void UpdateTransform()
