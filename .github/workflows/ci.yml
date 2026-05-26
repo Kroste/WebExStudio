@@ -99,6 +99,10 @@ jobs:
             (cd "publish-cli/$R" && tar -czf "../../webex-$V-$R.tar.gz" .)
           fi
 
+      - name: AppImage bauen (nur linux-x64)
+        if: matrix.rid == 'linux-x64'
+        run: bash build/make-appimage.sh publish/linux-x64 "${{ steps.ver.outputs.version }}" .
+
       # Actions-Artefakt nur bei manuellem Lauf (workflow_dispatch) — bei Tags ist das
       # GitHub-Release die Verteilung (dessen Assets zählen NICHT gegens Artefakt-Kontingent).
       # continue-on-error: ein voller Artefakt-Speicher darf das Release nie blockieren.
@@ -113,6 +117,7 @@ jobs:
             WebExStudio-*-${{ matrix.rid }}.tar.gz
             webex-*-${{ matrix.rid }}.zip
             webex-*-${{ matrix.rid }}.tar.gz
+            WebExStudio-*-x86_64.AppImage
           retention-days: 7
           if-no-files-found: ignore
 
@@ -125,5 +130,6 @@ jobs:
             WebExStudio-*-${{ matrix.rid }}.tar.gz
             webex-*-${{ matrix.rid }}.zip
             webex-*-${{ matrix.rid }}.tar.gz
+            WebExStudio-*-x86_64.AppImage
           fail_on_unmatched_files: false
           generate_release_notes: true

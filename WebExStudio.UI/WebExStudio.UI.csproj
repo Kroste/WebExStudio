@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Ausführbare Datei heißt "WebExStudio" (nicht "WebExStudio.UI") — schöner im Paket/AppImage. -->
+    <AssemblyName>WebExStudio</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
