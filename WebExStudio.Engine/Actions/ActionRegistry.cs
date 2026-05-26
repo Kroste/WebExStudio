@@ -40,6 +40,7 @@ public sealed class ActionRegistry
         r.Register(new CallHandler());
         r.Register(new NoopHandler());
         r.Register(new QuitHandler());
+        r.Register(new AssertHandler());
         r.Register(new GetValueHandler());
         r.Register(new SetPayloadHandler());
         r.Register(new DebugHandler());
@@ -47,6 +48,7 @@ public sealed class ActionRegistry
         r.Register(new ReadFileHandler());
         r.Register(new WriteFileHandler());
         r.Register(new DownloadUrlHandler());
+        r.Register(new ScreenshotHandler());
         r.Register(new CaptchaGuardHandler());
         r.Register(new LabelHandler());
         r.Register(new CaptionHandler());

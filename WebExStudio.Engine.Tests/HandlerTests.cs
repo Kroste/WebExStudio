@@ -16,6 +16,46 @@ public class HandlerTests
         Assert.Equal(expected, CaptchaGuardHandler.IsUnlimitedTimeout(timeoutSec));
 
     [Fact]
+    public async Task Assert_PayloadContains_PassesWhenPresent()
+    {
+        var ctx = Ctx.Make(new() { ["visited"] = "/a/\n/b/" });
+        var node = new FlowNode
+        {
+            Type = "assert",
+            Config = new() { ["condition"] = "payload_contains", ["selector"] = "visited", ["value"] = "/b/" },
+        };
+        // erfüllt → wirft nicht
+        await new AssertHandler().ExecuteAsync(ctx, node);
+    }
+
+    [Fact]
+    public async Task Assert_PayloadContains_ThrowsWhenMissing()
+    {
+        var ctx = Ctx.Make(new() { ["visited"] = "/a/" });
+        var node = new FlowNode
+        {
+            Type = "assert",
+            Config = new() { ["condition"] = "payload_contains", ["selector"] = "visited", ["value"] = "/b/", ["message"] = "Link fehlt" },
+        };
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => new AssertHandler().ExecuteAsync(ctx, node));
+        Assert.Contains("Link fehlt", ex.Message);
+    }
+
+    [Fact]
+    public async Task Assert_Negate_ThrowsWhenConditionTrue()
+    {
+        var ctx = Ctx.Make(new() { ["v"] = "treffer" });
+        var node = new FlowNode
+        {
+            Type = "assert",
+            Config = new() { ["condition"] = "payload_contains", ["selector"] = "v", ["value"] = "treffer", ["negate"] = "true" },
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => new AssertHandler().ExecuteAsync(ctx, node));
+    }
+
+    [Fact]
     public async Task SetPayload_WritesKey()
     {
         var ctx = Ctx.Make();

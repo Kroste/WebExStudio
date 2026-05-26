@@ -28,7 +28,7 @@ public sealed class IfThenElseHandler : IActionHandler
                 Log.Warn("if_then_else: {0} ohne Payload-Schlüssel (weder 'selector' noch 'key' gesetzt) — Ergebnis false.", condition);
         }
 
-        var result = await EvaluateCondition(ctx, condition, selector, value, regex);
+        var result = await EvaluateConditionAsync(ctx, condition, selector, value, regex);
         if (negate) result = !result;
         Log.Debug("if_then_else: {0} value='{1}' selector='{2}' → {3}", condition, value, selector, result);
 
@@ -54,7 +54,8 @@ public sealed class IfThenElseHandler : IActionHandler
     private static bool IsPayloadCondition(string canonical) =>
         canonical is "payload_equals" or "ctx_equals" or "payload_contains" or "ctx_contains";
 
-    private static async Task<bool> EvaluateCondition(
+    /// <summary>Wertet eine Bedingung aus (von if_then_else und assert genutzt).</summary>
+    public static async Task<bool> EvaluateConditionAsync(
         ExecutionContext ctx, string condition, string selector, string value, bool useRegex)
     {
         switch (CanonicalCondition(condition))
@@ -271,4 +272,36 @@ public sealed class QuitHandler : IActionHandler
 {
     public string Type => "quit";
     public Task ExecuteAsync(ExecutionContext ctx, FlowNode node) => throw new QuitException();
+}
+
+/// <summary>Prüft eine Bedingung und bricht den Pfad mit Fehler ab, wenn sie nicht erfüllt ist.</summary>
+public sealed class AssertHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "assert";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var condition = node.Get("condition", "element_exists");
+        var selector = ctx.Fmt(node.Get("selector"));
+        var value = ctx.Fmt(node.Get("value"));
+        var regex = node.GetBool("regex");
+        var negate = node.GetBool("negate");
+
+        var ok = await IfThenElseHandler.EvaluateConditionAsync(ctx, condition, selector, value, regex);
+        if (negate) ok = !ok;
+
+        if (ok)
+        {
+            Log.Debug("assert erfüllt: {0} value='{1}' selector='{2}'", condition, value, selector);
+            return;
+        }
+
+        var message = ctx.Fmt(node.Get("message"));
+        var detail = string.IsNullOrEmpty(message)
+            ? $"{condition} (selector='{selector}', value='{value}', negate={negate})"
+            : message;
+        Log.Warn("assert fehlgeschlagen: {0}", detail);
+        throw new InvalidOperationException($"Assertion fehlgeschlagen: {detail}");
+    }
 }

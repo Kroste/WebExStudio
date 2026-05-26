@@ -209,9 +209,10 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | 🔁 | `foreach` | Foreach-Schleife | `Element` / `fertig` | `items = {payload.targets}` |
 | 📞 | `call` | Subnode aufrufen | 1 | `target = login` (zeigt den Subnode-Namen) |
 | ⏸ | `noop` | No-Op / Breakpoint | 1 | Platzhalter |
+| ✔ | `assert` | Prüfen / Assert | 1 | `condition = element_exists, selector = .erfolg` (Fehler, wenn nicht erfüllt) |
 | 🚪 | `quit` | Beenden | 0 | Stoppt den Flow hier |
 
-**`if_then_else`-Bedingungen** (`condition`): `element_exists`, `element_visible`, `element_text`, `page_title`, `page_url`, `page_contains`, `page_matches` (Regex), `payload_equals`, `payload_contains`. Mit `negate = true` invertieren; mit `regex = true` Wert als Regex behandeln.
+**`if_then_else`- und `assert`-Bedingungen** (`condition`): `element_exists`, `element_visible`, `element_text`, `page_title`, `page_url`, `page_contains`, `page_matches` (Regex), `payload_equals`, `payload_contains`. Mit `negate = true` invertieren; mit `regex = true` Wert als Regex behandeln. `assert` bricht den Pfad mit Fehlermeldung ab, wenn die Bedingung **nicht** erfüllt ist (optionale `message`).
 Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selector` und der Vergleichswert in `value` (z. B. `selector = visited`, `value = {payload.link}` → prüft, ob `visited` den Link enthält). Ist `selector` leer, wird ersatzweise das Feld `key` verwendet.
 
 ### Daten
@@ -227,6 +228,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 | | Typ | Name | Zweck | Beispiel |
 |---|---|---|---|---|
 | ⬇ | `download_url` | URL herunterladen | Datei von URL laden. | `url = {payload.host}/datei.pdf` |
+| 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
 | 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
 
 ### Anmerkung (reine Anzeige)

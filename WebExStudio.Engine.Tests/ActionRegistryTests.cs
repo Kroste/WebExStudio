@@ -25,6 +25,8 @@ public class ActionRegistryTests
     [InlineData("call")]
     [InlineData("noop")]
     [InlineData("quit")]
+    [InlineData("assert")]
+    [InlineData("screenshot")]
     [InlineData("get_value")]
     [InlineData("set_payload")]
     [InlineData("debug")]

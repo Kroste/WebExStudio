@@ -269,6 +269,26 @@ public static class NodeCatalog
                 new() { Key = "force", Label = "Erzwingen", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
+        new()
+        {
+            Type = "assert", DisplayName = "Prüfen / Assert", Category = "Kontrollfluss",
+            Description = "Prüft eine Bedingung (wie if_then_else) und bricht den Pfad mit einer "
+                + "Fehlermeldung ab, wenn sie NICHT erfüllt ist. Gültige Bedingungen: element_exists, "
+                + "element_visible, element_text, page_url, page_title, page_contains, page_matches, "
+                + "payload_equals, payload_contains. Vergleichswert in 'value'; DOM-Selektor bzw. bei "
+                + "payload_* der Payload-Schlüssel in 'selector'.",
+            Color = "#C62828", Icon = "✔",
+            Example = "condition = element_exists, selector = .erfolg  →  Flow-Fehler, wenn .erfolg fehlt.",
+            Properties =
+            [
+                new() { Key = "condition", Label = "Bedingung-Typ", Kind = PropertyKind.Dropdown, DefaultValue = "element_exists" },
+                new() { Key = "selector", Label = "Selektor (bzw. Payload-Schlüssel)", Kind = PropertyKind.Selector },
+                new() { Key = "value", Label = "Vergleichswert", Kind = PropertyKind.Text },
+                new() { Key = "regex", Label = "Regex", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+                new() { Key = "negate", Label = "Negieren (fehlschlagen, wenn erfüllt)", Kind = PropertyKind.Boolean, DefaultValue = "false" },
+                new() { Key = "message", Label = "Fehlermeldung (optional)", Kind = PropertyKind.Text },
+            ]
+        },
 
         // ── Daten ────────────────────────────────────────────────────────────
         new()
@@ -351,6 +371,20 @@ public static class NodeCatalog
                 new() { Key = "url", Label = "URL", Kind = PropertyKind.Url, Required = true },
                 new() { Key = "filename", Label = "Dateiname", Kind = PropertyKind.Text },
                 new() { Key = "timeout_ms", Label = "Timeout (ms)", Kind = PropertyKind.Number, DefaultValue = "60000" },
+            ]
+        },
+        new()
+        {
+            Type = "screenshot", DisplayName = "Screenshot", Category = "Erweitert",
+            Description = "Speichert einen Screenshot der Seite oder eines Elements als PNG. Pfad leer = "
+                + "Zeitstempel-Datei im Download-/Projektordner. Der Pfad landet im Payload unter 'screenshot_path'.",
+            Color = "#4527A0", Icon = "📸",
+            Example = "selector = .karte, path = beleg.png  →  PNG des Elements .karte.",
+            Properties =
+            [
+                new() { Key = "path", Label = "Pfad (optional)", Kind = PropertyKind.FilePath },
+                new() { Key = "selector", Label = "Element (Selektor, optional)", Kind = PropertyKind.Selector },
+                new() { Key = "full_page", Label = "Ganze Seite (über den sichtbaren Bereich hinaus)", Kind = PropertyKind.Boolean, DefaultValue = "false" },
             ]
         },
         new()

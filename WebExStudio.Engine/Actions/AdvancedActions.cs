@@ -38,6 +38,46 @@ public sealed class DownloadUrlHandler : IActionHandler
     }
 }
 
+public sealed class ScreenshotHandler : IActionHandler
+{
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public string Type => "screenshot";
+
+    public async Task ExecuteAsync(ExecutionContext ctx, FlowNode node)
+    {
+        var path = ctx.Fmt(node.Get("path"));
+        var selector = ctx.Fmt(node.Get("selector"));
+        var fullPage = node.GetBool("full_page");
+
+        // Pfad bestimmen: leer → Zeitstempel-Datei im Download-/Projektordner.
+        if (string.IsNullOrEmpty(path))
+        {
+            var dir = string.IsNullOrEmpty(ctx.Config.DownloadDir)
+                ? Path.Combine(ctx.ProjectDir, "screenshots")
+                : ctx.Config.DownloadDir;
+            path = Path.Combine(dir, $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+        }
+        else if (!Path.IsPathRooted(path))
+        {
+            path = Path.Combine(ctx.ProjectDir, path);
+        }
+        var dirName = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dirName)) Directory.CreateDirectory(dirName);
+
+        if (!string.IsNullOrEmpty(selector))
+        {
+            Log.Info("screenshot (Element {0}): {1}", selector, path);
+            await ctx.Page.Locator(selector).First.ScreenshotAsync(new() { Path = path, Timeout = ctx.Config.TimeoutMs });
+        }
+        else
+        {
+            Log.Info("screenshot (ganze Seite={0}): {1}", fullPage, path);
+            await ctx.Page.ScreenshotAsync(new() { Path = path, FullPage = fullPage });
+        }
+        ctx.Set("screenshot_path", path);
+    }
+}
+
 public sealed class CaptchaGuardHandler : IActionHandler
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
