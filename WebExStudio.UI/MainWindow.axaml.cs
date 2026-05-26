@@ -193,8 +193,12 @@ public partial class MainWindow : Window
     private async void OnVault(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         await OpenVaultAsync();
 
-    private async Task OpenVaultAsync() =>
+    private async Task OpenVaultAsync()
+    {
         await new CredentialVaultWindow(Vm.Vault).ShowDialog(this);
+        // Falls der Tresor jetzt entsperrt ist, den Secret-Picker im Eigenschaften-Panel aktualisieren.
+        Vm.FlowEditor.RefreshProperties();
+    }
 
     protected override async void OnClosing(WindowClosingEventArgs e)
     {

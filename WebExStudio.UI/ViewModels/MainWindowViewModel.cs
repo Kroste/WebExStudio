@@ -145,6 +145,20 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (e.PropertyName is nameof(FlowEditorViewModel.Document) or nameof(FlowEditorViewModel.CanSave))
                 this.RaisePropertyChanged(nameof(CanRun));
         };
+        // Secret-Picker im Eigenschaften-Panel: liefert die verfügbaren {secret[..]}-Platzhalter
+        // (nur wenn der Tresor entsperrt ist).
+        FlowEditor.AvailableSecrets = SecretPlaceholders;
+    }
+
+    /// <summary>Verfügbare Secret-Platzhalter (<c>{secret[name].field}</c>) — leer, wenn der Tresor gesperrt ist.</summary>
+    private IReadOnlyList<string> SecretPlaceholders()
+    {
+        if (!Vault.IsUnlocked) return [];
+        var list = new List<string>();
+        foreach (var name in Vault.Names)
+            foreach (var field in (Vault.Entry(name)?.Keys ?? Enumerable.Empty<string>()).OrderBy(f => f))
+                list.Add($"{{secret[{name}].{field}}}");
+        return list;
     }
 
     public bool IsRunning

@@ -88,6 +88,13 @@ public sealed class FlowEditorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _previewDefinition, value);
     }
 
+    /// <summary>Liefert die im Tresor verfügbaren Secret-Platzhalter (von der UI verdrahtet);
+    /// leer/null wenn gesperrt. Für den Secret-Picker im Eigenschaften-Panel.</summary>
+    public Func<IReadOnlyList<string>>? AvailableSecrets { get; set; }
+
+    /// <summary>Erzwingt einen Neuaufbau des Eigenschaften-Panels (z. B. nachdem der Tresor entsperrt wurde).</summary>
+    public void RefreshProperties() => this.RaisePropertyChanged(nameof(SelectedNode));
+
     // ── Selection ──────────────────────────────────────────────────────────────
 
     public void ClearSelection()

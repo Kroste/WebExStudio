@@ -443,6 +443,8 @@ und werden im Flow nur per Namen referenziert.
   (z. B. `F95`, `Pixeldrain`) die Felder **Benutzer / Passwort / API-Key** anlegen.
 - **Verwenden**: per Platzhalter `{secret[name].user}`, `{secret[name].password}`, `{secret[name].api}` —
   z. B. in **Text eingeben** (`value`), **Navigate** (`url`), **Dropdown wählen**, **Klicken** (Text).
+  In diesen Feldern bietet das Eigenschaften-Panel zusätzlich ein Dropdown **„🔐 Secret einfügen…"** an,
+  das den passenden Platzhalter direkt einfügt (sobald der Tresor entsperrt ist).
 - **Lebenszyklus**: standardmäßig **verschlossen**. Beim Flow-Start (wenn Secrets genutzt werden) erscheint
   die **Master-Passwort-Abfrage**; danach ist der Tresor für die Sitzung entsperrt. Beim **Neu/Laden** eines
   Flows und beim **Programm-Ende** wird er wieder verschlossen.

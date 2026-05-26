@@ -379,12 +379,62 @@ public partial class PropertiesPanelView : UserControl
 
         WireEditorChange(editor, prop.Key, prop.Kind);
 
-        return new StackPanel
+        var stack = new StackPanel
         {
             Spacing = 2,
             Margin = new Avalonia.Thickness(0, 0, 0, 4),
             Children = { label, editor }
         };
+
+        // Secret-Picker für Felder, in denen {secret[..]} aufgelöst wird.
+        if (editor is TextBox secretTarget && IsSecretField(_currentNode?.ActionType, prop.Key))
+            stack.Children.Add(BuildSecretPicker(secretTarget));
+
+        return stack;
+    }
+
+    /// <summary>Felder, in denen Secrets sinnvoll sind (= die Handler, die {secret[..]} auflösen).</summary>
+    private static bool IsSecretField(string? actionType, string key) => (actionType, key) switch
+    {
+        ("send_keys", "value") => true,
+        ("goto", "url") => true,
+        ("select_option", "value") => true,
+        ("click", "text") => true,
+        _ => false,
+    };
+
+    /// <summary>Dropdown, das einen {secret[name].field}-Platzhalter ins Zielfeld einfügt.</summary>
+    private Control BuildSecretPicker(TextBox target)
+    {
+        var secrets = _flowEditor?.AvailableSecrets?.Invoke() ?? [];
+        if (secrets.Count == 0)
+            return new TextBlock
+            {
+                Text = "🔐 Keine Secrets verfügbar — im Tresor (🔐) anlegen/entsperren.",
+                FontSize = 10,
+                Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
+                TextWrapping = TextWrapping.Wrap,
+            };
+
+        var items = new List<string> { "🔐 Secret einfügen…" };
+        items.AddRange(secrets);
+        var combo = new ComboBox
+        {
+            ItemsSource = items,
+            SelectedIndex = 0,
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        combo.SelectionChanged += (_, _) =>
+        {
+            if (combo.SelectedIndex <= 0 || combo.SelectedItem is not string placeholder) return;
+            var text = target.Text ?? string.Empty;
+            var caret = Math.Clamp(target.CaretIndex, 0, text.Length);
+            target.Text = text.Insert(caret, placeholder); // TextChanged aktualisiert die Config
+            target.CaretIndex = caret + placeholder.Length;
+            combo.SelectedIndex = 0; // zurücksetzen
+        };
+        return combo;
     }
 
     private void WireEditorChange(Control editor, string key, PropertyKind kind)
