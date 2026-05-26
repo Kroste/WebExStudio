@@ -654,7 +654,7 @@ Avalonia, NLog) teilt sie mit der App, eigene Abhängigkeiten kommen über die `
 so kollidieren Plugin-Bibliotheken nicht mit denen der App. Die Nodes erscheinen in **Palette,
 Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
 
-**Verwalten:** Über-Fenster (**ℹ**) → **🧩 Plugins** zeigt die gefundenen Plugins mit Status und erlaubt
+**Verwalten:** **Einstellungen → Tab „Plugins"** zeigt die gefundenen Plugins mit Status und erlaubt
 **Aktivieren/Deaktivieren** (wirkt nach Neustart) sowie das Öffnen des Plugin-Ordners.
 
 > **Sicherheit:** Plugins sind **beliebiger Code mit vollen App-Rechten** (Browser, Datei, Netz) — nur

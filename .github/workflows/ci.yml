@@ -36,16 +36,13 @@ jobs:
       - name: Tests
         run: dotnet test WebExStudio.slnx -c Release --no-build --verbosity normal
 
-  # ── 2) Release-Builds (nur wenn Tests grün sind) ───────────────────────────
+  # ── 2) Release-Build (linux-x64) ───────────────────────────────────────────
+  # Läuft NUR bei Tags (v*) oder manuell — nicht bei jedem Push/PR. Das vermeidet, dass
+  # bei jedem Commit große Self-Contained-Artefakte hochgeladen werden (Speicherkontingent).
   release:
     needs: test
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - rid: linux-x64
-          - rid: win-x64
     steps:
       - uses: actions/checkout@v4
 
@@ -63,39 +60,32 @@ jobs:
             echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish (${{ matrix.rid }})
+      - name: Publish (linux-x64)
         run: |
           dotnet publish WebExStudio.UI/WebExStudio.UI.csproj \
-            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -c Release -r linux-x64 --self-contained true \
             -p:PublishSingleFile=true \
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ steps.ver.outputs.version }} \
-            -o publish/${{ matrix.rid }}
+            -o publish/linux-x64
 
       - name: Paket schnüren
         run: |
-          cd publish/${{ matrix.rid }}
-          if [[ "${{ matrix.rid }}" == win-* ]]; then
-            zip -r "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.zip" .
-          else
-            tar -czf "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.tar.gz" .
-          fi
+          cd publish/linux-x64
+          tar -czf "../../WebExStudio-${{ steps.ver.outputs.version }}-linux-x64.tar.gz" .
 
-      - name: Artefakt hochladen (im Actions-Run herunterladbar)
+      - name: Artefakt hochladen (kurze Aufbewahrung, spart Speicher)
         uses: actions/upload-artifact@v4
         with:
-          name: WebExStudio-${{ matrix.rid }}
-          path: |
-            WebExStudio-*-${{ matrix.rid }}.zip
-            WebExStudio-*-${{ matrix.rid }}.tar.gz
+          name: WebExStudio-linux-x64
+          path: WebExStudio-*-linux-x64.tar.gz
+          retention-days: 7
           if-no-files-found: ignore
 
       - name: GitHub-Release anlegen/aktualisieren (nur bei Tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            WebExStudio-*-${{ matrix.rid }}.zip
-            WebExStudio-*-${{ matrix.rid }}.tar.gz
+          files: WebExStudio-*-linux-x64.tar.gz
           fail_on_unmatched_files: false
           generate_release_notes: true

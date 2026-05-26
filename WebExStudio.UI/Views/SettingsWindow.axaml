@@ -209,6 +209,25 @@
           </ScrollViewer>
         </TabItem>
 
+        <TabItem Header="Plugins">
+          <DockPanel Margin="0">
+            <Border DockPanel.Dock="Top" Background="#16162A" Padding="14,8">
+              <TextBlock Text="Eigene Nodes als DLL im plugins-Ordner. Änderungen (aktiv/inaktiv) wirken nach einem Neustart."
+                         FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"/>
+            </Border>
+            <Border DockPanel.Dock="Bottom" Background="#16162A" BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,8">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBlock Grid.Column="0" x:Name="PluginDirsText" FontSize="10" Foreground="#607D8B"
+                           VerticalAlignment="Center" TextWrapping="Wrap"/>
+                <Button Grid.Column="1" Content="📂 Ordner öffnen" Click="OnOpenPluginFolder" Padding="10,5"/>
+              </Grid>
+            </Border>
+            <ScrollViewer Padding="12">
+              <StackPanel x:Name="PluginsHost" Spacing="4"/>
+            </ScrollViewer>
+          </DockPanel>
+        </TabItem>
+
       </TabControl>
     </DockPanel>
   </Border>

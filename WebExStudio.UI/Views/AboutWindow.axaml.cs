@@ -31,6 +31,4 @@ public partial class AboutWindow : Window
     private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
 
     private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow(_onLoadExample).ShowDialog(this);
-
-    private async void OnPlugins(object? _, RoutedEventArgs e) => await new PluginManagerWindow().ShowDialog(this);
 }

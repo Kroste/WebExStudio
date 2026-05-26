@@ -1,9 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using WebExStudio.AI;
 using WebExStudio.Core.Models;
+using WebExStudio.Engine.Plugins;
 
 namespace WebExStudio.UI.Views;
 
@@ -11,6 +14,8 @@ public partial class SettingsWindow : Window
 {
     private readonly RunConfig _config;
     private readonly AiOptions _ai;
+    private readonly HashSet<string> _disabledPlugins =
+        new(AppSettings.LoadDisabledPlugins(), StringComparer.OrdinalIgnoreCase);
 
     public bool Saved { get; private set; }
 
@@ -43,6 +48,75 @@ public partial class SettingsWindow : Window
         AiBaseUrlBox.Text = _ai.BaseUrl;
         AiSendHintsBox.IsChecked = _ai.SendHints;
         AiHintsBox.Text = _ai.Hints;
+
+        BuildPluginList();
+    }
+
+    // ── Plugins (zuvor im Über-Fenster) ───────────────────────────────────────
+
+    private void BuildPluginList()
+    {
+        PluginDirsText.Text = "Ordner: " + string.Join("  ·  ", AppSettings.PluginDirs);
+        PluginsHost.Children.Clear();
+
+        var plugins = NodePluginLoader.Plugins;
+        if (plugins.Count == 0)
+        {
+            PluginsHost.Children.Add(new TextBlock
+            {
+                Text = "Keine Plugins gefunden. DLL in einen der unten genannten Ordner legen und neu starten.",
+                Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Avalonia.Thickness(2, 8, 2, 0),
+            });
+            return;
+        }
+
+        foreach (var p in plugins.OrderBy(p => p.File, StringComparer.OrdinalIgnoreCase))
+        {
+            var toggle = new CheckBox
+            {
+                IsChecked = !_disabledPlugins.Contains(p.File),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            ToolTip.SetTip(toggle, "Aktiv (Häkchen) / deaktiviert — wirkt nach Neustart");
+            var file = p.File;
+            toggle.IsCheckedChanged += (_, _) =>
+            {
+                if (toggle.IsChecked == true) _disabledPlugins.Remove(file);
+                else _disabledPlugins.Add(file);
+                AppSettings.SaveDisabledPlugins([.. _disabledPlugins]);
+            };
+
+            var texts = new StackPanel
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Children =
+                {
+                    new TextBlock { Text = p.File, Foreground = Brushes.White, FontSize = 12 },
+                    new TextBlock { Text = p.Status, Foreground = new SolidColorBrush(Color.Parse("#78909C")), FontSize = 10 },
+                },
+            };
+
+            PluginsHost.Children.Add(new Border
+            {
+                Background = new SolidColorBrush(Color.Parse("#16162A")),
+                BorderBrush = new SolidColorBrush(Color.Parse("#2A2A4E")),
+                BorderThickness = new Avalonia.Thickness(1),
+                CornerRadius = new Avalonia.CornerRadius(6),
+                Padding = new Avalonia.Thickness(10, 6),
+                Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Children = { toggle, texts } },
+            });
+        }
+    }
+
+    private async void OnOpenPluginFolder(object? sender, RoutedEventArgs e)
+    {
+        // Konfig-Plugin-Ordner (zweiter Eintrag) anlegen und öffnen.
+        var dir = AppSettings.PluginDirs.Last();
+        System.IO.Directory.CreateDirectory(dir);
+        if (TopLevel.GetTopLevel(this) is { } top)
+            await top.Launcher.LaunchUriAsync(new Uri(dir));
     }
 
     private static void SelectCombo(ComboBox box, string value)
