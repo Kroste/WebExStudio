@@ -30,6 +30,10 @@ public sealed class NodeDefinition
     /// <summary>Veraltete/ersetzte Typen: weiterhin gültig (Validierung, Laden alter Flows),
     /// aber nicht in der Palette/im Hinzufügen-Menü sichtbar.</summary>
     public bool Hidden { get; init; } = false;
+
+    /// <summary>True, wenn der Handler seine Ausgänge selbst routet (wie if_then_else). Ermöglicht
+    /// Plugins eigene Verzweigungs-Nodes — der Executor folgt dann nicht automatisch dem ersten Ausgang.</summary>
+    public bool RoutesOutputs { get; init; } = false;
 }
 
 public sealed class PropertyDefinition

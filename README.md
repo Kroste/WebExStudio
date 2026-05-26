@@ -618,6 +618,19 @@ Optional die Ziel-API-Version markieren, damit der Loader bei Inkompatibilität 
 [assembly: WebExStudioPlugin(PluginApi.Version)]
 ```
 
+Soll der Node selbst **verzweigen** (mehrere Ausgänge, wie if_then_else), in der `NodeDefinition`
+`OutputPorts`/`OutputLabels` setzen und **`RoutesOutputs = true`**; der Handler routet dann per
+`ctx.FollowOutput(node, port)`.
+
+**Beispiel-Plugin:** [`samples/FileCheckPlugin`](samples/FileCheckPlugin) liefert den Node
+**„Datei vorhanden?"** (`file_exists`): sucht im Ordner (leer = Download-Ordner) nach einem Namen/Muster
+und verzweigt **gefunden / nicht gefunden** — praktisch, um vor einem Download zu prüfen, ob die Datei
+schon existiert. Bauen und die DLL kopieren:
+```bash
+dotnet build samples/FileCheckPlugin -c Release
+# FileCheckPlugin.dll + FileCheckPlugin.deps.json nach %AppData%/WebExStudio/plugins kopieren, App neu starten
+```
+
 **Laden:** Die kompilierte DLL in einen `plugins/`-Ordner legen — neben der Anwendung **oder** unter
 `%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). Beim Start wird sie in einem
 **isolierten Ladekontext** (`AssemblyLoadContext`) geladen: gemeinsame Host-Assemblies (WebExStudio, System,

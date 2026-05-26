@@ -139,7 +139,8 @@ public sealed class FlowExecutor
 
     /// <summary>Control nodes route their own outputs (via ctx.FollowOutput) instead of auto-following.</summary>
     private static bool IsControlNode(string type) =>
-        type is "if_then_else" or "foreach" or "for_range" or "get_links" or "use_session";
+        type is "if_then_else" or "foreach" or "for_range" or "get_links" or "use_session"
+        || NodeCatalog.Get(type)?.RoutesOutputs == true; // Plugins mit eigenen Ausgängen
 
     /// <summary>
     /// Executes a tab as a wired graph: starts from entry nodes (no incoming wires)

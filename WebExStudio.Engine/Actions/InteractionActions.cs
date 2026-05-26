@@ -42,8 +42,11 @@ public sealed class ClickHandler : IActionHandler
             try
             {
                 // NoWaitAfter: nicht auf die (durch den Download abgebrochene) Navigation warten —
-                // sonst läuft der Klick selbst in einen Timeout.
+                // sonst läuft der Klick selbst in einen Timeout. (Wird laut Playwright künftig Standard;
+                // bis dahin bewusst gesetzt → Obsolet-Warnung gezielt unterdrückt.)
+#pragma warning disable CS0612
                 await locator.ClickAsync(new() { Timeout = ctx.Config.TimeoutMs, NoWaitAfter = true });
+#pragma warning restore CS0612
             }
             catch (TimeoutException)
             {
