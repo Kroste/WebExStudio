@@ -66,7 +66,7 @@ jobs:
             echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish (${{ matrix.rid }})
+      - name: Publish GUI (${{ matrix.rid }})
         run: |
           dotnet publish WebExStudio.UI/WebExStudio.UI.csproj \
             -c Release -r ${{ matrix.rid }} --self-contained true \
@@ -75,22 +75,36 @@ jobs:
             -p:Version=${{ steps.ver.outputs.version }} \
             -o publish/${{ matrix.rid }}
 
-      - name: Paket schnüren
+      - name: Publish CLI (${{ matrix.rid }})
         run: |
-          cd publish/${{ matrix.rid }}
-          if [[ "${{ matrix.rid }}" == win-* ]]; then
-            zip -r "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.zip" .
+          dotnet publish WebExStudio.Cli/WebExStudio.Cli.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:Version=${{ steps.ver.outputs.version }} \
+            -o publish-cli/${{ matrix.rid }}
+
+      - name: Pakete schnüren (GUI + CLI getrennt)
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          R="${{ matrix.rid }}"
+          if [[ "$R" == win-* ]]; then
+            (cd "publish/$R"     && zip -r "../../WebExStudio-$V-$R.zip" .)
+            (cd "publish-cli/$R" && zip -r "../../webex-$V-$R.zip" .)
           else
-            tar -czf "../../WebExStudio-${{ steps.ver.outputs.version }}-${{ matrix.rid }}.tar.gz" .
+            (cd "publish/$R"     && tar -czf "../../WebExStudio-$V-$R.tar.gz" .)
+            (cd "publish-cli/$R" && tar -czf "../../webex-$V-$R.tar.gz" .)
           fi
 
-      - name: Artefakt hochladen (kurze Aufbewahrung, spart Speicher)
+      - name: Artefakte hochladen (kurze Aufbewahrung, spart Speicher)
         uses: actions/upload-artifact@v4
         with:
           name: WebExStudio-${{ matrix.rid }}
           path: |
             WebExStudio-*-${{ matrix.rid }}.zip
             WebExStudio-*-${{ matrix.rid }}.tar.gz
+            webex-*-${{ matrix.rid }}.zip
+            webex-*-${{ matrix.rid }}.tar.gz
           retention-days: 7
           if-no-files-found: ignore
 
@@ -101,5 +115,7 @@ jobs:
           files: |
             WebExStudio-*-${{ matrix.rid }}.zip
             WebExStudio-*-${{ matrix.rid }}.tar.gz
+            webex-*-${{ matrix.rid }}.zip
+            webex-*-${{ matrix.rid }}.tar.gz
           fail_on_unmatched_files: false
           generate_release_notes: true

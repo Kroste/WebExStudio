@@ -669,6 +669,9 @@ Flows lassen sich **ohne GUI** ausführen — ideal für `cron`/Aufgabenplanung,
 Projekt **`WebExStudio.Cli`** erzeugt das Kommando **`webex`** und nutzt **dieselben Plugins, denselben
 Anmeldedaten-Tresor und denselben Validator/Executor** wie die App.
 
+Fertige `webex`-Binaries liegen jedem **GitHub-Release** als **eigenes Asset** bei
+(`webex-<version>-linux-x64.tar.gz` bzw. `webex-<version>-win-x64.zip`) — oder selbst bauen:
+
 ```bash
 dotnet build WebExStudio.Cli -c Release          # baut die ausführbare Datei "webex"
 
@@ -815,8 +818,8 @@ Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 1. **`test`** — baut die Solution (Release) und führt `dotnet test` aus (bei jedem Push/PR).
-2. **`release`** — läuft **nur bei einem Tag `v*` oder manuell** (*workflow_dispatch*) und nur, wenn die Tests grün sind — **nicht** bei jedem Push (spart Artefakt-Speicher). Erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)**, packt sie (`.tar.gz` / `.zip`) und lädt sie als **Actions-Artefakte** (7 Tage Aufbewahrung) hoch.
-3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden beide Pakete zusätzlich an ein **GitHub-Release** angehängt.
+2. **`release`** — läuft **nur bei einem Tag `v*` oder manuell** (*workflow_dispatch*) und nur, wenn die Tests grün sind — **nicht** bei jedem Push (spart Artefakt-Speicher). Erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)** — je ein Paket für die **GUI** (`WebExStudio-…`) und eines für die **CLI** (`webex-…`), packt sie (`.tar.gz` / `.zip`) und lädt sie als **Actions-Artefakte** (7 Tage Aufbewahrung) hoch.
+3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden alle Pakete (GUI + CLI, je Plattform) zusätzlich als **eigene Assets** an ein **GitHub-Release** angehängt.
 
 ---
 
