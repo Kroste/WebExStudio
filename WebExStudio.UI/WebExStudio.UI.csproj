@@ -33,9 +33,11 @@
          Sprachvarianten README.<code>.md (z. B. README.en.md) werden je nach UI-Sprache gewählt;
          Fallback ist die deutsche README.md. -->
     <EmbeddedResource Include="..\README.md" Link="README.md" LogicalName="WebExStudio.UI.README.md" />
-    <!-- WithCulture=false: sonst deutet MSBuild das ".en." im Dateinamen als Kultur "en" und packt die
+    <!-- WithCulture=false: sonst deutet MSBuild das ".en."/".fr."/".ru." im Dateinamen als Kultur und packt die
          Datei in eine Satelliten-Assembly (en/…) statt ins Haupt-Assembly. -->
     <EmbeddedResource Include="..\README.en.md" Link="README.en.md" LogicalName="WebExStudio.UI.README.en.md" WithCulture="false" />
+    <EmbeddedResource Include="..\README.fr.md" Link="README.fr.md" LogicalName="WebExStudio.UI.README.fr.md" WithCulture="false" />
+    <EmbeddedResource Include="..\README.ru.md" Link="README.ru.md" LogicalName="WebExStudio.UI.README.ru.md" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>

@@ -46,11 +46,17 @@ public class MarkdownTests
         Assert.Equal("nur text", segs[0].Text);
     }
 
-    [Fact]
-    public void EmbeddedReadme_IsAvailableForHelp()
+    [Theory]
+    [InlineData("WebExStudio.UI.README.md")]
+    [InlineData("WebExStudio.UI.README.en.md")]
+    [InlineData("WebExStudio.UI.README.fr.md")]
+    [InlineData("WebExStudio.UI.README.ru.md")]
+    public void EmbeddedReadme_IsAvailableForHelp(string resource)
     {
-        // Sichert, dass die README eingebettet bleibt (Quelle des Hilfefensters).
-        using var s = typeof(HelpWindow).Assembly.GetManifestResourceStream("WebExStudio.UI.README.md");
+        // Sichert, dass die README(s) ins HAUPT-Assembly eingebettet bleiben (Quelle des Hilfefensters).
+        // Wichtig bei den Sprachvarianten: WithCulture=false verhindert, dass sie als Satelliten-Assembly
+        // (en/…) landen — sonst wäre der Stream hier null.
+        using var s = typeof(HelpWindow).Assembly.GetManifestResourceStream(resource);
         Assert.NotNull(s);
         using var reader = new StreamReader(s!);
         Assert.Contains("# WebExStudio", reader.ReadToEnd());
