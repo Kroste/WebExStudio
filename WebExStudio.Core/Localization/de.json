@@ -228,6 +228,11 @@
   "SubDlg_FromGroup": "Subnode aus Gruppe",
   "SubDlg_Rename": "Gruppe umbenennen",
 
+  "VM_Ready": "Bereit",
+  "VM_NoFlowOpen": "Kein Flow geöffnet",
+  "VM_Untitled": "Unbenannt",
+  "Status_Ai": "KI: {0}",
+  "Status_AiNotConfigured": "KI: nicht konfiguriert",
   "VM_AiGenerated": "Flow von KI erzeugt ({0} Nodes) — bitte prüfen und speichern",
   "VM_NoFlow": "Kein Flow geöffnet",
   "VM_NodeAdded": "Node '{0}' hinzugefügt",

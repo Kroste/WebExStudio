@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using NLog;
 using ReactiveUI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
 
@@ -20,6 +21,12 @@ public sealed class FlowEditorViewModel : ViewModelBase
     private readonly List<string> _redo = [];
     private bool _restoring;
     private List<FlowNode> _clipboard = [];
+
+    public FlowEditorViewModel()
+    {
+        // Tab-Titel („Kein Flow geöffnet" / „Unbenannt") bei Sprachwechsel aktualisieren.
+        Loc.Instance.PropertyChanged += (_, _) => this.RaisePropertyChanged(nameof(Title));
+    }
 
     public FlowDocument2? Document
     {
@@ -176,8 +183,8 @@ public sealed class FlowEditorViewModel : ViewModelBase
     }
 
     public string Title => Document is null
-        ? "Kein Flow geöffnet"
-        : $"{(Document.FilePath is null ? "Unbenannt" : Path.GetFileNameWithoutExtension(Document.FilePath))}{(IsDirty ? " *" : "")}";
+        ? Loc.T("VM_NoFlowOpen")
+        : $"{(Document.FilePath is null ? Loc.T("VM_Untitled") : Path.GetFileNameWithoutExtension(Document.FilePath))}{(IsDirty ? " *" : "")}";
 
     // ── Load / Save ──────────────────────────────────────────────────────────
 

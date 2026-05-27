@@ -15,7 +15,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private bool _isRunning;
     private bool _isPaused;
     private bool _suggestionsEnabled = true;
-    private string _statusText = "Bereit";
+    private string _statusText = Loc.T("VM_Ready");
     private string _projectDir = string.Empty;
     private CancellationTokenSource? _runCts;
     private Task? _runTask;
@@ -88,8 +88,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     /// <summary>Kurzstatus der KI-Anbindung für die Statusleiste.</summary>
     public string AiStatus => AiOptions.IsConfigured
-        ? $"KI: {AiOptions.Provider}"
-        : "KI: nicht konfiguriert";
+        ? string.Format(Loc.T("Status_Ai"), AiOptions.Provider)
+        : Loc.T("Status_AiNotConfigured");
 
     /// <summary>Nach Änderungen in den Einstellungen die KI-Anzeige aktualisieren.</summary>
     public void NotifyAiSettingsChanged() => this.RaisePropertyChanged(nameof(AiStatus));
@@ -153,6 +153,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         // Secret-Picker im Eigenschaften-Panel: liefert die verfügbaren {secret[..]}-Platzhalter
         // (nur wenn der Tresor entsperrt ist).
         FlowEditor.AvailableSecrets = SecretPlaceholders;
+
+        // Statusleiste bei Sprachwechsel auffrischen: KI-Anzeige neu berechnen und – wenn gerade
+        // nichts läuft – den Standardtext „Bereit"/„Ready" in der neuen Sprache zeigen.
+        Loc.Instance.PropertyChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(AiStatus));
+            if (!IsRunning && !IsPaused) StatusText = Loc.T("VM_Ready");
+        };
     }
 
     /// <summary>Verfügbare Secret-Platzhalter (<c>{secret[name].field}</c>) — leer, wenn der Tresor gesperrt ist.</summary>
