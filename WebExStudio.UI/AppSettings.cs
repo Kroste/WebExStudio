@@ -29,9 +29,6 @@ public static class AppSettings
 
     private static string SettingsPath => Path.Combine(ConfigDir, "settings.json");
 
-    /// <summary>Pfad zur verschlüsselten Anmeldedaten-Tresor-Datei.</summary>
-    public static string CredentialVaultPath => Path.Combine(ConfigDir, "credentials.enc");
-
     /// <summary>Plugin-Ordner: neben der Anwendung und im Konfig-Ordner (beide werden durchsucht).</summary>
     public static string[] PluginDirs =>
     [

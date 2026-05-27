@@ -14,19 +14,16 @@ env:
   DOTNET_VERSION: '10.0.x'
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
-  # JS-Actions auf Node 24 ausführen (behebt die Node-20-Deprecation, ohne Action-Versionen
-  # mit potenziell brechenden Major-Sprüngen zu wechseln). Nach dem Node-24-Standard ein No-op.
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   # ── 1) Tests ───────────────────────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: .NET einrichten
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -53,10 +50,10 @@ jobs:
           - rid: linux-x64
           - rid: win-x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: .NET einrichten
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -109,7 +106,7 @@ jobs:
       - name: Artefakte hochladen (nur bei manuellem Lauf)
         if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: WebExStudio-${{ matrix.rid }}
           path: |
@@ -123,7 +120,7 @@ jobs:
 
       - name: GitHub-Release anlegen/aktualisieren (nur bei Tag)
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             WebExStudio-*-${{ matrix.rid }}.zip
