@@ -1,137 +1,137 @@
 # WebExStudio
 
-**Visuelle Desktop-App zum Erstellen und Ausführen von Web-Automatisierungen** — Browser-Abläufe werden als Node-Graph modelliert (im Stil von Node-RED) und direkt per [Playwright](https://playwright.dev/dotnet/) ausgeführt. Oberfläche: [Avalonia UI](https://avaloniaui.net/).
+**Visual desktop app for building and running web automations** — browser workflows are modelled as a node graph (in the style of Node-RED) and executed directly via [Playwright](https://playwright.dev/dotnet/). UI: [Avalonia UI](https://avaloniaui.net/).
 
-> **Idee & Konzept:** Lars Oste (Ideengeber). **Programmierung & Umsetzung:** Claude (Anthropic) — umgesetzt mit Claude Code. Lars gibt Ideen und Anforderungen vor; die technische Umsetzung übernimmt die KI.
+> **Idea & concept:** Lars Oste (originator). **Programming & implementation:** Claude (Anthropic) — built with Claude Code. Lars provides ideas and requirements; the AI does the technical implementation.
 
-![Hauptfenster](docs/images/main-window.png)
+![Main window](docs/images/main-window.png)
 
 ---
 
-## Inhalt
+## Contents
 
-- [Was kann WebExStudio?](#was-kann-webexstudio)
-- [Schnellstart](#schnellstart)
-- [Die Oberfläche](#die-oberfläche)
-- [Kernkonzepte](#kernkonzepte)
-- [Bedienung (Maus & Tastatur)](#bedienung-maus--tastatur)
-- [Node-Referenz](#node-referenz)
-- [Beispiele](#beispiele)
-- [Payload & Platzhalter](#payload--platzhalter)
-- [Anmeldedaten-Tresor (Secrets)](#anmeldedaten-tresor-secrets)
-- [Plugins (eigene Nodes)](#plugins-eigene-nodes)
-- [Kommandozeile (CLI / headless)](#kommandozeile-cli--headless)
-- [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
+- [What can WebExStudio do?](#what-can-webexstudio-do)
+- [Quick start](#quick-start)
+- [The interface](#the-interface)
+- [Core concepts](#core-concepts)
+- [Usage (mouse & keyboard)](#usage-mouse--keyboard)
+- [Node reference](#node-reference)
+- [Examples](#examples)
+- [Payload & placeholders](#payload--placeholders)
+- [Credential vault (secrets)](#credential-vault-secrets)
+- [Plugins (custom nodes)](#plugins-custom-nodes)
+- [Command line (CLI / headless)](#command-line-cli--headless)
+- [Settings (Browser / Network / AI)](#settings)
 - [Logging](#logging)
-- [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
-- [Legacy-Projekte importieren](#legacy-projekte-importieren)
-- [Dateiformat (v2)](#dateiformat-v2)
-- [Flow-Validierung](#flow-validierung)
+- [AI: flow from a description](#ai-flow-from-a-description)
+- [Importing legacy projects](#importing-legacy-projects)
+- [File format (v2)](#file-format-v2)
+- [Flow validation](#flow-validation)
 - [Tests & Continuous Integration](#tests--continuous-integration)
-- [Projektstruktur](#projektstruktur)
+- [Project structure](#project-structure)
 
 ---
 
-## Was kann WebExStudio?
+## What can WebExStudio do?
 
-- **Visueller Flow-Editor**: Nodes per Drag & Drop platzieren, mit Wires (Verbindungen) verknüpfen.
-- **Echte Verzweigungen & Schleifen**: `if`/`foreach`/`for_range`/`get_links` haben echte Ausgangs-Ports (z. B. `then`/`else`) — der komplette Ablauf ist sichtbar verdrahtet, nichts ist in versteckten Tabs.
-- **Subnodes**: wiederverwendbare, benannte Unterprogramme (wie Funktionen), per `call`-Node aufgerufen.
-- **Payload-Datenfluss**: ein gemeinsames Datenobjekt fließt durch den Flow; Platzhalter `{key}` / `{payload.key}` werden überall eingesetzt.
-- **Live-Ausführung**: Während des Laufs folgt die Ansicht automatisch dem aktiven Node (auch in Subnodes hinein) und hebt ihn hervor.
-- **Debug-Node mit Pause**: Payload im Protokoll anzeigen und den Flow optional anhalten, um nachzusehen.
-- **Eigene Beschriftungen**: jeder Node bekommt einen frei wählbaren Anzeigenamen; dazu reine Kommentar-/Überschrift-Nodes (`label`/`caption`).
-- **Browser frei wählbar**: Chromium/Firefox/WebKit, System-Browser (Chrome/Edge), eigener Programm- und Treiberpfad.
-- **Legacy-Import**: alte Python-WebEX-Projekte (verschachtelte `actions/*.json`) werden in ein einziges v2-Flow konvertiert.
+- **Visual flow editor**: place nodes by drag & drop, connect them with wires.
+- **Real branches & loops**: `if`/`foreach`/`for_range`/`get_links` have real output ports (e.g. `then`/`else`) — the entire flow is visibly wired, nothing is hidden in invisible tabs.
+- **Subnodes**: reusable, named subroutines (like functions), called via a `call` node.
+- **Payload data flow**: a single shared data object flows through the flow; placeholders `{key}` / `{payload.key}` are substituted everywhere.
+- **Live execution**: during a run the view automatically follows the active node (even into subnodes) and highlights it.
+- **Debug node with pause**: show the payload in the log and optionally halt the flow to inspect it.
+- **Custom labels**: every node gets a freely chosen display name; plus pure comment/heading nodes (`label`/`caption`).
+- **Freely selectable browser**: Chromium/Firefox/WebKit, system browser (Chrome/Edge), custom executable and driver path.
+- **Legacy import**: old Python WebEX projects (nested `actions/*.json`) are converted into a single v2 flow.
 
 ---
 
-## Schnellstart
+## Quick start
 
-### Voraussetzungen
+### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Playwright-Browser (einmalig installieren, siehe unten)
+- Playwright browsers (install once, see below)
 
-### Starten
+### Run
 
 ```bash
 dotnet run --project WebExStudio.UI
 ```
 
-### Playwright-Browser installieren (einmalig)
+### Install Playwright browsers (once)
 
 ```bash
 dotnet build WebExStudio.Engine
 pwsh WebExStudio.Engine/bin/Debug/net10.0/playwright.ps1 install
 ```
 
-Alternativ kann in den [Einstellungen](#browser-einstellungen) ein bereits installierter System-Browser (z. B. Google Chrome) verwendet werden.
+Alternatively you can use an already installed system browser (e.g. Google Chrome) in the [settings](#settings).
 
-### Bauen
+### Build
 
 ```bash
-dotnet build          # gesamte Solution (WebExStudio.slnx)
+dotnet build          # entire solution (WebExStudio.slnx)
 ```
 
 ---
 
-## Die Oberfläche
+## The interface
 
-![UI-Bereiche](docs/images/ui-overview.png)
+![UI areas](docs/images/ui-overview.png)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  🌐 WebExStudio                                          ⚙  ❓  ℹ  —  ▢  ✕     │  ← Titelleiste (eigene Buttons)
+│  🌐 WebExStudio                                          ⚙  ❓  ℹ  —  ▢  ✕     │  ← Title bar (custom buttons)
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✨ Neuer  📄 Öffnen 🕘  💾 Speichern  ♻ Convert  ↶ ↷ │ ▶ Ausführen ⏹ ⏸ 👣 ⏭ │ 🔎 🪄 ▦ ⊞ 🔍 │ ← Toolbar
+│ ✨ New  📄 Open 🕘  💾 Save  ♻ Convert  ↶ ↷ │ ▶ Run ⏹ ⏸ 👣 ⏭ │ 🔎 🪄 ▦ ⊞ 🔍 │ ← Toolbar
 ├───────────────┬──────────────────────────────────────────────┬───────────────┤
-│ Node-Palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Eigenschaften │
-│  Suchen…      │                                              │               │
-│  ▸ Start      │     ┌───────────────┐                        │ Bezeichnung   │
+│ Node palette  │  [ Main ] [ login ✕ ] [ submit ✕ ]           │ Properties    │
+│  Search…      │                                              │               │
+│  ▸ Start      │     ┌───────────────┐                        │ Label         │
 │  ▸ Navigation │     │ 🚀 Function    │                        │ [__________]  │
-│  ▸ Interaktion│     └──────●────────┘                        │ Feld 1 …      │
-│  ▸ …          │            │  (Wire)                          │ Feld 2 …      │
+│  ▸ Interaction│     └──────●────────┘                        │ Field 1 …     │
+│  ▸ …          │            │  (wire)                          │ Field 2 …     │
 │───────────────│     ┌──────●────────┐                        │               │
-│ Subnodes      │     │ 🌐 Goto        │                        │ ℹ Beschreibung│
-│  • login      │     │  Login-Seite   │ ← Bezeichnung           │   Beispiel    │
+│ Subnodes      │     │ 🌐 Goto        │                        │ ℹ Description │
+│  • login      │     │  Login page    │ ← label                 │   Example     │
 │  • submit     │     └───────────────┘                        │               │
 │  ＋ ✎ 🗑       │                                              │               │
 ├───────────────┴──────────────────────────────────────────────┴───────────────┤
-│ Ausführungsprotokoll   [Auto-Scroll] [🗑 Leeren]                                │ ← Trace-Panel
+│ Execution log   [Auto-scroll] [🗑 Clear]                                        │ ← Trace panel
 │ 13:20:07  RUNNING  goto                                                         │
 │ 13:20:08  SUCCESS  goto                                                         │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-| Bereich | Zweck |
+| Area | Purpose |
 |---|---|
-| **Titelleiste** | Eigene Fensterleiste (rahmenlos): ⚙ Einstellungen, ❓ Hilfe, ℹ Über, — Minimieren, ▢ Max/Restore, ✕ Schließen. Doppelklick = maximieren. |
-| **Toolbar** | Neuer/öffnen/speichern, KI-Funktionen, Ausführen/Stopp/Pause/Weiter, Fit/Reset-View. |
-| **Node-Palette** (links oben) | Alle Node-Typen nach Kategorie, durchsuchbar. **Klick = Vorschau** rechts (Eigenschaften, Hinweise, Beispiel — wird nicht eingefügt); **Ziehen = in den Flow ablegen** und dort bearbeiten. |
-| **Subnodes** (links unten) | Liste aller benannten Subnodes. Doppelklick öffnet sie als Tab; ＋ neu, ✎ umbenennen, 🗑 löschen; auf den Canvas ziehen erzeugt einen `call`-Node. |
-| **Tab-Leiste** | Offene Tabs (Main + geöffnete Subnodes). Jeder Tab außer Main hat ein ✕. |
-| **Canvas** | Der Flow-Graph: Nodes + Wires. Zoom/Pan, Rechtsklick-Menü. |
-| **Eigenschaften** (rechts) | Felder des ausgewählten Nodes + Bezeichnung + Beschreibung/Beispiel. Beim **Anklicken eines Palette-Nodes** erscheint hier eine **Nur-Lese-Vorschau** (Eigenschaften + Hinweise/Beispiel) — bearbeitbar wird es erst, wenn der Node im Flow liegt. |
-| **Ausführungsprotokoll** (unten) | Live-Trace pro Node (Running/Success/Error/Skipped) inkl. Debug-Ausgaben. |
+| **Title bar** | Custom (borderless) window bar: ⚙ Settings, ❓ Help, ℹ About, — Minimize, ▢ Max/Restore, ✕ Close. Double-click = maximize. |
+| **Toolbar** | New/open/save, AI functions, Run/Stop/Pause/Resume, Fit/Reset view. |
+| **Node palette** (top left) | All node types by category, searchable. **Click = preview** on the right (properties, hints, example — not inserted); **drag = drop into the flow** and edit it there. |
+| **Subnodes** (bottom left) | List of all named subnodes. Double-click opens them as a tab; ＋ new, ✎ rename, 🗑 delete; dragging onto the canvas creates a `call` node. |
+| **Tab bar** | Open tabs (Main + opened subnodes). Every tab except Main has a ✕. |
+| **Canvas** | The flow graph: nodes + wires. Zoom/pan, right-click menu. |
+| **Properties** (right) | Fields of the selected node + label + description/example. When you **click a palette node** a **read-only preview** appears here (properties + hints/example) — it becomes editable only once the node is in the flow. |
+| **Execution log** (bottom) | Live trace per node (Running/Success/Error/Skipped) including debug output. |
 
 ---
 
-## Kernkonzepte
+## Core concepts
 
-### Flow, Tabs & Subnodes
-- Ein **Flow** ist ein einziges JSON-Dokument (Version 2) mit mehreren **Tabs** und allen **Nodes**.
-- Der **Main**-Tab ist der Einstieg. Ausführung beginnt bei allen Nodes ohne eingehende Verbindung (Entry-Nodes).
-- **Subnodes** sind benannte, wiederverwendbare Tabs (z. B. `login`, `configuration.general.identification`). Sie werden per **`call`**-Node *namentlich* aufgerufen — der `call`-Node zeigt den Subnode-Namen direkt an. **Doppelklick auf einen `call`-Node** im Flow öffnet den referenzierten Subnode als Tab.
+### Flow, tabs & subnodes
+- A **flow** is a single JSON document (version 2) with several **tabs** and all **nodes**.
+- The **Main** tab is the entry point. Execution starts at all nodes with no incoming connection (entry nodes).
+- **Subnodes** are named, reusable tabs (e.g. `login`, `configuration.general.identification`). They are called **by name** via a **`call`** node — the `call` node shows the subnode name directly. **Double-clicking a `call` node** in the flow opens the referenced subnode as a tab.
 
-### Nodes, Ports & Wires
-- Jeder Node hat (meist) **einen Eingang oben** und **Ausgänge unten**.
-- **Kontroll-Nodes haben mehrere Ausgänge**:
+### Nodes, ports & wires
+- Each node usually has **one input on top** and **outputs at the bottom**.
+- **Control nodes have multiple outputs**:
   - `if_then_else` → `then` / `else`
-  - `foreach` → `Element` (je Element) / `fertig`
-  - `for_range` → `Schleife` / `fertig`
-  - `get_links` → `je Link` / `fertig`
-- Eine **Verbindung (Wire)** ziehst du vom Ausgangs-Port eines Nodes zum Eingangs-Port eines anderen. Die Ausführung folgt den Wires.
+  - `foreach` → `item` (per element) / `done`
+  - `for_range` → `loop` / `done`
+  - `get_links` → `per link` / `done`
+- You draw a **wire** from a node's output port to another node's input port. Execution follows the wires.
 
 ```
         ┌───────────────┐
@@ -139,149 +139,149 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
         └──●(then)──●(else)┐
            │          │
    ┌───────▼──┐   ┌────▼─────┐
-   │ 🖱 Klick  │   │ 🚪 Beenden│
+   │ 🖱 Click  │   │ 🚪 Quit  │
    └──────────┘   └──────────┘
 ```
 
-### Payload (Datenfluss)
-- Es gibt **einen** gemeinsamen Datenspeicher: das **Payload**. Es fließt durch den Flow; jeder Node kann lesen/schreiben.
-- Gesetzt wird es z. B. vom **`function`/Start**-Node (initiale Werte als JSON) oder per **`set_payload`**.
-- **Platzhalter** in Feldern werden ersetzt: `{schluessel}` **und** `{payload.schluessel}` lösen beide aus dem Payload auf.
+### Payload (data flow)
+- There is **one** shared data store: the **payload**. It flows through the flow; every node can read/write it.
+- It is set e.g. by the **`function`/Start** node (initial values as JSON) or via **`set_payload`**.
+- **Placeholders** in fields are substituted: `{key}` **and** `{payload.key}` both resolve from the payload.
 
-### Annotationen
-- **`caption`** (große Überschrift) und **`label`** (Kommentartext) sind reine Anzeige-Nodes ohne Funktion — sie werden bei der Ausführung ignoriert.
-- Zusätzlich hat **jeder** Node eine optionale **Bezeichnung**, die unter dem Typ-Titel erscheint (z. B. Klick-Node mit „Login-Button").
+### Annotations
+- **`caption`** (large heading) and **`label`** (comment text) are pure display nodes with no function — they are ignored during execution.
+- In addition, **every** node has an optional **label** that appears below the type title (e.g. a click node labelled "Login button").
 
 ---
 
-## Bedienung (Maus & Tastatur)
+## Usage (mouse & keyboard)
 
-| Aktion | So geht's |
+| Action | How |
 |---|---|
-| **Node hinzufügen** | Rechtsklick auf leere Fläche → Menü; **oder** aus der Palette auf den Canvas ziehen (Palette-Klick zeigt nur die Vorschau). |
-| **Subnode-Aufruf einfügen** | Subnode aus der Liste (links unten) auf den Canvas ziehen → erzeugt einen `call`-Node mit gesetztem Ziel. |
-| **Verbinden (Wire)** | Vom **Ausgangs-Port** (unten) zum **Eingangs-Port** (oben) eines anderen Nodes ziehen. Bei mehreren Ausgängen den passenden Port (then/else …) greifen. |
-| **Wire löschen** | Wire anklicken (wird rot) → `Entf`/`Backspace`; **oder** Rechtsklick auf den Wire → „Verbindung löschen". |
-| **Node verschieben** | Node mit der linken Maustaste ziehen; **oder** Node(s) auswählen und mit den **Pfeiltasten** verschieben (ein Rasterschritt; **Umschalt+Pfeil** = feinstufig 1 px). |
-| **Am Raster ausrichten** | Toolbar **▦ Ausrichten** — rundet alle Nodes des aktiven Tabs auf das Raster. |
-| **Node löschen** | Node auswählen → `Entf`; **oder** Rechtsklick → „Node löschen". |
-| **Flow starten** | Toolbar **▶ Ausführen** **oder** Taste **F5**. |
-| **Rückgängig / Wiederholen** | **Strg+Z** / **Strg+Y**; **oder** Toolbar **↶ / ↷**. |
-| **Kopieren / Einfügen / Duplizieren** | **Strg+C** / **Strg+V** (auch tab-übergreifend) / **Strg+D**. Verbindungen innerhalb der Auswahl bleiben erhalten. |
-| **Node suchen / springen** | **Strg+F** **oder** Toolbar **🔎 Suchen** → tippen, Enter springt zum Node (auch in Subnodes). |
-| **Auto-Layout** | Toolbar **🪄 Layout** ordnet die Nodes des Tabs von oben nach unten an. |
-| **Zuletzt geöffnet** | Toolbar **🕘** zeigt die zuletzt geöffneten/gespeicherten Flows. |
-| **Mehrere auswählen** | **Strg**+Klick auf mehrere Nodes; **oder** auf leerer Fläche ein **Auswahlrechteck (Gummiband)** aufziehen. |
-| **Gruppieren** | ≥ 2 Nodes auswählen → Rechtsklick auf leere Fläche → **„📦 Gruppieren"**. |
-| **Gruppe → Subnode** | Rechtsklick auf die **Kopfleiste der Gruppe** → **„📦 Subnode einrichten"**; **oder** direkt aus der Auswahl: Rechtsklick auf leere Fläche → **„📦 Subnode aus Auswahl"**. Name + Bezeichnung eingeben — die Nodes wandern in einen neuen Subnode-Tab, an ihrer Stelle bleibt ein `call`-Node, externe Verbindungen werden automatisch umgehängt. (Gruppen-Kopfleiste: Doppelklick = umbenennen, ziehen = verschieben, Rechtsklick → „Gruppe lösen".) |
-| **Bezeichnung vergeben** | Node auswählen → Feld **„Bezeichnung"** oben im Eigenschaften-Panel. |
-| **Fehler-Markierung** | Nodes mit Validierungsfehler zeigen oben rechts ein **⚠** — der Tooltip nennt das Problem (Live-Validierung bei jeder Änderung). |
-| **Hilfe / Kurzanleitung** | Titelleiste **❓**; **oder** Über-Fenster (**ℹ**) → **„📖 Hilfe / Kurzanleitung"**. Das Hilfefenster zeigt **diese README** (eingebettet gerendert) — Doku und Hilfe bleiben dadurch immer gleich. Es ist **frei skalierbar**, und die JSON-**Beispiele** lassen sich per Button **„📥 In den Flow laden"** direkt übernehmen. |
-| **Alten Flow konvertieren** | Toolbar **♻ Convert** → Projektordner (Python-Flow) wählen → wird ins neue Format überführt und geladen (Alternative zum CLI `--convert`). |
-| **Verschieben (Pan)** | Mausrad = vertikal, **Shift**+Rad = horizontal; **oder** mittlere Maustaste / **Alt**+links ziehen. |
-| **Zoom** | **Strg**+Mausrad. |
-| **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
-| **Fenster maximieren / Vollbild** | Titelleiste **☐** bzw. Doppelklick auf die Titelleiste; **Vollbild** mit **F11**. (Maximieren randloser Fenster kann je nach Linux-Fenstermanager/Wayland-Compositor klemmen. Das Fenster hat die feste Klasse **`WebExStudio`** — darüber lässt sich z. B. unter KDE eine Fensterregel „maximiert erzwingen" anlegen.) |
-| **Subnode anlegen/umbenennen/löschen** | Subnodes-Panel: **＋ / ✎ / 🗑**. |
-| **Subnode öffnen** | Doppelklick im Subnodes-Panel **oder** Doppelklick auf den `call`-Node im Flow → öffnet als Tab. |
-| **Tab schließen** | **✕** am Tab (Main bleibt immer offen). |
+| **Add node** | Right-click empty space → menu; **or** drag from the palette onto the canvas (clicking the palette only shows the preview). |
+| **Insert subnode call** | Drag a subnode from the list (bottom left) onto the canvas → creates a `call` node with the target set. |
+| **Connect (wire)** | Drag from the **output port** (bottom) to another node's **input port** (top). With multiple outputs, grab the right port (then/else …). |
+| **Delete wire** | Click the wire (turns red) → `Del`/`Backspace`; **or** right-click the wire → "Delete connection". |
+| **Move node** | Drag a node with the left mouse button; **or** select node(s) and move them with the **arrow keys** (one grid step; **Shift+arrow** = fine, 1 px). |
+| **Snap to grid** | Toolbar **▦ Align** — rounds all nodes of the active tab to the grid. |
+| **Delete node** | Select node → `Del`; **or** right-click → "Delete node". |
+| **Run flow** | Toolbar **▶ Run** **or** the **F5** key. |
+| **Undo / Redo** | **Ctrl+Z** / **Ctrl+Y**; **or** toolbar **↶ / ↷**. |
+| **Copy / Paste / Duplicate** | **Ctrl+C** / **Ctrl+V** (across tabs too) / **Ctrl+D**. Connections within the selection are preserved. |
+| **Find node / jump** | **Ctrl+F** **or** toolbar **🔎 Search** → type, Enter jumps to the node (into subnodes too). |
+| **Auto-layout** | Toolbar **🪄 Layout** arranges the tab's nodes top to bottom. |
+| **Recently opened** | Toolbar **🕘** shows the most recently opened/saved flows. |
+| **Multi-select** | **Ctrl**+click multiple nodes; **or** drag a **selection rectangle (rubber band)** on empty space. |
+| **Group** | Select ≥ 2 nodes → right-click empty space → **"📦 Group"**. |
+| **Group → subnode** | Right-click the **group header** → **"📦 Set up subnode"**; **or** straight from the selection: right-click empty space → **"📦 Subnode from selection"**. Enter a name + label — the nodes move into a new subnode tab, a `call` node is left in their place, external connections are rewired automatically. (Group header: double-click = rename, drag = move, right-click → "Ungroup".) |
+| **Assign a label** | Select node → the **"Label"** field at the top of the properties panel. |
+| **Error marker** | Nodes with a validation error show a **⚠** at the top right — the tooltip names the problem (live validation on every change). |
+| **Help / quick guide** | Title bar **❓**; **or** About window (**ℹ**) → **"📖 Help / Quick guide"**. The help window shows **this README** (rendered, embedded) — so docs and help always match. It is **freely resizable**, and the JSON **examples** can be loaded directly via the **"📥 Load into flow"** button. |
+| **Convert an old flow** | Toolbar **♻ Convert** → choose a project folder (Python flow) → it is converted to the new format and loaded (alternative to the CLI `--convert`). |
+| **Pan** | Mouse wheel = vertical, **Shift**+wheel = horizontal; **or** middle mouse button / **Alt**+left drag. |
+| **Zoom** | **Ctrl**+mouse wheel. |
+| **Reset / fit view** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
+| **Maximize / full screen** | Title bar **☐** or double-click the title bar; **full screen** with **F11**. (Maximizing borderless windows can misbehave depending on the Linux window manager/Wayland compositor. The window has the fixed class **`WebExStudio`** — under KDE, for example, you can create a window rule to "force maximize".) |
+| **Create/rename/delete subnode** | Subnodes panel: **＋ / ✎ / 🗑**. |
+| **Open subnode** | Double-click in the subnodes panel **or** double-click the `call` node in the flow → opens as a tab. |
+| **Close tab** | **✕** on the tab (Main always stays open). |
 
 ---
 
-## Node-Referenz
+## Node reference
 
-> Beim ausgewählten Node stehen Beschreibung **und** ein Beispiel rechts im Eigenschaften-Panel.
+> For the selected node, a description **and** an example appear on the right in the properties panel.
 
-> **Fehlerbehandlung (jeder Node):** Im Eigenschaften-Panel unter *„Fehlerbehandlung"* lässt sich pro
-> Node **Wiederholungen bei Fehler** (`retry`, 0 = aus) und eine **Wartezeit zwischen Versuchen**
-> (`retry_delay_ms`) setzen. Schlägt der Node fehl, wird er bis zu `retry`-mal erneut versucht (mit Pause);
-> erst danach gilt der Pfad als fehlerhaft. Abbruch (Stopp) und `quit` werden nie wiederholt — praktisch
-> für flaky Seiten/Netz (z. B. ein wackeliger `goto` oder `get_value`).
+> **Error handling (every node):** in the properties panel under *"Error handling"* you can set, per node,
+> **retries on error** (`retry`, 0 = off) and a **delay between attempts** (`retry_delay_ms`). If the node
+> fails, it is retried up to `retry` times (with the pause); only then is the path treated as failed.
+> Cancellation (Stop) and `quit` are never retried — handy for flaky pages/networks (e.g. a shaky `goto`
+> or `get_value`).
 
 ### Start
-| | Typ | Name | Zweck | Beispiel |
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| 🚀 | `function` | Input | Input-/Startpunkt; setzt initiales Payload (JSON). | `payload = {"host":"https://example.com"}` → `{payload.host}` |
+| 🚀 | `function` | Input | Input/start point; sets the initial payload (JSON). | `payload = {"host":"https://example.com"}` → `{payload.host}` |
 
 ### Navigation
-| | Typ | Name | Zweck | Beispiel |
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| 🌐 | `goto` | Navigate | Zu URL navigieren, auf Laden warten. Mit `new_tab = true` in neuem Tab öffnen & dorthin wechseln (ersetzt `open_tab`). | `url = {payload.host}/login` · `new_tab = true` |
-| ✖ | `close_tab` | Tab schließen | Aktuellen Tab schließen. | — |
-| 🔗 | `get_links` | Links sammeln | Links sammeln; Ausgang **je Link** läuft pro Treffer. | `selector = a.product` → `{link}` |
+| 🌐 | `goto` | Navigate | Navigate to a URL, wait for load. With `new_tab = true` open in a new tab & switch to it (replaces `open_tab`). | `url = {payload.host}/login` · `new_tab = true` |
+| ✖ | `close_tab` | Close tab | Close the current tab. | — |
+| 🔗 | `get_links` | Collect links | Collect links; the **per link** output runs for each match. | `selector = a.product` → `{link}` |
 
-### Interaktion
-| | Typ | Name | Zweck | Beispiel |
+### Interaction
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| 🖱 | `click` | Klicken | Element klicken (mit Scroll/Retry). Für Download-Buttons `expect_download = true` → wartet auf den Download und speichert ihn. | `selector = a.download, expect_download = true` |
-| ⌨ | `send_keys` | Text eingeben | Text in Eingabefeld tippen (füllt das Feld). Für Enter/Tab/Escape → `press_key`. | `selector = input[name=q], value = {payload.suchwort}` |
-| ⏳ | `wait_for` | Warten auf Element | Auf Sichtbarkeit/Existenz warten. | `selector = .ergebnis, state = visible` |
-| 💤 | `sleep` | Pause | Feste Zeit warten. | `seconds = 2` |
-| 📋 | `menu_path` | Menü-Navigation | Hierarchisches Menü durchklicken/hovern. | `path = Datei, Export, PDF` |
-| ↕ | `scroll` | Scrollen | Nach oben/unten oder zu einem Element scrollen; mehrfaches Scrollen lädt „lazy" nachgeladene Inhalte. | `to = bottom, times = 3` |
-| ⏎ | `press_key` | Taste drücken | (Sonder-)Taste/Kombination drücken (Enter, Escape, Tab, `Control+A`), global oder auf einem Element. | `key = Enter, selector = input[name=q]` |
-| ▼ | `select_option` | Dropdown wählen | Eintrag in `<select>` per Wert/Label/Index wählen. | `selector = select#land, by = label, value = Deutschland` |
-| 👆 | `hover` | Überfahren (Hover) | Maus über ein Element bewegen (Menü/Tooltip einblenden). | `selector = .menue-eintrag` |
+| 🖱 | `click` | Click | Click an element (with scroll/retry). For download buttons set `expect_download = true` → waits for the download and saves it. | `selector = a.download, expect_download = true` |
+| ⌨ | `send_keys` | Type text | Type text into an input field (fills it). For Enter/Tab/Escape → `press_key`. | `selector = input[name=q], value = {payload.searchword}` |
+| ⏳ | `wait_for` | Wait for element | Wait for visibility/presence. | `selector = .result, state = visible` |
+| 💤 | `sleep` | Pause | Wait a fixed time. | `seconds = 2` |
+| 📋 | `menu_path` | Menu navigation | Click/hover through a hierarchical menu. | `path = File, Export, PDF` |
+| ↕ | `scroll` | Scroll | Scroll up/down or to an element; repeated scrolling loads lazily added content. | `to = bottom, times = 3` |
+| ⏎ | `press_key` | Press key | Press a (special) key/combination (Enter, Escape, Tab, `Control+A`), global or on an element. | `key = Enter, selector = input[name=q]` |
+| ▼ | `select_option` | Select dropdown | Select an entry in a `<select>` by value/label/index. | `selector = select#country, by = label, value = Germany` |
+| 👆 | `hover` | Hover | Move the mouse over an element (reveal menu/tooltip). | `selector = .menu-item` |
 
-### Kontrollfluss
-| | Typ | Name | Ausgänge | Beispiel |
+### Control flow
+| | Type | Name | Outputs | Example |
 |---|---|---|---|---|
-| ❓ | `if_then_else` | If / Then / Else | `then` / `else` | `condition = element_exists, selector = .fehler` |
-| 🔄 | `for_range` | For-Schleife | `Schleife` / `fertig` | `start = 1, end = 5` → `{i}` |
-| 🔁 | `foreach` | Foreach-Schleife | `Element` / `fertig` | `items = {payload.targets}` |
-| 📞 | `call` | Subnode aufrufen | 1 | `target = login` (zeigt den Subnode-Namen) |
-| ⏸ | `noop` | No-Op / Breakpoint | 1 | Platzhalter |
-| ✔ | `assert` | Prüfen / Assert | 1 | `condition = element_exists, selector = .erfolg` (Fehler, wenn nicht erfüllt) |
-| 🚪 | `quit` | Beenden | 0 | Stoppt den Flow hier |
+| ❓ | `if_then_else` | If / Then / Else | `then` / `else` | `condition = element_exists, selector = .error` |
+| 🔄 | `for_range` | For loop | `loop` / `done` | `start = 1, end = 5` → `{i}` |
+| 🔁 | `foreach` | Foreach loop | `item` / `done` | `items = {payload.targets}` |
+| 📞 | `call` | Call subnode | 1 | `target = login` (shows the subnode name) |
+| ⏸ | `noop` | No-op / breakpoint | 1 | Placeholder |
+| ✔ | `assert` | Check / Assert | 1 | `condition = element_exists, selector = .success` (error if not met) |
+| 🚪 | `quit` | Quit | 0 | Stops the flow here |
 
-**`if_then_else`- und `assert`-Bedingungen** (`condition`): `element_exists`, `element_visible`, `element_text`, `page_title`, `page_url`, `page_contains`, `page_matches` (Regex), `payload_equals`, `payload_contains`. Mit `negate = true` invertieren; mit `regex = true` Wert als Regex behandeln. `assert` bricht den Pfad mit Fehlermeldung ab, wenn die Bedingung **nicht** erfüllt ist (optionale `message`).
-Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selector` und der Vergleichswert in `value` (z. B. `selector = visited`, `value = {payload.link}` → prüft, ob `visited` den Link enthält). Ist `selector` leer, wird ersatzweise das Feld `key` verwendet.
+**`if_then_else` and `assert` conditions** (`condition`): `element_exists`, `element_visible`, `element_text`, `page_title`, `page_url`, `page_contains`, `page_matches` (regex), `payload_equals`, `payload_contains`. Invert with `negate = true`; treat the value as a regex with `regex = true`. `assert` aborts the path with an error message if the condition is **not** met (optional `message`).
+For `payload_*`/`ctx_*` conditions the **payload key** goes in `selector` and the comparison value in `value` (e.g. `selector = visited`, `value = {payload.link}` → checks whether `visited` contains the link). If `selector` is empty, the `key` field is used instead.
 
-### Daten
-| | Typ | Name | Zweck | Beispiel |
+### Data
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| 📖 | `get_value` | Wert lesen | DOM-Wert (Text/Attribut) ins Payload. | `selector = .preis, ctx_key = preis` → `{preis}` |
-| 📦 | `set_payload` | Payload setzen | Schlüssel im Payload setzen. | `key = status, value = ok` → `{payload.status}` |
-| 🐞 | `debug` | Debug-Ausgabe | Payload/Kontext ins Protokoll; optional **anhalten**. | `source = payload, pause = true` |
-| 📄 | `read_file` | Datei lesen | Datei ins Payload. | `path = daten.txt, ctx_key = inhalt` |
-| 💾 | `write_file` | Datei schreiben | Wert in Datei schreiben. | `path = out.txt, value = {payload.ergebnis}` |
+| 📖 | `get_value` | Read value | DOM value (text/attribute) into the payload. | `selector = .price, ctx_key = price` → `{price}` |
+| 📦 | `set_payload` | Set payload | Set a key in the payload. | `key = status, value = ok` → `{payload.status}` |
+| 🐞 | `debug` | Debug output | Payload/context to the log; optionally **pause**. | `source = payload, pause = true` |
+| 📄 | `read_file` | Read file | File into the payload. | `path = data.txt, ctx_key = content` |
+| 💾 | `write_file` | Write file | Write a value to a file. | `path = out.txt, value = {payload.result}` |
 
-### Erweitert
-| | Typ | Name | Zweck | Beispiel |
+### Advanced
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| ⬇ | `download_url` | URL herunterladen | Datei von URL laden. | `url = {payload.host}/datei.pdf` |
-| 📸 | `screenshot` | Screenshot | Seite/Element als PNG speichern (Pfad → `screenshot_path`). | `selector = .karte, path = beleg.png` |
-| ƒ | `page_function` | Function | JS-Funktion im Seitenkontext: ohne Selektor `payload => { … }`, mit Selektor `(element, payload) => { … }`. Rückgabe → `ctx_key` (Einzelwert) oder Objekt-Felder in den Payload gemerged. Seite bearbeiten (Hinweis einblenden, Elemente entfernen/hervorheben) oder Werte lesen. (Vereint den früheren `eval_js`; dieser bleibt als Alias.) | `code = payload => ({ anzahl: document.querySelectorAll('a').length })` |
-| 🔐 | `save_session` | Sitzung speichern | Cookies + localStorage in eine Datei schreiben. | nach dem Login einfügen; Pfad leer = `session.json` |
-| 🔐 | `credential_store` | Tresor (Credentials) | Marker/Anker für den verschlüsselten Anmeldedaten-Tresor (Doppelklick öffnet die Verwaltung). Zugriff überall per `{secret[name].user/.password/.api}`. | im Main platzieren |
-| 🔓 | `use_session` | Sitzung verwenden | **If/Else für Sitzungen** (2 Ausgänge `geladen` / `keine Sitzung`): existiert eine (nicht zu alte) Sitzungsdatei, werden deren Cookies in den laufenden Browser geladen → Ausgang `geladen`; sonst `keine Sitzung`. So: bei Sitzung direkt navigieren, sonst Login + `save_session`. | `max_age_hours = 0` (unbegrenzt) |
-| 🎬 | `download_stream` | Stream/Medien laden | Schneidet den Netzwerkverkehr mit, erkennt Medien-URLs (Video/Audio, HLS `.m3u8`, DASH `.mpd`) → Payload (`ctx_key`); lädt direkte Dateien per HTTP, Segment-Streams via **ffmpeg**. DRM-Streams sind nicht ladbar. | `wait_ms = 8000, download = true` |
-| 🤖 | `captcha_guard` | CAPTCHA-Schutz | CAPTCHA erkennen, erste Checkbox automatisch klicken (`auto_click`), auf Lösung warten. `timeout_s = 0` = kein Zeitlimit (wartet bis gelöst bzw. bis „Stopp"). | `auto_click = true, timeout_s = 120` |
+| ⬇ | `download_url` | Download URL | Download a file from a URL. | `url = {payload.host}/file.pdf` |
+| 📸 | `screenshot` | Screenshot | Save the page/element as PNG (path → `screenshot_path`). | `selector = .card, path = receipt.png` |
+| ƒ | `page_function` | Function | JS function in the page context: without a selector `payload => { … }`, with a selector `(element, payload) => { … }`. Return → `ctx_key` (single value) or object fields merged into the payload. Manipulate the page (show a hint, remove/highlight elements) or read values. (Unifies the former `eval_js`, which remains an alias.) | `code = payload => ({ count: document.querySelectorAll('a').length })` |
+| 🔐 | `save_session` | Save session | Write cookies + localStorage to a file. | insert after login; empty path = `session.json` |
+| 🔐 | `credential_store` | Vault (credentials) | Marker/anchor for the encrypted credential vault (double-click opens management). Access anywhere via `{secret[name].user/.password/.api}`. | place in Main |
+| 🔓 | `use_session` | Use session | **If/else for sessions** (2 outputs `loaded` / `no session`): if a (not-too-old) session file exists, its cookies are loaded into the running browser → output `loaded`; otherwise `no session`. So: with a session navigate directly, otherwise log in + `save_session`. | `max_age_hours = 0` (unlimited) |
+| 🎬 | `download_stream` | Capture stream/media | Captures network traffic, detects media URLs (video/audio, HLS `.m3u8`, DASH `.mpd`) → payload (`ctx_key`); downloads direct files via HTTP, segment streams via **ffmpeg**. DRM streams cannot be downloaded. | `wait_ms = 8000, download = true` |
+| 🤖 | `captcha_guard` | CAPTCHA guard | Detect a CAPTCHA, auto-click the first checkbox (`auto_click`), wait for the solution. `timeout_s = 0` = no time limit (waits until solved or until "Stop"). | `auto_click = true, timeout_s = 120` |
 
-### KI
-| | Typ | Name | Zweck | Beispiel |
+### AI
+| | Type | Name | Purpose | Example |
 |---|---|---|---|---|
-| 🧠 | `ai_query` | KI-Abfrage | Schickt den Seiteninhalt (Text/HTML, optional nur ein Element) mit einer Anweisung an die KI; Antwort → Payload (`ctx_key`). `json = true` erzwingt JSON, `max_chars` begrenzt die Textmenge. **Anbieter/Modell** sind pro Node wählbar (leer = Standard aus den Einstellungen; nutzt den dort hinterlegten API-Schlüssel). Erfordert eine konfigurierte KI (Einstellungen → KI). | `prompt = Extrahiere alle Threads als JSON {titel,url}, provider = gemini, json = true, ctx_key = daten` |
+| 🧠 | `ai_query` | AI query | Sends the page content (text/HTML, optionally a single element) with an instruction to the AI; answer → payload (`ctx_key`). `json = true` forces JSON, `max_chars` limits the amount of text. **Provider/model** are selectable per node (empty = default from settings; uses the API key stored there). Requires a configured AI (Settings → AI). | `prompt = Extract all threads as JSON {title,url}, provider = gemini, json = true, ctx_key = data` |
 
-### Anmerkung (reine Anzeige)
-| | Typ | Name | Zweck |
+### Annotation (display only)
+| | Type | Name | Purpose |
 |---|---|---|---|
-| 🏷 | `note` | Notiz | Text auf der Fläche: `style = heading` (große Überschrift) oder `comment` (Kommentar). Ersetzt die früheren `caption`/`label` (bleiben als Alias). |
+| 🏷 | `note` | Note | Text on the canvas: `style = heading` (large heading) or `comment`. Replaces the former `caption`/`label` (kept as aliases). |
 
 ---
 
-## Beispiele
+## Examples
 
-> Alle Beispiele sind echtes v2-JSON. Du kannst sie 1:1 als `.json` speichern und über **📄 Flow öffnen** laden, oder im Editor nachbauen.
+> All examples are real v2 JSON. You can save them 1:1 as `.json` and open them via **📄 Open flow**, or rebuild them in the editor.
 >
-> **Fertig zum Öffnen:** Die Beispiele liegen auch als eigene Projekte unter [`projects/`](projects):
-> `example-1-minimal`, `example-2-foreach`, `example-3-if-else`, `example-4-subnode`, `example-5-debug-pause`, `example-6-scraping` (jeweils `flow.json`).
+> **Ready to open:** the examples are also available as separate projects under [`projects/`](projects):
+> `example-1-minimal`, `example-2-foreach`, `example-3-if-else`, `example-4-subnode`, `example-5-debug-pause`, `example-6-scraping` (each with `flow.json`).
 
-### Beispiel 1 — Minimaler Flow: Seite öffnen und Payload prüfen
+### Example 1 — Minimal flow: open a page and inspect the payload
 
 `function → goto → debug`
 
-![Beispiel 1](docs/images/example-1.png)
+![Example 1](docs/images/example-1.png)
 
 ```json
 {
@@ -291,7 +291,7 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
     { "id": "f1", "type": "function", "tabId": "main", "label": "Start", "x": 80, "y": 40,
       "config": { "payload": "{ \"host\": \"https://example.com\" }" }, "wires": [["g1"]] },
 
-    { "id": "g1", "type": "goto", "tabId": "main", "label": "Startseite", "x": 80, "y": 160,
+    { "id": "g1", "type": "goto", "tabId": "main", "label": "Home page", "x": 80, "y": 160,
       "config": { "url": "{payload.host}", "wait_ms": "500" }, "wires": [["d1"]] },
 
     { "id": "d1", "type": "debug", "tabId": "main", "x": 80, "y": 280,
@@ -300,18 +300,18 @@ Bei `payload_*`/`ctx_*`-Bedingungen steht der **Payload-Schlüssel** in `selecto
 }
 ```
 
-### Beispiel 2 — Über eine Liste iterieren (foreach + Payload-Spread)
+### Example 2 — Iterate over a list (foreach + payload spread)
 
-Der `function`-Node liefert eine **Liste von Objekten**. Der `foreach` entpackt pro Element die Felder ins Payload (`{payload.host}`, `{payload.name}`), der **Element**-Ausgang (Port 0) führt in den Schleifenkörper, der **fertig**-Ausgang (Port 1) läuft danach.
+The `function` node provides a **list of objects**. The `foreach` unpacks each element's fields into the payload (`{payload.host}`, `{payload.name}`); the **item** output (port 0) leads into the loop body, the **done** output (port 1) runs afterwards.
 
-![Beispiel 2](docs/images/example-2.png)
+![Example 2](docs/images/example-2.png)
 
 ```json
 {
   "version": 2,
   "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
   "nodes": [
-    { "id": "f1", "type": "function", "tabId": "main", "label": "Geräte", "x": 80, "y": 40,
+    { "id": "f1", "type": "function", "tabId": "main", "label": "Devices", "x": 80, "y": 40,
       "config": { "payload": "{ \"targets\": [ {\"name\":\"A\",\"host\":\"10.0.0.1\"}, {\"name\":\"B\",\"host\":\"10.0.0.2\"} ] }" },
       "wires": [["fe"]] },
 
@@ -319,7 +319,7 @@ Der `function`-Node liefert eine **Liste von Objekten**. Der `foreach` entpackt 
       "config": { "items": "{payload.targets}", "ctx_key": "target" },
       "wires": [["g1"], []] },
 
-    { "id": "g1", "type": "goto", "tabId": "main", "label": "Gerät öffnen", "x": 80, "y": 300,
+    { "id": "g1", "type": "goto", "tabId": "main", "label": "Open device", "x": 80, "y": 300,
       "config": { "url": "https://{payload.host}/" }, "wires": [["d1"]] },
 
     { "id": "d1", "type": "debug", "tabId": "main", "x": 80, "y": 420,
@@ -328,13 +328,13 @@ Der `function`-Node liefert eine **Liste von Objekten**. Der `foreach` entpackt 
 }
 ```
 
-> Hinweis: `wires` ist eine Liste **pro Ausgangs-Port**. `foreach` hat zwei Ports → `[["g1"], []]` bedeutet: Port 0 (Element) → `g1`, Port 1 (fertig) → nichts.
+> Note: `wires` is a list **per output port**. `foreach` has two ports → `[["g1"], []]` means: port 0 (item) → `g1`, port 1 (done) → nothing.
 
-### Beispiel 3 — Verzweigung mit Wieder-Zusammenführen (if then/else → rejoin)
+### Example 3 — Branch with re-merge (if then/else → rejoin)
 
-Nach dem `if` geht es in **beiden** Fällen weiter zum nächsten Schritt: dazu beide Ausgänge (then/else) zum Folge-Node verdrahten.
+After the `if`, **both** cases continue to the next step: wire both outputs (then/else) to the follow-up node.
 
-![Beispiel 3](docs/images/example-3.png)
+![Example 3](docs/images/example-3.png)
 
 ```json
 {
@@ -344,26 +344,26 @@ Nach dem `if` geht es in **beiden** Fällen weiter zum nächsten Schritt: dazu b
     { "id": "g1", "type": "goto", "tabId": "main", "x": 80, "y": 40,
       "config": { "url": "https://example.com" }, "wires": [["if1"]] },
 
-    { "id": "if1", "type": "if_then_else", "tabId": "main", "label": "Cookie-Banner?", "x": 80, "y": 160,
+    { "id": "if1", "type": "if_then_else", "tabId": "main", "label": "Cookie banner?", "x": 80, "y": 160,
       "config": { "condition": "element_exists", "selector": "#accept" },
       "wires": [["c1"], ["done"]] },
 
-    { "id": "c1", "type": "click", "tabId": "main", "label": "Akzeptieren", "x": 320, "y": 280,
+    { "id": "c1", "type": "click", "tabId": "main", "label": "Accept", "x": 320, "y": 280,
       "config": { "selector": "#accept" }, "wires": [["done"]] },
 
-    { "id": "done", "type": "sleep", "tabId": "main", "label": "weiter", "x": 80, "y": 400,
+    { "id": "done", "type": "sleep", "tabId": "main", "label": "continue", "x": 80, "y": 400,
       "config": { "seconds": "1" }, "wires": [[]] }
   ]
 }
 ```
 
-Ablauf: `if1` → **then** (`#accept` existiert) klickt und geht zu `done`; **else** geht direkt zu `done`. Beide Pfade laufen bei `done` zusammen.
+Flow: `if1` → **then** (`#accept` exists) clicks and goes to `done`; **else** goes straight to `done`. Both paths converge at `done`.
 
-### Beispiel 4 — Wiederverwendbarer Subnode (call)
+### Example 4 — Reusable subnode (call)
 
-Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen (＋), öffnen, Inhalt bauen; im Main per `call` mit `target = login` aufrufen (oder den Subnode auf den Canvas ziehen).
+A `login` subnode is called from the main flow. Create it in the subnodes list (＋), open it, build its content; in Main call it via `call` with `target = login` (or drag the subnode onto the canvas).
 
-![Beispiel 4](docs/images/example-4.png)
+![Example 4](docs/images/example-4.png)
 
 ```json
 {
@@ -374,30 +374,30 @@ Ein `login`-Subnode wird vom Main-Flow aufgerufen. In der Subnode-Liste anlegen 
   ],
   "nodes": [
     { "id": "f1", "type": "function", "tabId": "main", "x": 80, "y": 40,
-      "config": { "payload": "{ \"host\": \"https://example.com\", \"user\": \"apc\", \"pass\": \"geheim\" }" },
+      "config": { "payload": "{ \"host\": \"https://example.com\", \"user\": \"apc\", \"pass\": \"secret\" }" },
       "wires": [["call1"]] },
     { "id": "call1", "type": "call", "tabId": "main", "x": 80, "y": 160,
       "config": { "target": "login" }, "wires": [[]] },
 
     { "id": "g1", "type": "goto", "tabId": "t_login", "x": 80, "y": 40,
       "config": { "url": "{payload.host}/logon.htm" }, "wires": [["u1"]] },
-    { "id": "u1", "type": "send_keys", "tabId": "t_login", "label": "Benutzer", "x": 80, "y": 160,
+    { "id": "u1", "type": "send_keys", "tabId": "t_login", "label": "User", "x": 80, "y": 160,
       "config": { "selector": "[name=\"login_username\"]", "value": "{payload.user}" }, "wires": [["p1"]] },
-    { "id": "p1", "type": "send_keys", "tabId": "t_login", "label": "Passwort", "x": 80, "y": 280,
+    { "id": "p1", "type": "send_keys", "tabId": "t_login", "label": "Password", "x": 80, "y": 280,
       "config": { "selector": "[name=\"login_password\"]", "value": "{payload.pass}" }, "wires": [["s1"]] },
-    { "id": "s1", "type": "click", "tabId": "t_login", "label": "Anmelden", "x": 80, "y": 400,
+    { "id": "s1", "type": "click", "tabId": "t_login", "label": "Sign in", "x": 80, "y": 400,
       "config": { "selector": "[name=\"submit\"]" }, "wires": [[]] }
   ]
 }
 ```
 
-### Beispiel 5 — Debuggen mit Pause
+### Example 5 — Debugging with a pause
 
-`debug` mit `pause = true` schreibt das Payload ins Protokoll und **hält an**. In der Toolbar erscheint **⏭ Weiter** — erst auf Klick läuft es weiter. So kannst du den Payload-Inhalt in Ruhe ansehen.
+`debug` with `pause = true` writes the payload to the log and **halts**. **⏭ Resume** appears in the toolbar — only on click does it continue. This lets you inspect the payload content at leisure.
 
-Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anhalten (er stoppt vor dem nächsten Node) und mit **⏭ Weiter** fortsetzen. Im pausierten Zustand führt **👣 Schritt** genau **einen** Node aus und pausiert danach wieder (Einzelschritt-Debugging). Der **als Nächstes auszuführende** Node ist dabei **cyan umrandet** — so siehst du, welcher Node beim nächsten Schritt läuft (und kannst dessen Werte vorher noch im Eigenschaften-Panel anpassen, sie werden beim Ausführen übernommen).
+Independently, a running flow can be paused at any time with **⏸ Pause** (it stops before the next node) and resumed with **⏭ Resume**. While paused, **👣 Step** runs exactly **one** node and pauses again (single-step debugging). The node to run **next** is **outlined in cyan** — so you can see which node runs on the next step (and adjust its values in the properties panel beforehand; they are applied on execution).
 
-![Beispiel 5](docs/images/example-5.png)
+![Example 5](docs/images/example-5.png)
 
 ```json
 {
@@ -405,14 +405,14 @@ Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anh
   "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
   "nodes": [
     { "id": "sp", "type": "set_payload", "tabId": "main", "x": 80, "y": 40,
-      "config": { "key": "status", "value": "geprüft" }, "wires": [["d1"]] },
-    { "id": "d1", "type": "debug", "tabId": "main", "label": "Inspektion", "x": 80, "y": 160,
+      "config": { "key": "status", "value": "checked" }, "wires": [["d1"]] },
+    { "id": "d1", "type": "debug", "tabId": "main", "label": "Inspection", "x": 80, "y": 160,
       "config": { "source": "both", "pause": "true" }, "wires": [[]] }
   ]
 }
 ```
 
-### Beispiel 6 — Wert auslesen und in Datei schreiben (Scraping)
+### Example 6 — Read a value and write it to a file (scraping)
 
 ```json
 {
@@ -420,211 +420,204 @@ Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anh
   "tabs": [{ "id": "main", "label": "Main", "isSubFlow": false }],
   "nodes": [
     { "id": "g1", "type": "goto", "tabId": "main", "x": 80, "y": 40,
-      "config": { "url": "https://example.com/produkt/123" }, "wires": [["v1"]] },
-    { "id": "v1", "type": "get_value", "tabId": "main", "label": "Preis lesen", "x": 80, "y": 160,
-      "config": { "selector": ".price", "ctx_key": "preis", "filter": "trim" }, "wires": [["w1"]] },
-    { "id": "w1", "type": "write_file", "tabId": "main", "label": "Speichern", "x": 80, "y": 280,
-      "config": { "path": "preise.txt", "value": "123 = {preis}", "append": "true" }, "wires": [[]] }
+      "config": { "url": "https://example.com/product/123" }, "wires": [["v1"]] },
+    { "id": "v1", "type": "get_value", "tabId": "main", "label": "Read price", "x": 80, "y": 160,
+      "config": { "selector": ".price", "ctx_key": "price", "filter": "trim" }, "wires": [["w1"]] },
+    { "id": "w1", "type": "write_file", "tabId": "main", "label": "Save", "x": 80, "y": 280,
+      "config": { "path": "prices.txt", "value": "123 = {price}", "append": "true" }, "wires": [[]] }
   ]
 }
 ```
 
 ---
 
-## Payload & Platzhalter
+## Payload & placeholders
 
-- **Ein** gemeinsames Datenobjekt (`payload`) fließt durch den Flow.
-- **Setzen**: `function` (initiales JSON), `set_payload`, `get_value`, `read_file`, Schleifen-Variablen (`foreach`/`for_range` schreiben ihren Schlüssel; `foreach` über Objekte entpackt zusätzlich alle Felder).
-- **Verwenden**: in (fast) jedem Textfeld per Platzhalter:
-  - `{host}` **oder** `{payload.host}` — beides löst denselben Payload-Wert auf.
-- Beispiel: `goto.url = {payload.host}/login`, `sleep.seconds = {payload.seconds}`, `send_keys.value = {payload.user}`.
-
----
-
-## Anmeldedaten-Tresor (Secrets)
-
-**Klartext**-Anmeldedaten gehören nicht in den Flow. Stattdessen liegen sie **verschlüsselt** im Flow
-und werden nur per Namen referenziert.
-
-- **Speicher**: **pro Flow** — als verschlüsselter Blob direkt im Flow (Feld `credentials` der `.json`),
-  **AES-256-GCM** mit Schlüssel aus deinem **Master-Passwort** (PBKDF2). So liegen **Flow und Passwörter
-  zusammen** und reisen gemeinsam; die Passwörter von Flow A landen **nie** in Flow B. (Früher: eine
-  globale Datei für alle Flows — dort gespeicherte Daten musst du pro Flow neu hinterlegen.)
-- **Verwalten**: Toolbar **🔐 Tresor** (oder Doppelklick auf einen `credential_store`-Node). Pro Eintrag
-  (z. B. `F95`, `Pixeldrain`) die Felder **Benutzer / Passwort / API-Key** anlegen. Änderungen werden in den
-  Flow geschrieben und sofort gespeichert (sofern der Flow schon einen Dateipfad hat — sonst beim nächsten Speichern).
-- **Verwenden**: per Platzhalter `{secret[name].user}`, `{secret[name].password}`, `{secret[name].api}` —
-  z. B. in **Text eingeben** (`value`), **Navigate** (`url`), **Dropdown wählen**, **Klicken** (Text).
-  In diesen Feldern bietet das Eigenschaften-Panel zusätzlich ein Dropdown **„🔐 Secret einfügen…"** an,
-  das den passenden Platzhalter direkt einfügt (sobald der Tresor entsperrt ist).
-- **Lebenszyklus**: standardmäßig **verschlossen**. Beim Flow-Start (wenn Secrets genutzt werden) erscheint
-  die **Master-Passwort-Abfrage**; danach ist der Tresor für die Sitzung entsperrt. Beim **Neu/Laden** eines
-  Flows wird er **neu an den Flow gebunden** (und dabei verschlossen), ebenso beim **Programm-Ende**.
-- **Sicherheit**: Secret-Werte werden **erst beim Verwenden** aufgelöst und gelangen **nie in den Payload**
-  (auch nicht über `set_payload`/`function`) — der **Debug-Node** zeigt also nie den Wert. In **Logs/Traces**
-  werden sie **maskiert** (`***`). Schutz greift gegen Weitergabe/Repo/Logs — nicht gegen einen Angreifer mit
-  entsperrter Sitzung bzw. dem Master-Passwort (die App muss die Werte zur Laufzeit entschlüsseln).
-- Die Programm-Einstellungen (AI-Key etc. in `settings.json`) bleiben davon unberührt.
+- **One** shared data object (`payload`) flows through the flow.
+- **Set**: `function` (initial JSON), `set_payload`, `get_value`, `read_file`, loop variables (`foreach`/`for_range` write their key; `foreach` over objects additionally unpacks all fields).
+- **Use**: in (almost) every text field via placeholders:
+  - `{host}` **or** `{payload.host}` — both resolve to the same payload value.
+- Example: `goto.url = {payload.host}/login`, `sleep.seconds = {payload.seconds}`, `send_keys.value = {payload.user}`.
 
 ---
 
-## Einstellungen
+## Credential vault (secrets)
 
-Über **⚙** in der Titelleiste. Gespeichert in `~/.config/WebExStudio/settings.json`
-(unter Windows `%AppData%\WebExStudio\settings.json`) und beim Start geladen. Das Fenster
-ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
+**Plaintext** credentials do not belong in the flow. Instead they are stored **encrypted** inside the flow
+and only referenced by name.
 
-![Einstellungen](docs/images/settings.png)
+- **Storage**: **per flow** — as an encrypted blob directly in the flow (the `.json`'s `credentials` field),
+  **AES-256-GCM** with a key derived from your **master password** (PBKDF2). This keeps **flow and passwords
+  together**, travelling as one; flow A's passwords **never** end up in flow B. (Previously: one global file
+  for all flows — data stored there must be re-entered per flow.)
+- **Manage**: toolbar **🔐 Vault** (or double-click a `credential_store` node). Per entry (e.g. `F95`,
+  `Pixeldrain`) create the **user / password / API key** fields. Changes are written into the flow and saved
+  immediately (provided the flow already has a file path — otherwise on the next save).
+- **Use**: via placeholders `{secret[name].user}`, `{secret[name].password}`, `{secret[name].api}` —
+  e.g. in **Type text** (`value`), **Navigate** (`url`), **Select dropdown**, **Click** (text).
+  In these fields the properties panel also offers a dropdown **"🔐 Insert secret…"** that inserts the matching
+  placeholder directly (once the vault is unlocked).
+- **Lifecycle**: locked by default. At flow start (when secrets are used) the **master password prompt**
+  appears; afterwards the vault is unlocked for the session. On **New/Load** of a flow it is **rebound to the
+  flow** (and locked in the process), as well as on **program exit**.
+- **Security**: secret values are resolved **only when used** and **never enter the payload** (not even via
+  `set_payload`/`function`) — so the **debug node** never shows the value. In **logs/traces** they are
+  **masked** (`***`). The protection guards against sharing/repo/logs — not against an attacker with an
+  unlocked session or the master password (the app must decrypt the values at runtime).
+- The program settings (AI key etc. in `settings.json`) are unaffected by this.
 
-**Sprache / Language.** Die Oberfläche ist mehrsprachig (Deutsch, Englisch, Français, Русский;
-mit Landesflagge und Eigenname in der jeweiligen Sprache). Die Sprache wird
-oben in den Einstellungen umgeschaltet und greift **sofort** (ohne Neustart) — inklusive
-Node-Palette, Eigenschaften-Panel, Kontextmenü und den Namen/Beschreibungen/Beispielen aller
-Nodes. Der gespeicherte Node-`type` und das Flow-Format bleiben dabei unverändert, sodass Flows
-sprachunabhängig austauschbar sind. Weitere Sprachen lassen sich durch eine zusätzliche
-`Localization/<code>.json` im Projekt `WebExStudio.Core` ergänzen.
+---
 
-**Tab „Browser"**
+## Settings
 
-| Einstellung | Bedeutung |
+Via **⚙** in the title bar. Stored in `~/.config/WebExStudio/settings.json`
+(on Windows `%AppData%\WebExStudio\settings.json`) and loaded on start. The window
+is organized into **Browser**, **Network** and **AI**.
+
+![Settings](docs/images/settings.png)
+
+**Language.** The interface is multilingual (German, English, Français, Русский; shown with the
+country flag and the language's own name). The language is switched at
+the top of the settings and applies **immediately** (without a restart) — including the node
+palette, properties panel, context menu, and the names/descriptions/examples of all nodes.
+The stored node `type` and the flow format are unchanged, so flows remain interchangeable
+regardless of language. Additional languages can be added with another
+`Localization/<code>.json` in the `WebExStudio.Core` project.
+
+**"Browser" tab**
+
+| Setting | Meaning |
 |---|---|
-| **Browser-Typ** | `chromium` (Standard), `firefox`, `webkit`. |
-| **System-Browser (Channel)** | leer = Bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installierter System-Browser. `brave` startet Brave als Chromium (Programmpfad wird automatisch gesucht; Browser-Typ muss `chromium` sein). |
-| **Browser-Programmpfad** | leer = automatisch; sonst Pfad zur Browser-EXE (`ExecutablePath`). |
-| **Playwright-Treiberpfad** | nur falls der Treiber nicht automatisch gefunden wird (setzt `PLAYWRIGHT_DRIVER_PATH`). Darunter ein Link zur manuellen/Offline-Installation der Browser (z. B. hinter Firmen-Proxy). |
-| **Standard-Downloadpfad** | Zielordner für Browser-Downloads; leer = `~/Downloads`. Den Download-Button mit einem `click`-Node + **`expect_download = true`** auslösen: der Node wartet auf den Download und speichert ihn mit **echtem Namen** dorthin (sonst legt Playwright ihn nur temporär mit GUID-Namen ab und löscht ihn beim Schließen). |
-| **Headless** | Browser ohne sichtbares Fenster ausführen. |
-| **Maximiert starten** | Öffnet das sichtbare Browserfenster maximiert (`--start-maximized`) und lässt die Seite die volle Fenstergröße nutzen (statt des festen 1280×720-Viewports). Wirkt nur bei Chromium-basierten Browsern (Chromium/Chrome/Edge/Brave) und nicht im Headless-Modus. Gilt für alle Tabs des Laufs, auch für per `open_tab` geöffnete. |
-| **Sitzung wiederverwenden** | Lädt beim Start eine gespeicherte Sitzung (Cookies + localStorage) aus der **Sitzungsdatei** (leer = `session.json` im Projektordner) in den Browser-Kontext. **Achtung:** Wenn der Flow danach trotzdem die Login-Schritte ausführt, kann das stören (man ist ja schon eingeloggt). Für Flows mit Login-Schritten besser **diese Option AUS lassen** und stattdessen den **`use_session`**-Node nutzen, der zur Laufzeit verzweigt (Sitzung vorhanden → navigieren, sonst → Login + `save_session`). |
+| **Browser type** | `chromium` (default), `firefox`, `webkit`. |
+| **System browser (channel)** | empty = bundled; `chrome`, `msedge`, `chrome-beta`, `msedge-beta` = installed system browser. `brave` starts Brave as Chromium (the executable path is found automatically; browser type must be `chromium`). |
+| **Browser executable path** | empty = automatic; otherwise the path to the browser EXE (`ExecutablePath`). |
+| **Playwright driver path** | only if the driver isn't found automatically (sets `PLAYWRIGHT_DRIVER_PATH`). Below it a link to manual/offline installation of the browsers (e.g. behind a corporate proxy). |
+| **Default download path** | target folder for browser downloads; empty = `~/Downloads`. Trigger the download button with a `click` node + **`expect_download = true`**: the node waits for the download and saves it there with its **real name** (otherwise Playwright only stores it temporarily with a GUID name and deletes it on close). |
+| **Headless** | run the browser without a visible window. |
+| **Start maximized** | opens the visible browser window maximized (`--start-maximized`) and lets the page use the full window size (instead of the fixed 1280×720 viewport). Only affects Chromium-based browsers (Chromium/Chrome/Edge/Brave) and not headless mode. Applies to all tabs of the run, including those opened via `open_tab`. |
+| **Reuse session** | on start, loads a saved session (cookies + localStorage) from the **session file** (empty = `session.json` in the project folder) into the browser context. **Caution:** if the flow then still runs the login steps, that can interfere (you are already logged in). For flows with login steps it is better to **leave this OFF** and use the **`use_session`** node instead, which branches at runtime (session present → navigate, otherwise → login + `save_session`). |
 
-**Tab „Netzwerk" (Proxy)** — gilt **für den Browser und für KI-Anfragen**:
+**"Network" tab (proxy)** — applies **to the browser and to AI requests**:
 
-| Einstellung | Bedeutung |
+| Setting | Meaning |
 |---|---|
-| **Proxy-Server** | z. B. `http://proxy.firma.de:8080`; leer = kein Proxy / Systemstandard. |
-| **Ausnahmen / Bypass** | kommagetrennte Hosts ohne Proxy (`localhost, 127.0.0.1, *.intern`). |
-| **Benutzer / Passwort** | optional, für authentifizierte Proxys. |
+| **Proxy server** | e.g. `http://proxy.company.com:8080`; empty = no proxy / system default. |
+| **Exceptions / bypass** | comma-separated hosts without a proxy (`localhost, 127.0.0.1, *.internal`). |
+| **User / password** | optional, for authenticated proxies. |
 
-**Tab „KI"** — siehe [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung).
+**"AI" tab** — see [AI: flow from a description](#ai-flow-from-a-description).
 
 ---
 
 ## Logging
 
-NLog schreibt nach `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
+NLog writes to `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
 
-| Datei | Inhalt |
+| File | Content |
 |---|---|
-| `info.log` | Info-Ebene (Ablauf, Node-Start, Targets …) — zusätzlich farbig auf der Konsole. |
-| `debug.log` | Debug-Ebene für `WebExStudio.*` (ausführlich). |
-| `error.log` | Fehler inkl. Stacktrace. |
+| `info.log` | Info level (flow, node start, targets …) — also colored on the console. |
+| `debug.log` | Debug level for `WebExStudio.*` (verbose). |
+| `error.log` | Errors incl. stack trace. |
 
-Während der Ausführung erscheinen Node-Status und `debug`-Ausgaben außerdem live im **Ausführungsprotokoll** unten in der App. Dort gilt pro Eintrag:
+During execution, node status and `debug` output also appear live in the **execution log** at the bottom of the app. Per entry:
 
-- **Doppelklick** → springt im Editor zum zugehörigen Node (öffnet dessen Tab, wählt ihn aus und zentriert die Ansicht).
-- **Rechtsklick** → „↪ Zum Node springen", „📋 Zeile kopieren" (in die Zwischenablage) und „💬 An KI-Chat senden" (überträgt Node-Typ, **Node-ID**, Status und Fehlermeldung als Frage in den KI-Chat — die ID lässt die KI den Node im automatisch mitgeschickten Flow-JSON eindeutig finden).
-- Der Meldungstext ist markierbar und damit direkt kopierbar.
+- **Double-click** → jumps to the corresponding node in the editor (opens its tab, selects it and centers the view).
+- **Right-click** → "↪ Jump to node", "📋 Copy line" (to the clipboard) and "💬 Send to AI chat" (sends node type, **node ID**, status and error message as a question into the AI chat — the ID lets the AI find the node unambiguously in the automatically attached flow JSON).
+- The message text is selectable and therefore directly copyable.
 
 ---
 
-## KI: Flow aus Beschreibung
+## AI: flow from a description
 
-Über den Toolbar-Button **🤖 KI-Flow** lässt sich aus einer natürlichsprachlichen
-Beschreibung ein kompletter Flow erzeugen. Ablauf:
+The toolbar button **🤖 AI flow** lets you generate a complete flow from a natural-language
+description. Steps:
 
-1. Beschreibung eingeben (z. B. „Öffne example.com, logge dich ein, lies die Überschrift
-   und schreib sie in eine Datei").
-2. Die KI bekommt den **Node-Katalog als Schema** mitgeliefert (abgeleitet aus
-   `NodeCatalog`) und antwortet mit einem Flow-JSON.
-3. Das Ergebnis wird mit dem **`FlowValidator` geprüft**, bevor es geladen wird. Ist es
-   gültig, landet es direkt auf dem Canvas (als ungespeicherter Flow zum Prüfen). Bei
-   Validierungsfehlern werden diese angezeigt; optional lässt sich der Flow per
-   **„Trotzdem laden"** zum manuellen Korrigieren öffnen.
+1. Enter a description (e.g. "Open example.com, log in, read the heading and write it to a file").
+2. The AI is given the **node catalog as a schema** (derived from `NodeCatalog`) and answers with flow JSON.
+3. The result is **checked with the `FlowValidator`** before it is loaded. If it is valid, it lands directly
+   on the canvas (as an unsaved flow to review). On validation errors these are shown; optionally the flow
+   can be opened via **"Load anyway"** for manual correction.
 
-**Anbieter** (in den **Einstellungen ⚙** wählbar, Schlüssel wird in `settings.json`
-gespeichert):
+**Providers** (selectable in the **Settings ⚙**, the key is stored in `settings.json`):
 
-| Anbieter | Standardmodell | Hinweis |
+| Provider | Default model | Note |
 |---|---|---|
-| `anthropic` | `claude-sonnet-4-6` | Anthropic Messages API, API-Key nötig. |
-| `openai` | `gpt-4o` | OpenAI Chat-Completions, API-Key nötig. |
-| `gemini` | `gemini-2.0-flash` | Google Gemini (Generative Language API), API-Key nötig. |
-| `perplexity` | `sonar` | Perplexity (OpenAI-kompatibel), API-Key nötig. |
-| `ollama` | `llama3.1` | Lokale Instanz (Standard-URL `http://localhost:11434`), kein Key. |
+| `anthropic` | `claude-sonnet-4-6` | Anthropic Messages API, API key required. |
+| `openai` | `gpt-4o` | OpenAI chat completions, API key required. |
+| `gemini` | `gemini-2.0-flash` | Google Gemini (Generative Language API), API key required. |
+| `perplexity` | `sonar` | Perplexity (OpenAI-compatible), API key required. |
+| `ollama` | `llama3.1` | Local instance (default URL `http://localhost:11434`), no key. |
 
-Modell und Basis-URL sind pro Anbieter überschreibbar. Die Anbindung ist im Projekt
-`WebExStudio.AI` über die Schnittstelle `ILlmClient` gekapselt — weitere Anbieter lassen
-sich dort ergänzen, ohne den Generator zu ändern.
+Model and base URL can be overridden per provider. The connection is encapsulated in the
+`WebExStudio.AI` project via the `ILlmClient` interface — additional providers can be added there
+without changing the generator.
 
-**Lokale KI automatisch finden:** Der Button **🔍 Lokale KI suchen** (Einstellungen → KI)
-prüft auf Knopfdruck gängige lokale LLM-Server und trägt Anbieter, Basis-URL und ein
-gefundenes Modell automatisch ein — **Ollama** (`localhost:11434`, z. B. via Pinokio) sowie
-**OpenAI-kompatible** Server **LM Studio** (`1234`), **llama.cpp** (`8080`) und **Jan** (`1337`).
-Best-Effort über diese bekannten Ports; abweichende Ports trägt man manuell ein.
+**Auto-detect local AI:** the button **🔍 Detect local AI** (Settings → AI) checks common local
+LLM servers on demand and fills in provider, base URL and a detected model automatically —
+**Ollama** (`localhost:11434`, e.g. via Pinokio) plus the **OpenAI-compatible** servers
+**LM Studio** (`1234`), **llama.cpp** (`8080`) and **Jan** (`1337`). Best-effort across these known
+ports; non-standard ports are entered manually.
 
-### KI-Chat
+### AI chat
 
-Der Toolbar-Button **💬 KI-Chat** öffnet ein Chat-Fenster mit der KI (mehrere Turns, der
-Verlauf bleibt erhalten). Man kann Fragen zu WebExStudio stellen oder iterativ einen Flow
-entwickeln. Enthält eine Antwort einen Flow, erscheint darunter ein Button **„📥 in Editor
-laden"** — der Flow wird (wie beim KI-Flow-Dialog) erst validiert und dann geladen. Zusätzlich
-erscheint, sobald die letzte Antwort einen Flow enthält, ein **fest verankerter Lade-Balken
-direkt über dem Eingabefeld** — so bleibt das Übernehmen auch bei sehr langen Antworten immer
-erreichbar (ohne ans Ende der Nachricht scrollen zu müssen). Chat nutzt dieselben Anbieter-
-und Proxy-Einstellungen.
+The toolbar button **💬 AI chat** opens a chat window with the AI (multiple turns, history is
+preserved). You can ask questions about WebExStudio or develop a flow iteratively. If an answer
+contains a flow, a **"📥 Load into editor"** button appears below it — the flow is (as in the AI flow
+dialog) validated first and then loaded. In addition, as soon as the latest answer contains a flow,
+a **fixed load bar appears directly above the input field** — so loading stays reachable even with
+very long answers (no need to scroll to the end of the message). Chat uses the same provider and
+proxy settings.
 
-Der Chat bekommt bei **jeder** Nachricht den **aktuellen Stand des Flows** mitgeschickt
-(inkl. zwischenzeitlicher Änderungen an Nodes), sodass Änderungswünsche auf dem echten
-Flow aufbauen und der zurückgegebene Flow direkt geladen werden kann.
+With **every** message the chat is given the **current state of the flow** (including interim changes
+to nodes), so change requests build on the real flow and the returned flow can be loaded directly.
 
-### Flow erklären
+### Explain flow
 
-Der Toolbar-Button **🧾 Erklären** lässt den **aktuellen Flow** von der KI in verständlicher
-Sprache zusammenfassen (Überblick, Schritt-für-Schritt entlang der Verbindungen, mögliche
-Risiken). Die Erklärung erscheint im Chat-Fenster; der Flow wird dem Modell dabei im
-Hintergrund mitgegeben, sodass man direkt Rückfragen stellen kann.
+The toolbar button **🧾 Explain** has the AI summarize the **current flow** in understandable
+language (overview, step by step along the connections, possible risks). The explanation appears in
+the chat window; the flow is provided to the model in the background, so you can ask follow-up
+questions directly.
 
-### Node-Vorschlag
+### Node suggestion
 
-Einen Node auswählen und **💡 Vorschlag** klicken: Die KI schlägt — basierend auf dem
-gesamten Flow — den **nächsten sinnvollen Node** vor (Typ, Bezeichnung, Konfiguration,
-Begründung). Der Vorschlag wird gegen den Node-Katalog geprüft; per **Hinzufügen** wird er
-unter dem ausgewählten Node angelegt und automatisch von dessen Ausgang verbunden.
+Select a node and click **💡 Suggest**: the AI suggests — based on the whole flow — the **next sensible
+node** (type, label, configuration, reasoning). The suggestion is checked against the node catalog; via
+**Add** it is created below the selected node and connected automatically from its output.
 
-Über die Checkbox **„Node-Vorschlag"** in der **Statusleiste** (unten) lässt sich die Funktion
-ein-/ausschalten (Einstellung wird gespeichert). Die Statusleiste zeigt außerdem den aktuellen
-Status, den Flow-Namen, den aktiven Tab, die Node-Anzahl und den KI-Anbieter.
+The checkbox **"Node suggestion"** in the **status bar** (bottom) toggles the feature on/off (the
+setting is saved). The status bar also shows the current status, the flow name, the active tab, the
+node count and the AI provider.
 
-### KI-Hinweise (bekannte Probleme & Lösungen)
+### AI hints (known issues & fixes)
 
-Im Einstellungen-Tab **„KI"** gibt es ein Feld **„Bekannte Probleme & Lösungen"** — eine kurze,
-selbst gepflegte Liste (eine Zeile pro Hinweis). Ist der Schalter **„Hinweise an die KI
-mitsenden"** aktiv, werden diese Hinweise **jeder** KI-Anfrage (Flow erstellen, Chat, erklären,
-Vorschlag) zusätzlich zum Flow mitgegeben. So lassen sich einmal gelöste Probleme festhalten und
-künftig automatisch berücksichtigen. Hinweise kurz halten, damit die KI sie gut nutzen kann.
+In the settings **"AI"** tab there is a field **"Known issues & fixes"** — a short, self-maintained
+list (one line per hint). If the switch **"Send hints to the AI"** is on, these hints are sent with
+**every** AI request (create flow, chat, explain, suggest) in addition to the flow. This lets you
+record problems you've solved once and have them considered automatically in the future. Keep hints
+short so the AI can use them well.
 
-Im **KI-Chat** hat jede Antwort einen Knopf **„📌 Als Hinweis merken"** — er übernimmt die
-(gekürzte) Antwort direkt in die Hinweisliste (danach in den Einstellungen editierbar).
+In the **AI chat**, every answer has a button **"📌 Remember as hint"** — it adds the (shortened) answer
+directly to the hint list (editable in the settings afterwards).
 
 ---
 
-## Plugins (eigene Nodes)
+## Plugins (custom nodes)
 
-Eigene Node-Typen lassen sich als Plugin nachladen — ohne die App neu zu bauen.
+Custom node types can be loaded as plugins — without rebuilding the app.
 
-**Ein Plugin schreiben:**
-1. Klassenbibliothek (`net10.0`) anlegen, die **`WebExStudio.Core`** und **`WebExStudio.Engine`** referenziert.
-2. Pro Node einen `IActionHandler` implementieren (`string Type` + `ExecuteAsync(ExecutionContext, FlowNode)`)
-   und eine `NodeDefinition` (Metadaten für Palette/Eigenschaften) bereitstellen.
-3. Eine Klasse mit **`INodePlugin`** (parameterloser Konstruktor) implementieren, die beide als
-   `NodePluginNode(Definition, Handler)` zurückgibt.
+**Write a plugin:**
+1. Create a class library (`net10.0`) that references **`WebExStudio.Core`** and **`WebExStudio.Engine`**.
+2. For each node implement an `IActionHandler` (`string Type` + `ExecuteAsync(ExecutionContext, FlowNode)`)
+   and provide a `NodeDefinition` (metadata for palette/properties).
+3. Implement a class with **`INodePlugin`** (parameterless constructor) that returns both as
+   `NodePluginNode(Definition, Handler)`.
 
 ```csharp
 public sealed class MyPlugin : INodePlugin
 {
     public IEnumerable<NodePluginNode> CreateNodes() =>
     [
-        new(new NodeDefinition { Type = "my_hello", DisplayName = "Hallo", Category = "Plugins",
+        new(new NodeDefinition { Type = "my_hello", DisplayName = "Hello", Category = "Plugins",
                                  Description = "…", Example = "…",
                                  Properties = [ new() { Key = "text", Label = "Text", Kind = PropertyKind.Text } ] },
             new MyHelloHandler()),
@@ -632,114 +625,113 @@ public sealed class MyPlugin : INodePlugin
 }
 ```
 
-Optional die Ziel-API-Version markieren, damit der Loader bei Inkompatibilität warnt:
+Optionally mark the target API version so the loader warns on incompatibility:
 ```csharp
 [assembly: WebExStudioPlugin(PluginApi.Version)]
 ```
 
-Soll der Node selbst **verzweigen** (mehrere Ausgänge, wie if_then_else), in der `NodeDefinition`
-`OutputPorts`/`OutputLabels` setzen und **`RoutesOutputs = true`**; der Handler routet dann per
-`ctx.FollowOutput(node, port)`.
+If the node should **branch** itself (multiple outputs, like if_then_else), set
+`OutputPorts`/`OutputLabels` in the `NodeDefinition` and **`RoutesOutputs = true`**; the handler then routes
+via `ctx.FollowOutput(node, port)`.
 
-**Mitgelieferte Plugins** (unter [`samples/`](samples), zugleich Vorlagen):
+**Bundled plugins** (under [`samples/`](samples), also templates):
 
-- [`samples/FileCheckPlugin`](samples/FileCheckPlugin) — Node **„Datei vorhanden?"** (`file_exists`): sucht im
-  Ordner (leer = Download-Ordner) nach einem Namen/Muster und verzweigt **gefunden / nicht gefunden** —
-  praktisch, um vor einem Download zu prüfen, ob die Datei schon existiert (Beispiel für einen
-  **verzweigenden** Node, `RoutesOutputs`).
-- [`samples/HttpRequestPlugin`](samples/HttpRequestPlugin) — Node **„HTTP-Anfrage"** (`http_request`):
-  sendet eine REST-/Webhook-Anfrage **ohne Browser** (Methode, Header `Name: Wert` pro Zeile, Body).
-  Antwort-Body → `ctx_key` (Standard `response`), Status-Code → `status_key` (Standard `response_status`);
-  optional **bei Status ≥ 400 fehlschlagen**. `{secret[..]}` ist in URL/Headern/Body erlaubt und wird
-  **erst beim Senden** aufgelöst, nie geloggt (Beispiel für korrekten Secret-Umgang in Plugins).
+- [`samples/FileCheckPlugin`](samples/FileCheckPlugin) — node **"File exists?"** (`file_exists`): searches the
+  folder (empty = download folder) for a name/pattern and branches **found / not found** — handy to check
+  before a download whether the file already exists (an example of a **branching** node, `RoutesOutputs`).
+- [`samples/HttpRequestPlugin`](samples/HttpRequestPlugin) — node **"HTTP request"** (`http_request`):
+  sends a REST/webhook request **without a browser** (method, headers `Name: value` per line, body).
+  Response body → `ctx_key` (default `response`), status code → `status_key` (default `response_status`);
+  optionally **fail on status ≥ 400**. `{secret[..]}` is allowed in URL/headers/body and is resolved
+  **only when sent**, never logged (an example of correct secret handling in plugins).
 
-Bauen und die DLL(s) kopieren:
+Build and copy the DLL(s):
 ```bash
 dotnet build samples/HttpRequestPlugin -c Release
-# HttpRequestPlugin.dll + HttpRequestPlugin.deps.json nach %AppData%/WebExStudio/plugins kopieren, App neu starten
+# copy HttpRequestPlugin.dll + HttpRequestPlugin.deps.json to %AppData%/WebExStudio/plugins, restart the app
 ```
 
-**Laden:** Die kompilierte DLL in einen `plugins/`-Ordner legen — neben der Anwendung **oder** unter
-`%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). Beim Start wird sie in einem
-**isolierten Ladekontext** (`AssemblyLoadContext`) geladen: gemeinsame Host-Assemblies (WebExStudio, System,
-Avalonia, NLog) teilt sie mit der App, eigene Abhängigkeiten kommen über die `*.deps.json` des Plugins —
-so kollidieren Plugin-Bibliotheken nicht mit denen der App. Die Nodes erscheinen in **Palette,
-Eigenschaften-Panel, Validierung** und stehen der **KI** zur Verfügung.
+**Loading:** place the compiled DLL into a `plugins/` folder — next to the application **or** under
+`%AppData%\WebExStudio\plugins` (Linux/macOS: `~/.config/WebExStudio/plugins`). On start it is loaded in an
+**isolated load context** (`AssemblyLoadContext`): shared host assemblies (WebExStudio, System, Avalonia,
+NLog) are shared with the app, its own dependencies come via the plugin's `*.deps.json` — so plugin
+libraries do not collide with the app's. The nodes appear in the **palette, properties panel, validation**
+and are available to the **AI**.
 
-**Verwalten:** **Einstellungen → Tab „Plugins"** zeigt die gefundenen Plugins mit Status und erlaubt
-**Aktivieren/Deaktivieren** (wirkt nach Neustart) sowie das Öffnen des Plugin-Ordners.
+**Manage:** **Settings → "Plugins" tab** shows the discovered plugins with status and allows
+**enable/disable** (takes effect after a restart) as well as opening the plugin folder.
 
-> **Sicherheit:** Plugins sind **beliebiger Code mit vollen App-Rechten** (Browser, Datei, Netz) — nur
-> vertrauenswürdige Plugins laden; es gibt keine Sandbox. Ein bereits vorhandener Node-Typ wird nicht
-> überschrieben. Eigene Property-Editoren gibt es (noch) nicht — nur die vorhandenen Feldtypen.
+> **Security:** plugins are **arbitrary code with full app rights** (browser, files, network) — only load
+> trusted plugins; there is no sandbox. An existing node type is not overwritten. Custom property editors do
+> not exist (yet) — only the available field types.
 
 ---
 
-## Kommandozeile (CLI / headless)
+## Command line (CLI / headless)
 
-Flows lassen sich **ohne GUI** ausführen — ideal für `cron`/Aufgabenplanung, CI oder Server. Das
-Projekt **`WebExStudio.Cli`** erzeugt das Kommando **`webex`** und nutzt **dieselben Plugins, denselben
-Anmeldedaten-Tresor und denselben Validator/Executor** wie die App.
+Flows can be run **without a GUI** — ideal for `cron`/task scheduling, CI or servers. The
+**`WebExStudio.Cli`** project produces the **`webex`** command and uses the **same plugins, the same
+credential vault and the same validator/executor** as the app.
 
-Fertige `webex`-Binaries liegen jedem **GitHub-Release** als **eigenes Asset** bei
-(`webex-<version>-linux-x64.tar.gz` bzw. `webex-<version>-win-x64.zip`) — oder selbst bauen:
+Ready-made `webex` binaries are attached to every **GitHub release** as a **separate asset**
+(`webex-<version>-linux-x64.tar.gz` or `webex-<version>-win-x64.zip`) — or build it yourself:
 
 ```bash
-dotnet build WebExStudio.Cli -c Release          # baut die ausführbare Datei "webex"
+dotnet build WebExStudio.Cli -c Release          # builds the executable "webex"
 
-webex run      -f projects/f95zone/f95zoneV2.json -c '<tresor-pw>'   # ausführen (standardmäßig headless)
-webex validate -f flow.json                       # nur validieren (kein Browser)
-webex secrets  -f flow.json                       # welche {secret[..]}-Einträge braucht der Flow?
+webex run      -f projects/f95zone/f95zoneV2.json -c '<vault-pw>'   # run (headless by default)
+webex validate -f flow.json                       # validate only (no browser)
+webex secrets  -f flow.json                       # which {secret[..]} entries does the flow need?
 ```
 
-**Optionen für `run`:**
+**Options for `run`:**
 
-| Option | Wirkung |
+| Option | Effect |
 |---|---|
-| `-f, --flow <pfad>` | Pfad zur Flow-Datei (Pflicht) |
-| `-c, --credential <pw>` | Tresor-Passwort. Besser: Umgebungsvariable `WEBEX_VAULT_PW` oder interaktive Eingabe — ein Passwort als Argument landet in der Shell-History/Prozessliste. |
-| `--var key=value` | Startwert im Payload-Kontext (mehrfach möglich) → Flow parametrisieren |
-| `--headful` | Browser sichtbar starten (sonst headless) |
-| `--browser <name>` | `chromium` (Standard), `firefox`, `webkit` |
-| `--timeout <ms>` | Standard-Timeout je Aktion |
-| `--download-dir <d>` | Zielordner für Downloads |
-| `--out <datei.json>` | Lauf-Bericht (Node-Status, Fehler) als JSON schreiben |
+| `-f, --flow <path>` | Path to the flow file (required) |
+| `-c, --credential <pw>` | Vault password. Better: the environment variable `WEBEX_VAULT_PW` or interactive input — a password as an argument ends up in the shell history/process list. |
+| `--var key=value` | Initial value in the payload context (repeatable) → parametrize the flow |
+| `--headful` | Start the browser visibly (otherwise headless) |
+| `--browser <name>` | `chromium` (default), `firefox`, `webkit` |
+| `--timeout <ms>` | Default timeout per action |
+| `--download-dir <d>` | Target folder for downloads |
+| `--out <file.json>` | Write a run report (node status, errors) as JSON |
 
-**Exit-Codes** (für cron/CI): `0` OK · `1` Lauffehler (ein Node fehlgeschlagen) · `2` Validierung/Aufruf ·
-`3` Tresor (Passwort fehlt/falsch) · `130` Abbruch (Strg+C).
+**Exit codes** (for cron/CI): `0` OK · `1` run error (a node failed) · `2` validation/invocation ·
+`3` vault (password missing/wrong) · `130` cancelled (Ctrl+C).
 
-Der Tresor wird nur entsperrt, wenn der Flow tatsächlich `{secret[..]}` verwendet. Vor jedem Lauf wird
-wie in der GUI validiert (Fehler brechen ab). KI-Nodes (`ai_query`) sind in der CLI nicht aktiv.
+The vault is only unlocked if the flow actually uses `{secret[..]}`. Before each run it is validated
+as in the GUI (errors abort). AI nodes (`ai_query`) are not active in the CLI.
 
 ---
 
-## Legacy-Projekte importieren
+## Importing legacy projects
 
-Alte Python-WebEX-Projekte (Ordner mit `actions/*.json`, verschachtelten `call`/`then_actions_file`-Verweisen und `targets.json`) werden in ein einziges v2-Flow konvertiert.
+Old Python WebEX projects (a folder with `actions/*.json`, nested `call`/`then_actions_file` references and `targets.json`) are converted into a single v2 flow.
 
-**In der App:** Toolbar **♻ Convert** → den alten Projektordner wählen → der konvertierte Flow wird direkt in den Editor geladen (anschließend prüfen und speichern).
+**In the app:** toolbar **♻ Convert** → choose the old project folder → the converted flow is loaded directly into the editor (review and save afterwards).
 
-**Über die Kommandozeile:**
+**Via the command line:**
 
 ```bash
-dotnet run --project WebExStudio.UI -- --convert <legacyProjektOrdner> <ausgabe.json>
-# Beispiel:
+dotnet run --project WebExStudio.UI -- --convert <legacyProjectFolder> <output.json>
+# Example:
 dotnet run --project WebExStudio.UI -- --convert projects/usv2 projects/usv3/flow.json
 ```
 
-Dabei gilt:
-- jede referenzierte `.json`-Datei wird ein **benannter Subnode** (Name = Pfad mit Punkten, z. B. `configuration.general.datetime.daylightSavings`);
-- `call` / `then_actions_file` / `else_actions_file` werden zu sichtbaren **`call`-Nodes**;
-- `if` wird zu einem Node mit **then/else-Ausgängen**, Zweige werden wieder zum nächsten Schritt zusammengeführt;
-- `targets.json` landet als Liste im **`function`/Start**-Node, eine **`foreach`** iteriert darüber → ruft den `start`-Subnode auf.
+In this process:
+- each referenced `.json` file becomes a **named subnode** (name = path with dots, e.g. `configuration.general.datetime.daylightSavings`);
+- `call` / `then_actions_file` / `else_actions_file` become visible **`call` nodes**;
+- `if` becomes a node with **then/else outputs**, branches are merged back to the next step;
+- `targets.json` lands as a list in the **`function`/Start** node, a **`foreach`** iterates over it → calls the `start` subnode.
 
-Das Ergebnis (`projects/usv3/flow.json`) lädst du über **📄 Flow öffnen**.
+You open the result (`projects/usv3/flow.json`) via **📄 Open flow**.
 
 ---
 
-## Dateiformat (v2)
+## File format (v2)
 
-Ein Flow ist **eine** JSON-Datei:
+A flow is **one** JSON file:
 
 ```json
 {
@@ -753,7 +745,7 @@ Ein Flow ist **eine** JSON-Datei:
       "id": "n1",
       "type": "goto",
       "tabId": "main",
-      "label": "Startseite",
+      "label": "Home page",
       "x": 80, "y": 40,
       "config": { "url": "{payload.host}" },
       "wires": [ ["n2"] ],
@@ -763,86 +755,85 @@ Ein Flow ist **eine** JSON-Datei:
 }
 ```
 
-- **`tabs`**: `main` (`isSubFlow=false`) + benannte Subnodes (`isSubFlow=true`, eindeutiger `name`).
-- **`nodes[].wires`**: `wires[portIndex]` = Liste der Ziel-Node-IDs an diesem Ausgang. `if`/`foreach` nutzen Index 0 und 1.
-- **`nodes[].config`**: alle node-spezifischen Felder als Strings (Zahlen/Booleans ebenfalls als String).
-- **`nodes[].label`**: die frei wählbare Bezeichnung (am Node angezeigt).
-- Subnode-Aufrufe: `call`-Node mit `config.target = <subnode-name>`.
+- **`tabs`**: `main` (`isSubFlow=false`) + named subnodes (`isSubFlow=true`, unique `name`).
+- **`nodes[].wires`**: `wires[portIndex]` = list of target node IDs at that output. `if`/`foreach` use index 0 and 1.
+- **`nodes[].config`**: all node-specific fields as strings (numbers/booleans also as strings).
+- **`nodes[].label`**: the freely chosen label (shown on the node).
+- Subnode calls: a `call` node with `config.target = <subnode-name>`.
 
 ---
 
-## Flow-Validierung
+## Flow validation
 
-Der `FlowValidator` (in `WebExStudio.Core`) prüft ein Flow-Dokument auf strukturelle und
-schematische Fehler — als Sicherheitsnetz für importierte und (künftig) automatisch
-erzeugte Flows. Er liefert eine Liste von Befunden mit Schweregrad **Error** oder **Warning**;
-`IsValid` ist `true`, solange kein Fehler vorliegt.
+The `FlowValidator` (in `WebExStudio.Core`) checks a flow document for structural and
+schematic errors — a safety net for imported and (in the future) automatically generated flows.
+It returns a list of findings with severity **Error** or **Warning**;
+`IsValid` is `true` as long as there is no error.
 
-**Fehler** (Flow läuft so nicht zuverlässig):
+**Errors** (the flow won't run reliably like this):
 
-| Code | Bedeutung |
+| Code | Meaning |
 |---|---|
-| `unknown-type` | Node-Typ ist im Katalog nicht bekannt. |
-| `missing-required` | Pflichtfeld fehlt (Aliase werden berücksichtigt). |
-| `dangling-wire` | Verbindung zeigt auf eine nicht existierende Node-ID. |
-| `cross-tab-wire` | Verbindung führt zu einem Node auf einem anderen Tab (nur per `call` erlaubt). |
-| `wire-invalid-port` | Verbindung an einem Ausgang, den der Node-Typ nicht hat. |
-| `wire-into-no-input` | Verbindung führt in einen Node ohne Eingang (z. B. eine Annotation). |
-| `call-target-missing` | `call`-Node verweist auf einen unbekannten Subnode. |
-| `duplicate-node-id` | Node-ID kommt mehrfach vor. |
-| `duplicate-subnode-name` | Subnode-Name mehrfach vergeben (`call`-Ziel mehrdeutig). |
-| `unknown-tab` | Node verweist auf einen unbekannten Tab. |
-| `no-main-tab` | Es gibt keinen Haupt-Tab. |
+| `unknown-type` | Node type is not known in the catalog. |
+| `missing-required` | A required field is missing (aliases are considered). |
+| `dangling-wire` | A connection points to a non-existent node ID. |
+| `cross-tab-wire` | A connection leads to a node on a different tab (only allowed via `call`). |
+| `wire-invalid-port` | A connection at an output the node type doesn't have. |
+| `wire-into-no-input` | A connection leads into a node without an input (e.g. an annotation). |
+| `call-target-missing` | A `call` node references an unknown subnode. |
+| `duplicate-node-id` | A node ID occurs more than once. |
+| `duplicate-subnode-name` | A subnode name assigned more than once (`call` target ambiguous). |
+| `unknown-tab` | A node references an unknown tab. |
+| `no-main-tab` | There is no main tab. |
 
-**Warnungen** (verdächtig, evtl. gewollt): `no-entry-node` (Tab ohne Startpunkt / Zyklus),
+**Warnings** (suspicious, possibly intentional): `no-entry-node` (tab without a start point / cycle),
 `group-missing-node`, `group-foreign-node`.
 
-**Beim Ausführen:** Vor jedem Lauf wird der Flow validiert. Liegt ein **Fehler** vor, wird
-der Lauf **gar nicht erst gestartet** — die Befunde erscheinen im Protokoll-Panel, der erste
-fehlerhafte Node wird rot markiert und die Ansicht springt zu seinem Tab. **Warnungen**
-werden ebenfalls im Protokoll angezeigt, blockieren den Lauf aber nicht.
+**On running:** before each run the flow is validated. If there is an **error**, the run is
+**not even started** — the findings appear in the log panel, the first faulty node is marked red and the
+view jumps to its tab. **Warnings** are also shown in the log but do not block the run.
 
-Die mitgelieferten Beispiel-Flows unter `projects/` werden durch
-`ExampleFlowsValidateTests` automatisch gegen den Validator geprüft.
+The bundled example flows under `projects/` are automatically checked against the validator by
+`ExampleFlowsValidateTests`.
 
 ---
 
 ## Tests & Continuous Integration
 
-### Tests lokal ausführen
+### Run tests locally
 
 ```bash
 dotnet test
 ```
 
-| Test-Projekt | Deckt ab |
+| Test project | Covers |
 |---|---|
-| `WebExStudio.Core.Tests` | Serialisierung (Round-Trip), `FlowDocument2`-Helfer, `NodeCatalog`, Legacy-Konverter, **Flow-Validierung** (inkl. Prüfung der Beispiel-Flows). |
-| `WebExStudio.Engine.Tests` | `ExecutionContext` (Payload/Platzhalter), `ActionRegistry`, Handler (browserfrei) und die **Wire-Ausführung** (if-Verzweigung, foreach-Schleife). |
-| `WebExStudio.UI.Tests` | `FlowEditorViewModel`-Logik (Nodes/Wires/Subnodes/Tabs/Gruppen, ohne Rendering) und die **Validierungs-Blockade vor dem Lauf**. |
-| `WebExStudio.AI.Tests` | **KI-Flow-Generator** (Prompt → Parsen → Validieren) mit Fake-Client und die Anbieter-Auswahl der `LlmClientFactory` — ohne Netzwerk. |
-| `WebExStudio.Cli.Tests` | Argument-Parsing des Headless-Runners `webex` (`Options.Parse`: Befehle, Flags, `--var`, Fehlerfälle). |
+| `WebExStudio.Core.Tests` | Serialization (round-trip), `FlowDocument2` helpers, `NodeCatalog`, the legacy converter, **flow validation** (incl. checking the example flows). |
+| `WebExStudio.Engine.Tests` | `ExecutionContext` (payload/placeholders), `ActionRegistry`, handlers (browserless) and the **wire execution** (if branch, foreach loop). |
+| `WebExStudio.UI.Tests` | `FlowEditorViewModel` logic (nodes/wires/subnodes/tabs/groups, without rendering) and the **validation block before the run**. |
+| `WebExStudio.AI.Tests` | The **AI flow generator** (prompt → parse → validate) with a fake client and the provider selection of `LlmClientFactory` — without network. |
+| `WebExStudio.Cli.Tests` | Argument parsing of the headless runner `webex` (`Options.Parse`: commands, flags, `--var`, error cases). |
 
-Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, werden über payload-basierte Bedingungen umgangen. Browser-/IO-lastige Pfade (Playwright-Handler, Drag&Drop, der `run`-Befehl der CLI) werden nicht unit-getestet; geprüft wird die zugrunde liegende Logik (z. B. `Options.Parse`, `SecretReferenceScanner`, `ViewTransform`).
+The engine tests run **without a browser** — nodes that require Playwright are bypassed via payload-based conditions. Browser/IO-heavy paths (Playwright handlers, drag & drop, the CLI's `run` command) are not unit-tested; the underlying logic is checked instead (e.g. `Options.Parse`, `SecretReferenceScanner`, `ViewTransform`).
 
 ### GitHub Actions
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **`test`** — baut die Solution (Release) und führt `dotnet test` aus (bei jedem Push/PR).
-2. **`release`** — läuft **nur bei einem Tag `v*` oder manuell** (*workflow_dispatch*) und nur, wenn die Tests grün sind — **nicht** bei jedem Push (spart Artefakt-Speicher). Erstellt **self-contained Single-File-Builds** für **Linux (`linux-x64`)** und **Windows (`win-x64`)** — je ein Paket für die **GUI** (`WebExStudio-…`) und eines für die **CLI** (`webex-…`) — sowie für Linux zusätzlich ein **AppImage** (`WebExStudio-…-x86_64.AppImage`, gebaut via [`build/make-appimage.sh`](build/make-appimage.sh)).
-3. Bei einem **Tag `v*`** (z. B. `git tag v1.0.0 && git push --tags`) werden alle Pakete (GUI + CLI + AppImage, je Plattform) zusätzlich als **eigene Assets** an ein **GitHub-Release** angehängt. Das **AppImage** ist für Linux der bequemste Download: ausführbar machen und starten (`chmod +x WebExStudio-*.AppImage && ./WebExStudio-*.AppImage`).
+1. **`test`** — builds the solution (Release) and runs `dotnet test` (on every push/PR).
+2. **`release`** — runs **only on a `v*` tag or manually** (*workflow_dispatch*) and only when the tests are green — **not** on every push (saves artifact storage). Creates **self-contained single-file builds** for **Linux (`linux-x64`)** and **Windows (`win-x64`)** — one package each for the **GUI** (`WebExStudio-…`) and the **CLI** (`webex-…`) — plus, for Linux, an **AppImage** (`WebExStudio-…-x86_64.AppImage`, built via [`build/make-appimage.sh`](build/make-appimage.sh)).
+3. On a **`v*` tag** (e.g. `git tag v1.0.0 && git push --tags`) all packages (GUI + CLI + AppImage, per platform) are additionally attached as **separate assets** to a **GitHub release**. The **AppImage** is the most convenient download for Linux: make it executable and run it (`chmod +x WebExStudio-*.AppImage && ./WebExStudio-*.AppImage`).
 
 ---
 
-## Projektstruktur
+## Project structure
 
-| Projekt | Beschreibung |
+| Project | Description |
 |---|---|
-| `WebExStudio.Core` | Datenmodelle (`FlowDocument2`, `FlowNode`, `FlowTab`, `NodeCatalog`), Serialisierung (`FlowSerializer2`), Legacy-Konverter (`LegacyImporter`). |
-| `WebExStudio.Engine` | Flow-Executor (Wire-Traversierung), Playwright-Integration, Action-Handler, Tracing. |
-| `WebExStudio.UI` | Avalonia-Desktop-App: Canvas, Node-/Wire-Rendering, Palette, Subnode-Panel, Eigenschaften, Trace, Einstellungen, About. |
-| `WebExStudio.Cli` | Headless-Runner `webex` (`run`/`validate`/`secrets`) — Flows ohne GUI ausführen (cron/CI). |
-| `WebExStudio.AI` | KI-Anbindung: Node-Schema-Export, Prompt-Bau, `FlowGenerator` und Provider (`ILlmClient`: Anthropic/OpenAI/Ollama). |
+| `WebExStudio.Core` | Data models (`FlowDocument2`, `FlowNode`, `FlowTab`, `NodeCatalog`), serialization (`FlowSerializer2`), the legacy converter (`LegacyImporter`). |
+| `WebExStudio.Engine` | Flow executor (wire traversal), Playwright integration, action handlers, tracing. |
+| `WebExStudio.UI` | Avalonia desktop app: canvas, node/wire rendering, palette, subnode panel, properties, trace, settings, about. |
+| `WebExStudio.Cli` | Headless runner `webex` (`run`/`validate`/`secrets`) — run flows without a GUI (cron/CI). |
+| `WebExStudio.AI` | AI connection: node schema export, prompt building, `FlowGenerator` and providers (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
-Technik: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.
+Stack: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.

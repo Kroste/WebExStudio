@@ -48,7 +48,7 @@ public class MarkdownTests
 
     [Theory]
     [InlineData("WebExStudio.UI.README.md")]
-    [InlineData("WebExStudio.UI.README.en.md")]
+    [InlineData("WebExStudio.UI.README.de.md")]
     [InlineData("WebExStudio.UI.README.fr.md")]
     [InlineData("WebExStudio.UI.README.ru.md")]
     public void EmbeddedReadme_IsAvailableForHelp(string resource)

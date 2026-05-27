@@ -32,13 +32,12 @@ public partial class HelpWindow : Window
         var asm = typeof(HelpWindow).Assembly;
         var lang = Core.Localization.Loc.Instance.Language;
 
-        // Reihenfolge: sprachspezifisch → Englisch (sinnvoller Universal-Fallback) → deutsche Basis.
-        // So sieht z. B. ein französischer Nutzer bei fehlender README.fr.md lieber Englisch als Deutsch.
+        // README.md ist Englisch (Basis/Default). Reihenfolge: sprachspezifische Variante (de/fr/ru)
+        // → README.md (Englisch) als Universal-Fallback. Für Englisch gibt es keine eigene Datei,
+        // dort greift direkt README.md.
         var candidates = new List<string>();
-        if (!string.Equals(lang, "de", System.StringComparison.OrdinalIgnoreCase))
-            candidates.Add($"WebExStudio.UI.README.{lang}.md");
         if (!string.Equals(lang, "en", System.StringComparison.OrdinalIgnoreCase))
-            candidates.Add("WebExStudio.UI.README.en.md");
+            candidates.Add($"WebExStudio.UI.README.{lang}.md");
         candidates.Add("WebExStudio.UI.README.md");
 
         foreach (var name in candidates)

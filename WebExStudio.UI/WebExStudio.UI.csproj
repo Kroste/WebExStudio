@@ -30,12 +30,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <!-- README wird eingebettet und im Hilfefenster gerendert → Hilfe = immer aktuelle README.
-         Sprachvarianten README.<code>.md (z. B. README.en.md) werden je nach UI-Sprache gewählt;
-         Fallback ist die deutsche README.md. -->
+         README.md ist Englisch (GitHub-Default + Basis-/Universal-Fallback der Hilfe). Die
+         Sprachvarianten README.<code>.md (de/fr/ru) werden je nach UI-Sprache gewählt. -->
     <EmbeddedResource Include="..\README.md" Link="README.md" LogicalName="WebExStudio.UI.README.md" />
-    <!-- WithCulture=false: sonst deutet MSBuild das ".en."/".fr."/".ru." im Dateinamen als Kultur und packt die
-         Datei in eine Satelliten-Assembly (en/…) statt ins Haupt-Assembly. -->
-    <EmbeddedResource Include="..\README.en.md" Link="README.en.md" LogicalName="WebExStudio.UI.README.en.md" WithCulture="false" />
+    <!-- WithCulture=false: sonst deutet MSBuild das ".de."/".fr."/".ru." im Dateinamen als Kultur und packt die
+         Datei in eine Satelliten-Assembly (de/…) statt ins Haupt-Assembly. -->
+    <EmbeddedResource Include="..\README.de.md" Link="README.de.md" LogicalName="WebExStudio.UI.README.de.md" WithCulture="false" />
     <EmbeddedResource Include="..\README.fr.md" Link="README.fr.md" LogicalName="WebExStudio.UI.README.fr.md" WithCulture="false" />
     <EmbeddedResource Include="..\README.ru.md" Link="README.ru.md" LogicalName="WebExStudio.UI.README.ru.md" WithCulture="false" />
   </ItemGroup>
