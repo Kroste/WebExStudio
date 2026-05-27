@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:WebExStudio.UI.ViewModels"
+             xmlns:l="using:WebExStudio.UI.Localization"
              x:Class="WebExStudio.UI.Views.TracePanelView"
              x:DataType="vm:TracePanelViewModel">
 
@@ -9,13 +10,13 @@
     <Border DockPanel.Dock="Top" Background="#16162A"
             BorderBrush="#2E2E4E" BorderThickness="0,0,0,1" Padding="6,4">
       <DockPanel>
-        <TextBlock Text="Ausführungsprotokoll" FontWeight="Bold"
+        <TextBlock Text="{l:Tr Trace_Title}" FontWeight="Bold"
                    Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
-          <CheckBox Content="Auto-Scroll"
+          <CheckBox Content="{l:Tr Trace_AutoScroll}"
                     IsChecked="{Binding AutoScroll}"
                     Foreground="#90A4AE" FontSize="11"/>
-          <Button Content="🗑 Leeren" Click="OnClear"
+          <Button Content="{l:Tr Trace_Clear}" Click="OnClear"
                   Padding="6,2" FontSize="11"/>
         </StackPanel>
       </DockPanel>
@@ -29,7 +30,7 @@
             <Border Padding="6,3" BorderBrush="#2A2A3E" BorderThickness="0,0,0,1"
                     Background="Transparent" Cursor="Hand"
                     DoubleTapped="OnEntryDoubleTapped"
-                    ToolTip.Tip="Doppelklick: zum Node springen · Rechtsklick: kopieren / an KI-Chat">
+                    ToolTip.Tip="{l:Tr Trace_Tip}">
               <Border.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="↪ Zum Node springen" Click="OnGoToNode"/>

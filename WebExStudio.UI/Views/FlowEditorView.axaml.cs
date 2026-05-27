@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using NLog;
+using WebExStudio.Core.Localization;
 using WebExStudio.UI.Controls;
 using WebExStudio.UI.ViewModels;
 
@@ -378,7 +379,7 @@ public partial class FlowEditorView : UserControl
     {
         SelectWire(wire);
         var menu = new ContextMenu();
-        var del = new MenuItem { Header = "🗑 Verbindung löschen" };
+        var del = new MenuItem { Header = Loc.T("Menu_DeleteWire") };
         del.Click += (_, _) =>
         {
             Log.Info("Verbindung löschen: {0} → {1}", wire.SourceNodeId, wire.TargetNodeId);
@@ -521,7 +522,7 @@ public partial class FlowEditorView : UserControl
         // Aktionen für die aktuelle Mehrfachauswahl.
         if (Vm is { SelectedNodes.Count: >= 2 })
         {
-            var groupItem = new MenuItem { Header = "📦  Gruppieren" };
+            var groupItem = new MenuItem { Header = Loc.T("Menu_Group") };
             groupItem.Click += (_, _) =>
             {
                 Log.Info("Gruppieren: {0} Nodes", Vm.SelectedNodes.Count);
@@ -530,7 +531,7 @@ public partial class FlowEditorView : UserControl
             };
             menu.Items.Add(groupItem);
 
-            var subItem = new MenuItem { Header = "📦  Subnode aus Auswahl" };
+            var subItem = new MenuItem { Header = Loc.T("Menu_SubFromSel") };
             subItem.Click += async (_, _) => await ExtractSelectionAsync();
             menu.Items.Add(subItem);
 
@@ -563,7 +564,7 @@ public partial class FlowEditorView : UserControl
     private async Task ExtractSelectionAsync()
     {
         if (Vm is null || Vm.SelectedNodes.Count == 0) return;
-        var dlg = new SubnodeDialog("Subnode aus Auswahl", "", "");
+        var dlg = new SubnodeDialog(Loc.T("SubDlg_FromSel"), "", "");
         await ShowDialogOverOwner(dlg);
         if (!dlg.Confirmed) return;
         var sub = Vm.ExtractSelectionToSubnode(dlg.SubnodeName, dlg.SubnodeLabel);
@@ -578,13 +579,13 @@ public partial class FlowEditorView : UserControl
         if (Vm is null) return;
         var menu = new ContextMenu();
 
-        var extract = new MenuItem { Header = "📦  Subnode einrichten" };
+        var extract = new MenuItem { Header = Loc.T("Menu_SetupSubnode") };
         extract.Click += async (_, _) => await ExtractGroupAsync(group);
 
-        var rename = new MenuItem { Header = "✎  Umbenennen" };
+        var rename = new MenuItem { Header = Loc.T("Menu_Rename") };
         rename.Click += async (_, _) => await RenameGroupAsync(group);
 
-        var ungroup = new MenuItem { Header = "✖  Gruppe lösen" };
+        var ungroup = new MenuItem { Header = Loc.T("Menu_Ungroup") };
         ungroup.Click += (_, _) => Vm.Ungroup(group);
 
         menu.Items.Add(extract);
@@ -597,7 +598,7 @@ public partial class FlowEditorView : UserControl
     private async Task ExtractGroupAsync(GroupViewModel group)
     {
         if (Vm is null) return;
-        var dlg = new SubnodeDialog("Subnode aus Gruppe", "", group.Label);
+        var dlg = new SubnodeDialog(Loc.T("SubDlg_FromGroup"), "", group.Label);
         await ShowDialogOverOwner(dlg);
         if (!dlg.Confirmed) return;
 
@@ -611,7 +612,7 @@ public partial class FlowEditorView : UserControl
     private async Task RenameGroupAsync(GroupViewModel group)
     {
         if (Vm is null) return;
-        var dlg = new SubnodeDialog("Gruppe umbenennen", group.Label, "");
+        var dlg = new SubnodeDialog(Loc.T("SubDlg_Rename"), group.Label, "");
         await ShowDialogOverOwner(dlg);
         if (!dlg.Confirmed) return;
         Vm.RenameGroup(group, dlg.SubnodeName);

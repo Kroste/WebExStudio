@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.UI.ViewModels;
 
@@ -56,7 +57,7 @@ public partial class PropertiesPanelView : UserControl
         {
             PropertiesPanel.Children.Add(new TextBlock
             {
-                Text = "Kein Node ausgewählt",
+                Text = Loc.T("Prop_NoNode"),
                 Foreground = new SolidColorBrush(Color.Parse("#546E7A")),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Avalonia.Thickness(0, 20, 0, 0),
@@ -100,7 +101,7 @@ public partial class PropertiesPanelView : UserControl
         // BuildField bindet automatisch an Model.Config[Key].
         PropertiesPanel.Children.Add(new TextBlock
         {
-            Text = "Fehlerbehandlung",
+            Text = Loc.T("Prop_ErrorHandling"),
             FontWeight = FontWeight.SemiBold,
             FontSize = 11,
             Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
@@ -108,11 +109,11 @@ public partial class PropertiesPanelView : UserControl
         });
         PropertiesPanel.Children.Add(BuildField(new PropertyDefinition
         {
-            Key = "retry", Label = "Wiederholungen bei Fehler (0 = aus)", Kind = PropertyKind.Number, DefaultValue = "0",
+            Key = "retry", Label = Loc.T("Prop_Retry"), Kind = PropertyKind.Number, DefaultValue = "0",
         }));
         PropertiesPanel.Children.Add(BuildField(new PropertyDefinition
         {
-            Key = "retry_delay_ms", Label = "Wartezeit zwischen Versuchen (ms)", Kind = PropertyKind.Number, DefaultValue = "0",
+            Key = "retry_delay_ms", Label = Loc.T("Prop_RetryDelay"), Kind = PropertyKind.Number, DefaultValue = "0",
         }));
 
         // Description + example box (under the properties)
@@ -219,7 +220,7 @@ public partial class PropertiesPanelView : UserControl
     {
         var label = new TextBlock
         {
-            Text = "Bezeichnung (Anzeige am Node)",
+            Text = Loc.T("Prop_LabelField"),
             FontSize = 12,
             Foreground = new SolidColorBrush(Color.Parse("#B0BEC5")),
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
@@ -227,7 +228,7 @@ public partial class PropertiesPanelView : UserControl
         var box = new TextBox
         {
             Text = _currentNode?.Label ?? string.Empty,
-            PlaceholderText  = "z. B. Login-Button",
+            PlaceholderText  = Loc.T("Prop_LabelPlaceholder"),
         };
         box.TextChanged += (_, _) =>
         {
@@ -251,7 +252,7 @@ public partial class PropertiesPanelView : UserControl
 
         panel.Children.Add(new TextBlock
         {
-            Text = "ℹ Beschreibung",
+            Text = Loc.T("Prop_Description"),
             FontSize = 11,
             FontWeight = FontWeight.Bold,
             Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
@@ -270,7 +271,7 @@ public partial class PropertiesPanelView : UserControl
         {
             panel.Children.Add(new TextBlock
             {
-                Text = "Beispiel",
+                Text = Loc.T("Prop_Example"),
                 FontSize = 11,
                 FontWeight = FontWeight.Bold,
                 Foreground = new SolidColorBrush(Color.Parse("#607D8B")),

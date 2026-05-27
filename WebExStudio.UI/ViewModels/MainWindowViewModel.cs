@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using ReactiveUI;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
 using WebExStudio.Core.Validation;
@@ -111,7 +112,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             FlowEditor.LoadDocument(result.Document);
             FlowEditor.MarkDirty();
-            StatusText = $"Flow von KI erzeugt ({result.Document.Nodes.Count} Nodes) — bitte prüfen und speichern";
+            StatusText = string.Format(Loc.T("VM_AiGenerated"), result.Document.Nodes.Count);
         }
         return result;
     }
@@ -120,7 +121,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public async Task<NodeSuggestionResult> SuggestNextNodeAsync(NodeViewModel anchor, CancellationToken ct = default)
     {
         if (FlowEditor.Document is null)
-            return NodeSuggestionResult.Failed("Kein Flow geöffnet.");
+            return NodeSuggestionResult.Failed(Loc.T("VM_NoFlow"));
 
         using var http = ProxyFactory.CreateHttpClient(
             RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
@@ -134,7 +135,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public void ApplySuggestion(NodeViewModel anchor, NodeSuggestion suggestion)
     {
         FlowEditor.AddConnectedNode(anchor, suggestion.Type, suggestion.Config, suggestion.Label);
-        StatusText = $"Node '{suggestion.Type}' hinzugefügt";
+        StatusText = string.Format(Loc.T("VM_NodeAdded"), suggestion.Type);
     }
 
     public MainWindowViewModel()
@@ -211,14 +212,14 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         // Tresor wird über das Document-Change-Event neu gebunden (und damit verschlossen).
         FlowEditor.NewDocument();
-        StatusText = "Neuer Flow";
+        StatusText = Loc.T("VM_NewFlow");
     }
 
     public async Task OpenFlowAsync(string path)
     {
         await FlowEditor.LoadAsync(path);
         AddRecent(path);
-        StatusText = $"Flow geladen: {Path.GetFileName(path)}";
+        StatusText = string.Format(Loc.T("VM_FlowLoaded"), Path.GetFileName(path));
     }
 
     /// <summary>Persistiert den aktuellen Flow (inkl. der in ihn geschriebenen, verschlüsselten
@@ -234,7 +235,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         await FlowEditor.SaveAsync(path);
         AddRecent(path);
-        StatusText = "Gespeichert";
+        StatusText = Loc.T("VM_Saved");
     }
 
     public async Task RunAsync()
@@ -242,7 +243,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (IsRunning) return;
 
         var doc = FlowEditor.Document;
-        if (doc is null) { StatusText = "Kein Flow geöffnet"; return; }
+        if (doc is null) { StatusText = Loc.T("VM_NoFlow"); return; }
 
         TracePanel.Clear();
         FlowEditor.ClearExecutionState();
@@ -261,12 +262,12 @@ public sealed class MainWindowViewModel : ViewModelBase
                 FlowEditor.OpenTab(tab);
 
             var errorCount = validation.Errors.Count();
-            StatusText = $"Ausführung abgebrochen: {errorCount} Validierungsfehler — siehe Protokoll";
+            StatusText = string.Format(Loc.T("VM_ValidationAbort"), errorCount);
             return;
         }
 
         IsRunning = true;
-        StatusText = "Ausführung läuft…";
+        StatusText = Loc.T("VM_Running");
 
         _runCts = new CancellationTokenSource();
         var progress = new Progress<TraceEntry>(OnTraceEntry);
@@ -317,15 +318,15 @@ public sealed class MainWindowViewModel : ViewModelBase
                 executor.RunDocumentAsync(doc, RunConfig,
                     new TargetConfig { Name = "Lokal", Enabled = true },
                     progress, ct, OnPauseRequested, PauseGateAsync, aiComplete, secretLookup), ct);
-            StatusText = "Ausführung abgeschlossen";
+            StatusText = Loc.T("VM_Done");
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Ausführung abgebrochen";
+            StatusText = Loc.T("VM_Cancelled");
         }
         catch (Exception ex)
         {
-            StatusText = $"Fehler: {ex.Message}";
+            StatusText = string.Format(Loc.T("VM_Error"), ex.Message);
         }
         finally
         {
@@ -366,7 +367,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         _pauseTcs = tcs;
         Dispatcher.UIThread.Post(() =>
         {
-            StatusText = "Pausiert — auf „Weiter“ warten…";
+            StatusText = Loc.T("VM_Paused");
             IsPaused = true;
         });
         return tcs.Task;
@@ -378,7 +379,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (!IsRunning || IsPaused) return;
         _pauseTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         IsPaused = true;
-        StatusText = "Pausiert — auf „Weiter“ warten…";
+        StatusText = Loc.T("VM_Paused");
     }
 
     /// <summary>Gate für den Executor: wartet, solange pausiert ist (vor jedem Node geprüft).
@@ -401,7 +402,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (!IsRunning || !IsPaused) return;
         var current = _pauseTcs;
         _pauseTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        StatusText = "Einzelschritt…";
+        StatusText = Loc.T("VM_Step");
         current?.TrySetResult(); // genau den nächsten Node freigeben; danach greift das neue Gate
     }
 
@@ -409,7 +410,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public void Resume()
     {
         IsPaused = false;
-        StatusText = "Ausführung läuft…";
+        StatusText = Loc.T("VM_Running");
         _pauseTcs?.TrySetResult();
         _pauseTcs = null;
     }
@@ -423,7 +424,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         _pauseTcs?.TrySetResult();
         _pauseTcs = null;
         IsPaused = false;
-        StatusText = "Wird abgebrochen…";
+        StatusText = Loc.T("VM_Cancelling");
     }
 
     private void OnTraceEntry(TraceEntry entry)

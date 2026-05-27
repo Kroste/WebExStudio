@@ -1,17 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:WebExStudio.UI.Localization"
              x:Class="WebExStudio.UI.Views.NodePaletteView">
 
   <DockPanel>
     <Border DockPanel.Dock="Top" Padding="8,6"
             Background="#16162A" BorderBrush="#2E2E4E" BorderThickness="0,0,0,1">
-      <TextBlock Text="Node-Palette" FontWeight="Bold"
+      <TextBlock Text="{l:Tr Pal_Title}" FontWeight="Bold"
                  Foreground="#90A4AE" FontSize="12"/>
     </Border>
 
     <TextBox DockPanel.Dock="Top"
              x:Name="SearchBox"
-             PlaceholderText="Suchen…"
+             PlaceholderText="{l:Tr Pal_Search}"
              Margin="6" Padding="6,4"
              TextChanged="OnSearchChanged"/>
 
