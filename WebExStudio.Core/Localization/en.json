@@ -149,5 +149,36 @@
   "Search_Title": "🔎  Find node / jump",
   "Search_Placeholder": "Type a name or type…  (Enter = jump, Esc = close)",
 
-  "Help_Title": "❓  Help / Quick guide"
+  "Help_Title": "❓  Help / Quick guide",
+
+  "Common_Unexpected": "Unexpected error: {0}",
+
+  "Chat_Title": "💬 AI chat",
+  "Chat_InputPlaceholder": "Ask a question or describe a flow…  (Enter = send, Shift+Enter = new line)",
+  "Chat_Send": "Send",
+  "Chat_LoadLatestTip": "Load the flow most recently suggested by the AI into the editor",
+  "Chat_LoadFlowTip": "Load this flow into the editor",
+  "Chat_Remember": "📌 Remember as hint",
+  "Chat_RememberTip": "Save this answer (shortened) as an AI hint",
+
+  "Af_Title": "🤖 Generate flow from description",
+  "Af_LoadAnyway": "Load anyway",
+  "Af_Generate": "Generate",
+  "Af_Intro": "Describe what the flow should do. The AI generates a flow from it, which is validated before loading.",
+  "Af_PromptPlaceholder": "e.g.: Open https://example.com, click the login button, enter user and password from the payload, and save the page heading to a file.",
+  "Af_NeedPrompt": "Please enter a description first.",
+  "Af_NotConfigured": "No AI connection configured. Please set an API key in the settings (or choose Ollama as the provider).",
+  "Af_Generating": "Generating with {0}…",
+  "Af_Invalid": "The generated flow is invalid:\n{0}",
+
+  "Ns_Title": "💡 Next node (AI suggestion)",
+  "Ns_Add": "Add",
+  "Ns_Intro": "Suggestion for the next node after the selected node:",
+  "Ns_Type": "Type:",
+  "Ns_LabelLabel": "Label:",
+  "Ns_Config": "Configuration:",
+  "Ns_Reason": "Reason:",
+  "Ns_NotConfigured": "No AI connection configured. Please set an API key in the settings (“AI” tab) or choose Ollama as the provider.",
+  "Ns_Asking": "Asking {0}…",
+  "Ns_NoSuggestion": "No suggestion received."
 }

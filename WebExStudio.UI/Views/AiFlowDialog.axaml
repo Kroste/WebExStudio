@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.AiFlowDialog"
-        Title="KI-Flow"
+        Title="WebExStudio"
         Width="560" Height="460"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -14,7 +15,7 @@
               BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
               PointerPressed="OnTitleBarPointerPressed">
         <Grid ColumnDefinitions="*,Auto" Height="36">
-          <TextBlock Grid.Column="0" Text="🤖 Flow aus Beschreibung erzeugen"
+          <TextBlock Grid.Column="0" Text="{l:Tr Af_Title}"
                      FontSize="12" FontWeight="SemiBold" Foreground="#90A4AE"
                      VerticalAlignment="Center" Margin="14,0" IsHitTestVisible="False"/>
           <Button Grid.Column="1" Click="OnCancel" Content="&#x2715;" FontSize="13"
@@ -28,10 +29,10 @@
         <Grid ColumnDefinitions="*,Auto,Auto,Auto">
           <TextBlock x:Name="StatusText" Grid.Column="0" Text=""
                      Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
-          <Button x:Name="LoadAnywayButton" Grid.Column="1" Content="Trotzdem laden"
+          <Button x:Name="LoadAnywayButton" Grid.Column="1" Content="{l:Tr Af_LoadAnyway}"
                   Click="OnLoadAnyway" Padding="12,6" Margin="0,0,8,0" IsVisible="False"/>
-          <Button Grid.Column="2" Content="Schließen" Click="OnCancel" Padding="14,6" Margin="0,0,8,0"/>
-          <Button x:Name="GenerateButton" Grid.Column="3" Content="Generieren"
+          <Button Grid.Column="2" Content="{l:Tr Common_Close}" Click="OnCancel" Padding="14,6" Margin="0,0,8,0"/>
+          <Button x:Name="GenerateButton" Grid.Column="3" Content="{l:Tr Af_Generate}"
                   Click="OnGenerate" Padding="14,6"
                   Background="#1B5E20" Foreground="White"/>
         </Grid>
@@ -39,13 +40,13 @@
 
       <Grid Margin="20" RowDefinitions="Auto,Auto,*">
         <TextBlock Grid.Row="0"
-                   Text="Beschreibe, was der Flow tun soll. Die KI erzeugt daraus einen Flow, der vor dem Laden validiert wird."
+                   Text="{l:Tr Af_Intro}"
                    FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
         <TextBox Grid.Row="1" x:Name="PromptBox"
                  Height="150" AcceptsReturn="True" TextWrapping="Wrap"
                  VerticalContentAlignment="Top"
-                 PlaceholderText="z. B.: Öffne https://example.com, klicke auf den Login-Button, gib Benutzer und Passwort aus dem Payload ein und speichere die Seitenüberschrift in eine Datei."/>
+                 PlaceholderText="{l:Tr Af_PromptPlaceholder}"/>
 
         <Border Grid.Row="2" Margin="0,12,0,0" Background="#0E0E18"
                 BorderBrush="#2E2E4E" BorderThickness="1" CornerRadius="4"

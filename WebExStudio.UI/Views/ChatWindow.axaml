@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WebExStudio.UI.ViewModels"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.ChatWindow"
         x:DataType="vm:ChatViewModel"
-        Title="KI-Chat"
+        Title="WebExStudio"
         Width="520" Height="640"
         MinWidth="380" MinHeight="360"
         CanResize="True"
@@ -20,7 +21,7 @@
               BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
               PointerPressed="OnTitleBarPointerPressed">
         <Grid ColumnDefinitions="*,Auto" Height="36">
-          <TextBlock Grid.Column="0" Text="💬 KI-Chat" FontSize="12" FontWeight="SemiBold"
+          <TextBlock Grid.Column="0" Text="{l:Tr Chat_Title}" FontSize="12" FontWeight="SemiBold"
                      Foreground="#90A4AE" VerticalAlignment="Center" Margin="14,0"
                      IsHitTestVisible="False"/>
           <Button Grid.Column="1" Click="OnClose" Content="&#x2715;" FontSize="13"
@@ -38,9 +39,9 @@
                    AcceptsReturn="True" TextWrapping="Wrap"
                    MinHeight="44" MaxHeight="120"
                    VerticalContentAlignment="Center"
-                   PlaceholderText="Frage stellen oder einen Flow beschreiben…  (Enter = senden, Umschalt+Enter = neue Zeile)"
+                   PlaceholderText="{l:Tr Chat_InputPlaceholder}"
                    KeyDown="OnInputKeyDown"/>
-          <Button Grid.Column="1" Content="Senden" Click="OnSend"
+          <Button Grid.Column="1" Content="{l:Tr Chat_Send}" Click="OnSend"
                   IsEnabled="{Binding CanSend}" Padding="16,8"
                   VerticalAlignment="Bottom"
                   Background="#1B5E20" Foreground="White"/>
@@ -56,7 +57,7 @@
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                 Background="#2979FF" Foreground="White" FontWeight="SemiBold"
                 BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6" Padding="12,9"
-                ToolTip.Tip="Den zuletzt von der KI vorgeschlagenen Flow in den Editor übernehmen"/>
+                ToolTip.Tip="{l:Tr Chat_LoadLatestTip}"/>
       </Border>
 
       <!-- Verlauf -->
@@ -78,13 +79,13 @@
                           BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6"
                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                           Padding="12,9" FontSize="13" Margin="0,4,0,0"
-                          ToolTip.Tip="Diesen Flow in den Editor übernehmen"/>
-                  <Button Content="📌 Als Hinweis merken" Click="OnRememberHint"
+                          ToolTip.Tip="{l:Tr Chat_LoadFlowTip}"/>
+                  <Button Content="{l:Tr Chat_Remember}" Click="OnRememberHint"
                           IsVisible="{Binding CanRemember}"
                           Background="Transparent" Foreground="#90A4AE"
                           BorderBrush="#455A64" BorderThickness="1" CornerRadius="6"
                           HorizontalAlignment="Left" Padding="8,3" FontSize="11" Margin="0,4,0,0"
-                          ToolTip.Tip="Diese Antwort (gekürzt) als KI-Hinweis speichern"/>
+                          ToolTip.Tip="{l:Tr Chat_RememberTip}"/>
                 </StackPanel>
               </Border>
             </DataTemplate>

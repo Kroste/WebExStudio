@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.UI.ViewModels;
 
@@ -31,19 +32,18 @@ public partial class AiFlowDialog : Window
         var prompt = PromptBox.Text?.Trim();
         if (string.IsNullOrEmpty(prompt))
         {
-            ShowResult("Bitte zuerst eine Beschreibung eingeben.", canLoad: false);
+            ShowResult(Loc.T("Af_NeedPrompt"), canLoad: false);
             return;
         }
 
         if (!_vm.AiOptions.IsConfigured)
         {
-            ShowResult("Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen einen "
-                + "API-Schlüssel hinterlegen (bzw. Ollama als Anbieter wählen).", canLoad: false);
+            ShowResult(Loc.T("Af_NotConfigured"), canLoad: false);
             return;
         }
 
         SetBusy(true);
-        StatusText.Text = $"Generiere mit {_vm.AiOptions.Provider}…";
+        StatusText.Text = string.Format(Loc.T("Af_Generating"), _vm.AiOptions.Provider);
         ResultPanel.IsVisible = false;
         LoadAnywayButton.IsVisible = false;
         _lastDocument = null;
@@ -56,7 +56,7 @@ public partial class AiFlowDialog : Window
         catch (System.Exception ex)
         {
             SetBusy(false);
-            ShowResult($"Unerwarteter Fehler: {ex.Message}", canLoad: false);
+            ShowResult(string.Format(Loc.T("Common_Unexpected"), ex.Message), canLoad: false);
             return;
         }
         SetBusy(false);
@@ -76,7 +76,7 @@ public partial class AiFlowDialog : Window
         else
         {
             var errors = result.Validation?.Errors.Select(i => $"• {i.Message}") ?? [];
-            ShowResult("Der erzeugte Flow ist ungültig:\n" + string.Join("\n", errors),
+            ShowResult(string.Format(Loc.T("Af_Invalid"), string.Join("\n", errors)),
                 canLoad: _lastDocument is not null);
         }
     }

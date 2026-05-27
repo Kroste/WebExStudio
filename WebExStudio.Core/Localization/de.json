@@ -149,5 +149,36 @@
   "Search_Title": "🔎  Node suchen / springen",
   "Search_Placeholder": "Name oder Typ tippen…  (Enter = springen, Esc = schließen)",
 
-  "Help_Title": "❓  Hilfe / Kurzanleitung"
+  "Help_Title": "❓  Hilfe / Kurzanleitung",
+
+  "Common_Unexpected": "Unerwarteter Fehler: {0}",
+
+  "Chat_Title": "💬 KI-Chat",
+  "Chat_InputPlaceholder": "Frage stellen oder einen Flow beschreiben…  (Enter = senden, Umschalt+Enter = neue Zeile)",
+  "Chat_Send": "Senden",
+  "Chat_LoadLatestTip": "Den zuletzt von der KI vorgeschlagenen Flow in den Editor übernehmen",
+  "Chat_LoadFlowTip": "Diesen Flow in den Editor übernehmen",
+  "Chat_Remember": "📌 Als Hinweis merken",
+  "Chat_RememberTip": "Diese Antwort (gekürzt) als KI-Hinweis speichern",
+
+  "Af_Title": "🤖 Flow aus Beschreibung erzeugen",
+  "Af_LoadAnyway": "Trotzdem laden",
+  "Af_Generate": "Generieren",
+  "Af_Intro": "Beschreibe, was der Flow tun soll. Die KI erzeugt daraus einen Flow, der vor dem Laden validiert wird.",
+  "Af_PromptPlaceholder": "z. B.: Öffne https://example.com, klicke auf den Login-Button, gib Benutzer und Passwort aus dem Payload ein und speichere die Seitenüberschrift in eine Datei.",
+  "Af_NeedPrompt": "Bitte zuerst eine Beschreibung eingeben.",
+  "Af_NotConfigured": "Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen einen API-Schlüssel hinterlegen (bzw. Ollama als Anbieter wählen).",
+  "Af_Generating": "Generiere mit {0}…",
+  "Af_Invalid": "Der erzeugte Flow ist ungültig:\n{0}",
+
+  "Ns_Title": "💡 Nächster Node (KI-Vorschlag)",
+  "Ns_Add": "Hinzufügen",
+  "Ns_Intro": "Vorschlag für den nächsten Node nach dem ausgewählten Node:",
+  "Ns_Type": "Typ:",
+  "Ns_LabelLabel": "Bezeichnung:",
+  "Ns_Config": "Konfiguration:",
+  "Ns_Reason": "Begründung:",
+  "Ns_NotConfigured": "Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen (Tab „KI“) einen API-Schlüssel hinterlegen oder Ollama als Anbieter wählen.",
+  "Ns_Asking": "Frage {0}…",
+  "Ns_NoSuggestion": "Kein Vorschlag erhalten."
 }

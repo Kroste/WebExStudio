@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Views;
@@ -32,12 +33,11 @@ public partial class NodeSuggestionDialog : Window
     {
         if (!_vm.AiOptions.IsConfigured)
         {
-            ShowError("Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen (Tab „KI“) "
-                + "einen API-Schlüssel hinterlegen oder Ollama als Anbieter wählen.");
+            ShowError(Loc.T("Ns_NotConfigured"));
             return;
         }
 
-        StatusText.Text = $"Frage {_vm.AiOptions.Provider}…";
+        StatusText.Text = string.Format(Loc.T("Ns_Asking"), _vm.AiOptions.Provider);
         NodeSuggestionResult result;
         try
         {
@@ -45,14 +45,14 @@ public partial class NodeSuggestionDialog : Window
         }
         catch (System.Exception ex)
         {
-            ShowError($"Unerwarteter Fehler: {ex.Message}");
+            ShowError(string.Format(Loc.T("Common_Unexpected"), ex.Message));
             return;
         }
 
         StatusText.Text = string.Empty;
         if (!result.Success || result.Suggestion is null)
         {
-            ShowError(result.Error ?? "Kein Vorschlag erhalten.");
+            ShowError(result.Error ?? Loc.T("Ns_NoSuggestion"));
             return;
         }
 
