@@ -7,19 +7,23 @@ namespace WebExStudio.Core.Tests;
 public class NodeCatalogTests
 {
     /// <summary>
-    /// Jeder sichtbare Built-in-Node muss in der englischen Übersetzung vollständig abgedeckt sein
+    /// Jeder sichtbare Built-in-Node muss in JEDER nicht-deutschen Sprache vollständig abgedeckt sein
     /// (Name, Beschreibung, Beispiel, alle Property-Labels, alle Ausgangs-Labels). Deutsch kommt aus
-    /// den Literalen (Fallback); fehlt ein englischer Schlüssel, würde stillschweigend Deutsch erscheinen.
+    /// den Literalen (Fallback); fehlt ein Schlüssel in z. B. en/fr/ru, würde dort stillschweigend
+    /// Deutsch erscheinen. Deutsch selbst hat absichtlich keine Node-Keys.
     /// </summary>
-    [Fact]
-    public void English_CoversAllVisibleBuiltins()
+    [Theory]
+    [InlineData("en")]
+    [InlineData("fr")]
+    [InlineData("ru")]
+    public void Translation_CoversAllVisibleBuiltins(string lang)
     {
         var loc = Loc.Instance;
         var missing = new List<string>();
 
         foreach (var def in NodeCatalog.All.Where(d => !d.Hidden && !d.Type.Contains('.')))
         {
-            void Need(string key) { if (!loc.Has("en", key)) missing.Add(key); }
+            void Need(string key) { if (!loc.Has(lang, key)) missing.Add(key); }
 
             Need($"Node_{def.Type}_Name");
             Need($"Node_{def.Type}_Desc");
@@ -30,9 +34,9 @@ public class NodeCatalogTests
 
         // Kategorien ebenfalls.
         foreach (var cat in NodeCatalog.Categories)
-            if (!loc.Has("en", $"Cat_{cat}")) missing.Add($"Cat_{cat}");
+            if (!loc.Has(lang, $"Cat_{cat}")) missing.Add($"Cat_{cat}");
 
-        Assert.True(missing.Count == 0, "Fehlende EN-Schlüssel: " + string.Join(", ", missing));
+        Assert.True(missing.Count == 0, $"Fehlende {lang}-Schlüssel: " + string.Join(", ", missing));
     }
 
     [Fact]

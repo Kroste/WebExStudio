@@ -476,7 +476,8 @@ is organized into **Browser**, **Network** and **AI**.
 
 ![Settings](docs/images/settings.png)
 
-**Language.** The interface is multilingual (German, English). The language is switched at
+**Language.** The interface is multilingual (German, English, Français, Русский; shown with the
+country flag and the language's own name). The language is switched at
 the top of the settings and applies **immediately** (without a restart) — including the node
 palette, properties panel, context menu, and the names/descriptions/examples of all nodes.
 The stored node `type` and the flow format are unchanged, so flows remain interchangeable

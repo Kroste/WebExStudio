@@ -43,9 +43,17 @@ public sealed class Loc : INotifyPropertyChanged
     public bool Has(string lang, string key) =>
         _langs.TryGetValue(lang, out var d) && d.ContainsKey(key);
 
+    /// <summary>Alle Schlüssel einer Sprache (für Vollständigkeits-Tests).</summary>
+    public IReadOnlyCollection<string> Keys(string lang) =>
+        _langs.TryGetValue(lang, out var d) ? d.Keys.ToList() : [];
+
     /// <summary>Eigenname einer Sprache (Eintrag <c>@name</c> im Wörterbuch), sonst der Code.</summary>
     public string NameOf(string lang) =>
         _langs.TryGetValue(lang, out var d) && d.TryGetValue("@name", out var n) ? n : lang;
+
+    /// <summary>Flaggen-Emoji einer Sprache (Eintrag <c>@flag</c> im Wörterbuch), sonst leer.</summary>
+    public string FlagOf(string lang) =>
+        _langs.TryGetValue(lang, out var d) && d.TryGetValue("@flag", out var f) ? f : string.Empty;
 
     /// <summary>Schaltet die Sprache um und frischt alle gebundenen Texte auf.</summary>
     public void SetLanguage(string lang)

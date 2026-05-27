@@ -56,9 +56,10 @@ public partial class SettingsWindow : Window
 
     // ── Sprache (Laufzeit-Umschaltung) ────────────────────────────────────────
 
-    private sealed record LangItem(string Code, string Name)
+    private sealed record LangItem(string Code, string Name, string Flag)
     {
-        public override string ToString() => Name; // ComboBox zeigt den Namen
+        // ComboBox zeigt Flagge + Eigenname der Sprache (z. B. „🇫🇷  Français").
+        public override string ToString() => string.IsNullOrEmpty(Flag) ? Name : $"{Flag}  {Name}";
     }
 
     private bool _languageReady;
@@ -66,7 +67,7 @@ public partial class SettingsWindow : Window
     private void BuildLanguageList()
     {
         var loc = WebExStudio.Core.Localization.Loc.Instance;
-        LanguageBox.ItemsSource = loc.Languages.Select(c => new LangItem(c, loc.NameOf(c))).ToList();
+        LanguageBox.ItemsSource = loc.Languages.Select(c => new LangItem(c, loc.NameOf(c), loc.FlagOf(c))).ToList();
         LanguageBox.SelectedItem = (LanguageBox.ItemsSource as IEnumerable<LangItem>)?
             .FirstOrDefault(i => i.Code == loc.Language);
         _languageReady = true; // erst danach reagiert OnLanguageChanged (nicht beim initialen Befüllen)
