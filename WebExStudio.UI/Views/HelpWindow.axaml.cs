@@ -22,24 +22,38 @@ public partial class HelpWindow : Window
         HelpContent.Content = MarkdownRenderer.Build(LoadReadme(), load);
     }
 
-    /// <summary>Liest die eingebettete README (Quelle der Hilfe → bleibt automatisch synchron).</summary>
+    /// <summary>
+    /// Liest die eingebettete README (Quelle der Hilfe → bleibt automatisch synchron). Wählt die
+    /// Sprachvariante passend zur UI-Sprache (z. B. <c>README.en.md</c>); fällt auf die deutsche
+    /// <c>README.md</c> zurück, wenn es keine Übersetzung gibt.
+    /// </summary>
     private static string LoadReadme()
     {
-        try
+        var asm = typeof(HelpWindow).Assembly;
+        var lang = Core.Localization.Loc.Instance.Language;
+
+        // Reihenfolge: sprachspezifisch (außer Deutsch = Basis) → deutsche Basis.
+        var candidates = new List<string>();
+        if (!string.Equals(lang, "de", System.StringComparison.OrdinalIgnoreCase))
+            candidates.Add($"WebExStudio.UI.README.{lang}.md");
+        candidates.Add("WebExStudio.UI.README.md");
+
+        foreach (var name in candidates)
         {
-            var asm = typeof(HelpWindow).Assembly;
-            using var stream = asm.GetManifestResourceStream("WebExStudio.UI.README.md");
-            if (stream is not null)
+            try
             {
+                using var stream = asm.GetManifestResourceStream(name);
+                if (stream is null) continue;
                 using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
             }
-            Log.Warn("Hilfe: eingebettete README nicht gefunden.");
+            catch (System.Exception ex)
+            {
+                Log.Warn("Hilfe: README '{0}' konnte nicht geladen werden: {1}", name, ex.Message);
+            }
         }
-        catch (System.Exception ex)
-        {
-            Log.Warn("Hilfe: README konnte nicht geladen werden: {0}", ex.Message);
-        }
+
+        Log.Warn("Hilfe: keine eingebettete README gefunden (Sprache {0}).", lang);
         return "# Hilfe\n\nDie eingebettete README konnte nicht geladen werden. "
              + "Die vollständige Dokumentation liegt als `README.md` im Projektverzeichnis.";
     }

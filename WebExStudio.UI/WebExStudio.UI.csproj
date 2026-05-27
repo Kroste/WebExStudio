@@ -29,8 +29,13 @@
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <!-- README wird eingebettet und im Hilfefenster gerendert → Hilfe = immer aktuelle README. -->
+    <!-- README wird eingebettet und im Hilfefenster gerendert → Hilfe = immer aktuelle README.
+         Sprachvarianten README.<code>.md (z. B. README.en.md) werden je nach UI-Sprache gewählt;
+         Fallback ist die deutsche README.md. -->
     <EmbeddedResource Include="..\README.md" Link="README.md" LogicalName="WebExStudio.UI.README.md" />
+    <!-- WithCulture=false: sonst deutet MSBuild das ".en." im Dateinamen als Kultur "en" und packt die
+         Datei in eine Satelliten-Assembly (en/…) statt ins Haupt-Assembly. -->
+    <EmbeddedResource Include="..\README.en.md" Link="README.en.md" LogicalName="WebExStudio.UI.README.en.md" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>
