@@ -226,5 +226,28 @@
   "VM_Error": "Fehler: {0}",
   "VM_Paused": "Pausiert — auf „Weiter“ warten…",
   "VM_Step": "Einzelschritt…",
-  "VM_Cancelling": "Wird abgebrochen…"
+  "VM_Cancelling": "Wird abgebrochen…",
+
+  "Chat_RoleNotice": "Hinweis",
+  "Chat_RoleUser": "Du",
+  "Chat_RoleAi": "KI",
+  "Chat_FlowDetected": "📥 Flow erkannt ({0} Nodes) — in Editor laden",
+  "Chat_FlowDetectedErr": "📥 Flow erkannt ({0} Nodes, {1} Fehler) — trotzdem laden",
+  "Chat_ExplainMsg": "Bitte erkläre den aktuellen Flow.",
+  "Chat_HintSaved": "Als KI-Hinweis gespeichert — in den Einstellungen (Tab „KI“) editierbar.",
+  "Chat_FlowLoaded": "Flow in den Editor geladen — bitte prüfen und speichern.",
+
+  "Mw_ExampleLoaded": "Beispiel aus der Hilfe geladen — bitte prüfen und speichern",
+  "Mw_ExampleFailed": "Beispiel konnte nicht geladen werden: {0}",
+  "Mw_SelectNodeFirst": "Bitte zuerst einen Node auswählen (Anker für den Vorschlag).",
+  "Mw_OpenTitle": "Flow-Datei öffnen",
+  "Mw_FlowJson": "Flow JSON",
+  "Mw_SaveTitle": "Flow speichern",
+  "Mw_UnlockTitle": "Tresor entsperren",
+  "Mw_UnlockPrompt": "Dieser Flow nutzt Anmeldedaten. Master-Passwort zum Entsperren des Tresors:",
+  "Mw_RunAbortedNoVault": "Lauf abgebrochen — Tresor nicht entsperrt.",
+  "Mw_VaultWrongPw": "Tresor: falsches Master-Passwort.",
+  "Mw_ConvertTitle": "Alten Flow-Projektordner wählen (Python)",
+  "Mw_Converted": "Konvertiert: {0} Tabs, {1} Nodes — bitte prüfen und speichern",
+  "Mw_ConvertFailed": "Konvertierung fehlgeschlagen: {0}"
 }

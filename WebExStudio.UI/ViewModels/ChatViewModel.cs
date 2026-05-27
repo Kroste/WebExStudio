@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using NLog;
 using ReactiveUI;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Logging;
 using WebExStudio.Core.Serialization;
 
@@ -54,9 +55,7 @@ public sealed class ChatViewModel : ViewModelBase
 
         if (!_main.AiOptions.IsConfigured)
         {
-            Messages.Add(ChatTurnViewModel.Notice(
-                "Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen (Tab „KI“) einen "
-                + "API-Schlüssel hinterlegen oder Ollama als Anbieter wählen."));
+            Messages.Add(ChatTurnViewModel.Notice(Loc.T("Ns_NotConfigured")));
             return;
         }
 
@@ -81,18 +80,16 @@ public sealed class ChatViewModel : ViewModelBase
         var doc = _main.FlowEditor.Document;
         if (doc is null)
         {
-            Messages.Add(ChatTurnViewModel.Notice("Kein Flow geöffnet."));
+            Messages.Add(ChatTurnViewModel.Notice(Loc.T("VM_NoFlow")));
             return;
         }
         if (!_main.AiOptions.IsConfigured)
         {
-            Messages.Add(ChatTurnViewModel.Notice(
-                "Keine KI-Anbindung konfiguriert. Bitte in den Einstellungen (Tab „KI“) einen "
-                + "API-Schlüssel hinterlegen oder Ollama als Anbieter wählen."));
+            Messages.Add(ChatTurnViewModel.Notice(Loc.T("Ns_NotConfigured")));
             return;
         }
 
-        Messages.Add(new ChatTurnViewModel(ChatRole.User, "Bitte erkläre den aktuellen Flow."));
+        Messages.Add(new ChatTurnViewModel(ChatRole.User, Loc.T("Chat_ExplainMsg")));
         Log.Info("KI-Chat: Flow erklären angefordert ({0} Nodes)", doc.Nodes.Count);
         // Dem Modell den vollständigen Flow mitgeben (nicht sichtbar im Chat).
         var json = FlowSerializer2.Serialize(doc);
@@ -170,8 +167,7 @@ public sealed class ChatViewModel : ViewModelBase
         AppSettings.SaveAi(ai);
         _main.NotifyAiSettingsChanged();
         Log.Info("KI-Hinweis gemerkt: {0}", MaskSecrets(hint));
-        Messages.Add(ChatTurnViewModel.Notice(
-            "Als KI-Hinweis gespeichert — in den Einstellungen (Tab „KI“) editierbar."));
+        Messages.Add(ChatTurnViewModel.Notice(Loc.T("Chat_HintSaved")));
     }
 
     private static string ShortenForHint(string text)
@@ -189,6 +185,6 @@ public sealed class ChatViewModel : ViewModelBase
         Log.Info("Flow aus KI-Chat in Editor geladen ({0} Nodes)", turn.Flow.Nodes.Count);
         _main.FlowEditor.LoadDocument(turn.Flow);
         _main.FlowEditor.MarkDirty();
-        Messages.Add(ChatTurnViewModel.Notice("Flow in den Editor geladen — bitte prüfen und speichern."));
+        Messages.Add(ChatTurnViewModel.Notice(Loc.T("Chat_FlowLoaded")));
     }
 }

@@ -2,6 +2,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using ReactiveUI;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.UI.ViewModels;
@@ -30,7 +31,7 @@ public sealed class ChatTurnViewModel : ViewModelBase
         new(ChatRole.Assistant, text, notice: true);
 
     public bool IsUser => Role == ChatRole.User;
-    public string RoleLabel => _notice ? "Hinweis" : IsUser ? "Du" : "KI";
+    public string RoleLabel => Loc.T(_notice ? "Chat_RoleNotice" : IsUser ? "Chat_RoleUser" : "Chat_RoleAi");
     public HorizontalAlignment Align => IsUser ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 
     public IBrush Bubble => new SolidColorBrush(Color.Parse(
@@ -73,7 +74,7 @@ public sealed class ChatTurnViewModel : ViewModelBase
         Flow = doc;
         HasFlow = true;
         FlowNote = result.Validation!.IsValid
-            ? $"📥 Flow erkannt ({doc.Nodes.Count} Nodes) — in Editor laden"
-            : $"📥 Flow erkannt ({doc.Nodes.Count} Nodes, {result.Validation.Errors.Count()} Fehler) — trotzdem laden";
+            ? string.Format(Loc.T("Chat_FlowDetected"), doc.Nodes.Count)
+            : string.Format(Loc.T("Chat_FlowDetectedErr"), doc.Nodes.Count, result.Validation.Errors.Count());
     }
 }

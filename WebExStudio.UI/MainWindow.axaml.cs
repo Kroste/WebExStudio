@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Serialization;
 using WebExStudio.UI.ViewModels;
 using WebExStudio.UI.Views;
@@ -56,11 +57,11 @@ public partial class MainWindow : Window
             var doc = FlowSerializer2.Deserialize(json);
             Vm.FlowEditor.LoadDocument(doc);
             Vm.FlowEditor.MarkDirty();
-            Vm.StatusText = "Beispiel aus der Hilfe geladen — bitte prüfen und speichern";
+            Vm.StatusText = Loc.T("Mw_ExampleLoaded");
         }
         catch (System.Exception ex)
         {
-            Vm.StatusText = $"Beispiel konnte nicht geladen werden: {ex.Message}";
+            Vm.StatusText = string.Format(Loc.T("Mw_ExampleFailed"), ex.Message);
         }
     }
 
@@ -97,7 +98,7 @@ public partial class MainWindow : Window
         if (!Vm.SuggestionsEnabled) return;
         if (Vm.FlowEditor.SelectedNode is not { } anchor)
         {
-            Vm.StatusText = "Bitte zuerst einen Node auswählen (Anker für den Vorschlag).";
+            Vm.StatusText = Loc.T("Mw_SelectNodeFirst");
             return;
         }
         await new NodeSuggestionDialog(Vm, anchor).ShowDialog(this);
@@ -132,9 +133,9 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Flow-Datei öffnen",
+            Title = Loc.T("Mw_OpenTitle"),
             AllowMultiple = false,
-            FileTypeFilter = [new FilePickerFileType("Flow JSON") { Patterns = ["*.json"] }],
+            FileTypeFilter = [new FilePickerFileType(Loc.T("Mw_FlowJson")) { Patterns = ["*.json"] }],
         });
         if (files.Count > 0)
             await Vm.OpenFlowAsync(files[0].Path.LocalPath);
@@ -149,9 +150,9 @@ public partial class MainWindow : Window
         }
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Flow speichern",
+            Title = Loc.T("Mw_SaveTitle"),
             DefaultExtension = "json",
-            FileTypeChoices = [new FilePickerFileType("Flow JSON") { Patterns = ["*.json"] }],
+            FileTypeChoices = [new FilePickerFileType(Loc.T("Mw_FlowJson")) { Patterns = ["*.json"] }],
         });
         if (file is not null)
             await Vm.SaveFlowAsync(file.Path.LocalPath);
@@ -189,12 +190,11 @@ public partial class MainWindow : Window
         if (!Vm.CanRun) return;
         if (Vm.CurrentFlowUsesSecrets() && !Vm.Vault.IsUnlocked)
         {
-            var dlg = new PasswordDialog("Tresor entsperren",
-                "Dieser Flow nutzt Anmeldedaten. Master-Passwort zum Entsperren des Tresors:");
+            var dlg = new PasswordDialog(Loc.T("Mw_UnlockTitle"), Loc.T("Mw_UnlockPrompt"));
             await dlg.ShowDialog(this);
-            if (!dlg.Confirmed) { Vm.StatusText = "Lauf abgebrochen — Tresor nicht entsperrt."; return; }
+            if (!dlg.Confirmed) { Vm.StatusText = Loc.T("Mw_RunAbortedNoVault"); return; }
             try { Vm.Vault.Unlock(dlg.Password); }
-            catch { Vm.StatusText = "Tresor: falsches Master-Passwort."; return; }
+            catch { Vm.StatusText = Loc.T("Mw_VaultWrongPw"); return; }
         }
         Vm.StartRun();
     }
@@ -288,7 +288,7 @@ public partial class MainWindow : Window
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Alten Flow-Projektordner wählen (Python)",
+            Title = Loc.T("Mw_ConvertTitle"),
             AllowMultiple = false,
         });
         if (folders.Count == 0) return;
@@ -299,11 +299,11 @@ public partial class MainWindow : Window
             var doc = await Task.Run(() => LegacyImporter.Convert(dir));
             Vm.FlowEditor.LoadDocument(doc);
             Vm.FlowEditor.MarkDirty();
-            Vm.StatusText = $"Konvertiert: {doc.Tabs.Count} Tabs, {doc.Nodes.Count} Nodes — bitte prüfen und speichern";
+            Vm.StatusText = string.Format(Loc.T("Mw_Converted"), doc.Tabs.Count, doc.Nodes.Count);
         }
         catch (System.Exception ex)
         {
-            Vm.StatusText = $"Konvertierung fehlgeschlagen: {ex.Message}";
+            Vm.StatusText = string.Format(Loc.T("Mw_ConvertFailed"), ex.Message);
         }
     }
 

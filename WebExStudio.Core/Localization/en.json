@@ -226,5 +226,28 @@
   "VM_Error": "Error: {0}",
   "VM_Paused": "Paused — waiting for “Resume”…",
   "VM_Step": "Single step…",
-  "VM_Cancelling": "Aborting…"
+  "VM_Cancelling": "Aborting…",
+
+  "Chat_RoleNotice": "Note",
+  "Chat_RoleUser": "You",
+  "Chat_RoleAi": "AI",
+  "Chat_FlowDetected": "📥 Flow detected ({0} nodes) — load into editor",
+  "Chat_FlowDetectedErr": "📥 Flow detected ({0} nodes, {1} error(s)) — load anyway",
+  "Chat_ExplainMsg": "Please explain the current flow.",
+  "Chat_HintSaved": "Saved as AI hint — editable in the settings (“AI” tab).",
+  "Chat_FlowLoaded": "Flow loaded into the editor — please review and save.",
+
+  "Mw_ExampleLoaded": "Example loaded from help — please review and save",
+  "Mw_ExampleFailed": "Could not load example: {0}",
+  "Mw_SelectNodeFirst": "Please select a node first (anchor for the suggestion).",
+  "Mw_OpenTitle": "Open flow file",
+  "Mw_FlowJson": "Flow JSON",
+  "Mw_SaveTitle": "Save flow",
+  "Mw_UnlockTitle": "Unlock vault",
+  "Mw_UnlockPrompt": "This flow uses credentials. Master password to unlock the vault:",
+  "Mw_RunAbortedNoVault": "Run aborted — vault not unlocked.",
+  "Mw_VaultWrongPw": "Vault: wrong master password.",
+  "Mw_ConvertTitle": "Choose old flow project folder (Python)",
+  "Mw_Converted": "Converted: {0} tabs, {1} nodes — please review and save",
+  "Mw_ConvertFailed": "Conversion failed: {0}"
 }
