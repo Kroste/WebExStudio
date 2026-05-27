@@ -112,5 +112,42 @@
   "Pw_EmptyError": "Please enter a password.",
   "Pw_MismatchError": "The passwords do not match.",
   "Pw_DefaultTitle": "Password",
-  "Pw_DefaultPrompt": "Enter password:"
+  "Pw_DefaultPrompt": "Enter password:",
+
+  "Common_Close": "Close",
+
+  "Vault_Title": "🔐  Credential vault",
+  "Vault_NewNamePlaceholder": "Name (e.g. F95)",
+  "Vault_AddTip": "Add entry",
+  "Vault_DeleteTip": "Delete entry",
+  "Vault_NoEntry": "No entry selected",
+  "Vault_EntryTitle": "Entry: {0}",
+  "Vault_FieldUser": "User  ·  {secret[name].user}",
+  "Vault_FieldPassword": "Password  ·  {secret[name].password}",
+  "Vault_FieldApi": "API key  ·  {secret[name].api}",
+  "Vault_SaveEntry": "💾 Save entry",
+  "Vault_ChangePassword": "🔑 Change master password",
+  "Vault_Lock": "🔒 Lock",
+  "Vault_HintUnlock": "Enter the master password to unlock this flow's vault.",
+  "Vault_HintCreate": "No vault in this flow yet — set a master password to create one.",
+  "Vault_Unlock": "Unlock",
+  "Vault_Create": "Create",
+  "Vault_WrongPassword": "Wrong master password.",
+  "Vault_EmptyPassword": "Please enter a master password.",
+  "Vault_EnterName": "Please enter a name.",
+  "Vault_Added": "Entry “{0}” created.",
+  "Vault_Deleted": "Entry “{0}” deleted.",
+  "Vault_NoEntrySelected": "No entry selected.",
+  "Vault_Saved": "“{0}” saved.",
+  "Vault_ChangeTitle": "Change master password",
+  "Vault_ChangePrompt": "New master password:",
+  "Vault_PasswordChanged": "Master password changed.",
+
+  "Sub_NameLabel": "Name (unique, e.g. configuration.general.datetime.daylightSavings)",
+  "Sub_LabelLabel": "Label (display name)",
+
+  "Search_Title": "🔎  Find node / jump",
+  "Search_Placeholder": "Type a name or type…  (Enter = jump, Esc = close)",
+
+  "Help_Title": "❓  Help / Quick guide"
 }

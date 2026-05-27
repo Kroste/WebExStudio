@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.SubnodeDialog"
-        Title="Subnode"
+        Title="WebExStudio"
         Width="440" Height="210"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -21,20 +22,20 @@
       <Border DockPanel.Dock="Bottom" Background="#16162A"
               BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,8">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-          <Button Content="Abbrechen" Click="OnCancel" Padding="14,6"/>
-          <Button Content="OK" Click="OnOk" Padding="14,6"
+          <Button Content="{l:Tr Common_Cancel}" Click="OnCancel" Padding="14,6"/>
+          <Button Content="{l:Tr Common_Ok}" Click="OnOk" Padding="14,6"
                   Background="#1B5E20" Foreground="White"/>
         </StackPanel>
       </Border>
 
       <StackPanel Margin="20" Spacing="12">
         <StackPanel Spacing="4">
-          <TextBlock Text="Name (eindeutig, z.B. configuration.general.datetime.daylightSavings)"
+          <TextBlock Text="{l:Tr Sub_NameLabel}"
                      FontSize="12" Foreground="#B0BEC5"/>
           <TextBox x:Name="NameBox"/>
         </StackPanel>
         <StackPanel Spacing="4">
-          <TextBlock Text="Label (Anzeigename)" FontSize="12" Foreground="#B0BEC5"/>
+          <TextBlock Text="{l:Tr Sub_LabelLabel}" FontSize="12" Foreground="#B0BEC5"/>
           <TextBox x:Name="LabelBox"/>
         </StackPanel>
       </StackPanel>

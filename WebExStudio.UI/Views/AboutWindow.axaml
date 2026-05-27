@@ -48,7 +48,7 @@
               HorizontalAlignment="Center" ColumnSpacing="16" RowSpacing="6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr About_Organisation}"
                      FontSize="12" Foreground="#607D8B" />
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="Landeshauptstadt Potsdam"
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="github.com/kroste"
                      FontSize="12" Foreground="#B0BEC5" />
           <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Tr About_Department}"
                      FontSize="12" Foreground="#607D8B" />

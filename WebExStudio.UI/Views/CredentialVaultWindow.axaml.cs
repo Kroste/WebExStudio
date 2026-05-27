@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using WebExStudio.Core.Credentials;
+using WebExStudio.Core.Localization;
 
 namespace WebExStudio.UI.Views;
 
@@ -24,10 +25,8 @@ public partial class CredentialVaultWindow : Window
             ShowManage();
         else
         {
-            UnlockHint.Text = _vault.HasData
-                ? "Master-Passwort eingeben, um den Tresor dieses Flows zu entsperren."
-                : "Noch kein Tresor in diesem Flow — Master-Passwort festlegen, um einen anzulegen.";
-            UnlockButton.Content = _vault.HasData ? "Entsperren" : "Anlegen";
+            UnlockHint.Text = _vault.HasData ? Loc.T("Vault_HintUnlock") : Loc.T("Vault_HintCreate");
+            UnlockButton.Content = _vault.HasData ? Loc.T("Vault_Unlock") : Loc.T("Vault_Create");
             Opened += (_, _) => UnlockPwBox.Focus();
         }
     }
@@ -41,7 +40,7 @@ public partial class CredentialVaultWindow : Window
     private void OnUnlock(object? sender, RoutedEventArgs e)
     {
         var pw = UnlockPwBox.Text ?? string.Empty;
-        if (pw.Length == 0) { ShowUnlockError("Bitte ein Master-Passwort eingeben."); return; }
+        if (pw.Length == 0) { ShowUnlockError(Loc.T("Vault_EmptyPassword")); return; }
         try
         {
             _vault.Unlock(pw); // ohne Daten startet der Tresor leer; persistiert wird erst beim Anlegen eines Eintrags
@@ -49,7 +48,7 @@ public partial class CredentialVaultWindow : Window
         }
         catch
         {
-            ShowUnlockError("Falsches Master-Passwort.");
+            ShowUnlockError(Loc.T("Vault_WrongPassword"));
         }
     }
 
@@ -86,11 +85,11 @@ public partial class CredentialVaultWindow : Window
     {
         if (name is null)
         {
-            EntryTitle.Text = "Kein Eintrag gewählt";
+            EntryTitle.Text = Loc.T("Vault_NoEntry");
             UserBox.Text = PassBox.Text = ApiBox.Text = string.Empty;
             return;
         }
-        EntryTitle.Text = $"Eintrag: {name}";
+        EntryTitle.Text = string.Format(Loc.T("Vault_EntryTitle"), name);
         var entry = _vault.Entry(name);
         UserBox.Text = entry?.GetValueOrDefault("user") ?? string.Empty;
         PassBox.Text = entry?.GetValueOrDefault("password") ?? string.Empty;
@@ -100,13 +99,13 @@ public partial class CredentialVaultWindow : Window
     private async void OnAddEntry(object? sender, RoutedEventArgs e)
     {
         var name = (NewNameBox.Text ?? string.Empty).Trim();
-        if (name.Length == 0) { ManageStatus.Text = "Bitte einen Namen eingeben."; return; }
+        if (name.Length == 0) { ManageStatus.Text = Loc.T("Vault_EnterName"); return; }
         if (_vault.Entry(name) is null) _vault.SetEntry(name, new Dictionary<string, string>());
         _vault.Save();
         await PersistAsync();
         NewNameBox.Text = string.Empty;
         RefreshNames(name);
-        ManageStatus.Text = $"Eintrag „{name}“ angelegt.";
+        ManageStatus.Text = string.Format(Loc.T("Vault_Added"), name);
     }
 
     private async void OnDeleteEntry(object? sender, RoutedEventArgs e)
@@ -116,12 +115,12 @@ public partial class CredentialVaultWindow : Window
         _vault.Save();
         await PersistAsync();
         RefreshNames(null);
-        ManageStatus.Text = $"Eintrag „{name}“ gelöscht.";
+        ManageStatus.Text = string.Format(Loc.T("Vault_Deleted"), name);
     }
 
     private async void OnSaveEntry(object? sender, RoutedEventArgs e)
     {
-        if (NamesList.SelectedItem is not string name) { ManageStatus.Text = "Kein Eintrag gewählt."; return; }
+        if (NamesList.SelectedItem is not string name) { ManageStatus.Text = Loc.T("Vault_NoEntrySelected"); return; }
         // Bestehende Felder beibehalten (z. B. eigene), die Standardfelder aktualisieren.
         var fields = new Dictionary<string, string>(_vault.Entry(name) ?? new Dictionary<string, string>());
         SetOrRemove(fields, "user", UserBox.Text);
@@ -130,7 +129,7 @@ public partial class CredentialVaultWindow : Window
         _vault.SetEntry(name, fields);
         _vault.Save();
         await PersistAsync();
-        ManageStatus.Text = $"„{name}“ gespeichert.";
+        ManageStatus.Text = string.Format(Loc.T("Vault_Saved"), name);
     }
 
     private static void SetOrRemove(Dictionary<string, string> d, string key, string? value)
@@ -141,12 +140,12 @@ public partial class CredentialVaultWindow : Window
 
     private async void OnChangePassword(object? sender, RoutedEventArgs e)
     {
-        var dlg = new PasswordDialog("Master-Passwort ändern", "Neues Master-Passwort:", confirm: true);
+        var dlg = new PasswordDialog(Loc.T("Vault_ChangeTitle"), Loc.T("Vault_ChangePrompt"), confirm: true);
         await dlg.ShowDialog(this);
         if (!dlg.Confirmed) return;
         _vault.ChangePassword(dlg.Password);
         await PersistAsync();
-        ManageStatus.Text = "Master-Passwort geändert.";
+        ManageStatus.Text = Loc.T("Vault_PasswordChanged");
     }
 
     private void OnLock(object? sender, RoutedEventArgs e)

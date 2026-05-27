@@ -112,5 +112,42 @@
   "Pw_EmptyError": "Bitte ein Passwort eingeben.",
   "Pw_MismatchError": "Die Passwörter stimmen nicht überein.",
   "Pw_DefaultTitle": "Passwort",
-  "Pw_DefaultPrompt": "Passwort eingeben:"
+  "Pw_DefaultPrompt": "Passwort eingeben:",
+
+  "Common_Close": "Schließen",
+
+  "Vault_Title": "🔐  Anmeldedaten-Tresor",
+  "Vault_NewNamePlaceholder": "Name (z. B. F95)",
+  "Vault_AddTip": "Eintrag anlegen",
+  "Vault_DeleteTip": "Eintrag löschen",
+  "Vault_NoEntry": "Kein Eintrag gewählt",
+  "Vault_EntryTitle": "Eintrag: {0}",
+  "Vault_FieldUser": "Benutzer  ·  {secret[name].user}",
+  "Vault_FieldPassword": "Passwort  ·  {secret[name].password}",
+  "Vault_FieldApi": "API-Key  ·  {secret[name].api}",
+  "Vault_SaveEntry": "💾 Eintrag speichern",
+  "Vault_ChangePassword": "🔑 Master-Passwort ändern",
+  "Vault_Lock": "🔒 Sperren",
+  "Vault_HintUnlock": "Master-Passwort eingeben, um den Tresor dieses Flows zu entsperren.",
+  "Vault_HintCreate": "Noch kein Tresor in diesem Flow — Master-Passwort festlegen, um einen anzulegen.",
+  "Vault_Unlock": "Entsperren",
+  "Vault_Create": "Anlegen",
+  "Vault_WrongPassword": "Falsches Master-Passwort.",
+  "Vault_EmptyPassword": "Bitte ein Master-Passwort eingeben.",
+  "Vault_EnterName": "Bitte einen Namen eingeben.",
+  "Vault_Added": "Eintrag „{0}“ angelegt.",
+  "Vault_Deleted": "Eintrag „{0}“ gelöscht.",
+  "Vault_NoEntrySelected": "Kein Eintrag gewählt.",
+  "Vault_Saved": "„{0}“ gespeichert.",
+  "Vault_ChangeTitle": "Master-Passwort ändern",
+  "Vault_ChangePrompt": "Neues Master-Passwort:",
+  "Vault_PasswordChanged": "Master-Passwort geändert.",
+
+  "Sub_NameLabel": "Name (eindeutig, z.B. configuration.general.datetime.daylightSavings)",
+  "Sub_LabelLabel": "Label (Anzeigename)",
+
+  "Search_Title": "🔎  Node suchen / springen",
+  "Search_Placeholder": "Name oder Typ tippen…  (Enter = springen, Esc = schließen)",
+
+  "Help_Title": "❓  Hilfe / Kurzanleitung"
 }
