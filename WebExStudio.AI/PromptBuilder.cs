@@ -1,10 +1,23 @@
 using WebExStudio.Core.Ai;
+using WebExStudio.Core.Localization;
 
 namespace WebExStudio.AI;
 
 /// <summary>Baut System- und Benutzer-Prompt für die KI-Funktionen.</summary>
 public static class PromptBuilder
 {
+    /// <summary>
+    /// Weist die KI an, in der aktuell eingestellten UI-Sprache zu antworten (Erklärungen/Chat/Begründungen).
+    /// Ohne diese Regel antwortet das Modell oft in der Prompt-Sprache (Deutsch). Node-`type`/config bleiben
+    /// davon unberührt — die sind ohnehin sprachunabhängige Bezeichner.
+    /// </summary>
+    private static string AnswerLanguageRule()
+    {
+        var loc = Loc.Instance;
+        return $"WICHTIG: Antworte ausschließlich in dieser Sprache: {loc.NameOf(loc.Language)} ({loc.Language}). "
+             + "Das gilt für allen Erklär-/Fließtext (Node-Typen und config-Schlüssel bleiben unverändert).";
+    }
+
     /// <summary>Hängt — falls vorhanden — die vom Nutzer gepflegten Hinweise/Problemlösungen an.</summary>
     private static string WithHints(string prompt, string? hints) =>
         string.IsNullOrWhiteSpace(hints)
@@ -81,8 +94,9 @@ public static class PromptBuilder
         var prompt =
             $$"""
             Du bist der KI-Assistent der Anwendung „WebExStudio“ (visuelle Web-Automatisierungs-Flows,
-            Ausführung über Playwright). Hilf dem Nutzer auf Deutsch: erkläre Konzepte, schlage Nodes
+            Ausführung über Playwright). Hilf dem Nutzer: erkläre Konzepte, schlage Nodes
             und Verbindungen vor und beantworte Fragen knapp und konkret.
+            {{AnswerLanguageRule()}}
 
             Wenn der Nutzer darum bittet, einen Flow zu erstellen oder zu ändern, gib einen VOLLSTÄNDIGEN
             Flow als JSON in einem ```json-Codeblock aus (Format unten) — bei Änderungen den GESAMTEN
@@ -119,7 +133,8 @@ public static class PromptBuilder
     public static string BuildExplainSystemPrompt(string? hints = null) =>
         WithHints(
             $$"""
-            Du erklärst Web-Automatisierungs-Flows der Anwendung „WebExStudio“ verständlich auf Deutsch.
+            Du erklärst Web-Automatisierungs-Flows der Anwendung „WebExStudio“ verständlich.
+            {{AnswerLanguageRule()}}
             Der Nutzer schickt dir einen Flow als JSON. Erkläre:
             1. was der Flow insgesamt tut (1–2 Sätze Überblick),
             2. den Ablauf Schritt für Schritt entlang der Verbindungen (wires), inkl. Verzweigungen
@@ -137,9 +152,10 @@ public static class PromptBuilder
         WithHints(
             $$"""
             Du schlägst den NÄCHSTEN sinnvollen Node für einen WebExStudio-Flow vor.
+            {{AnswerLanguageRule()}}
             Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt in genau dieser Form:
             { "type": "<node-typ aus dem Katalog>", "label": "<kurze Bezeichnung>",
-              "config": { "<schlüssel>": "<wert>" }, "reason": "<kurze Begründung auf Deutsch>" }
+              "config": { "<schlüssel>": "<wert>" }, "reason": "<kurze Begründung>" }
 
             Regeln: nur Typen aus dem Katalog; setze sinnvolle Pflicht-config-Werte (alle als String);
             genau EIN Node; keine Erklärung außerhalb des JSON.

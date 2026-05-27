@@ -151,6 +151,7 @@
   "Search_Placeholder": "Saisissez un nom ou un type…  (Entrée = aller à, Échap = fermer)",
 
   "Help_Title": "❓  Aide / Guide rapide",
+  "Help_LoadIntoFlow": "📥 Charger dans le flux",
 
   "Common_Unexpected": "Erreur inattendue : {0}",
 

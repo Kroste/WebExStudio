@@ -211,7 +211,7 @@ public static class MarkdownRenderer
     {
         var btn = new Button
         {
-            Content = "📥 In den Flow laden",
+            Content = WebExStudio.Core.Localization.Loc.T("Help_LoadIntoFlow"),
             Background = new SolidColorBrush(Color.Parse("#2979FF")),
             Foreground = Brushes.White,
             BorderBrush = new SolidColorBrush(Color.Parse("#82B1FF")),

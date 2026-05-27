@@ -151,6 +151,7 @@
   "Search_Placeholder": "Введите имя или тип…  (Enter = перейти, Esc = закрыть)",
 
   "Help_Title": "❓  Справка / Краткое руководство",
+  "Help_LoadIntoFlow": "📥 Загрузить в поток",
 
   "Common_Unexpected": "Непредвиденная ошибка: {0}",
 

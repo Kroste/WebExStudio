@@ -56,10 +56,9 @@ public partial class SettingsWindow : Window
 
     // ── Sprache (Laufzeit-Umschaltung) ────────────────────────────────────────
 
-    private sealed record LangItem(string Code, string Name, string Flag)
+    private sealed record LangItem(string Code, string Name)
     {
-        // ComboBox zeigt Flagge + Eigenname der Sprache (z. B. „🇫🇷  Français").
-        public override string ToString() => string.IsNullOrEmpty(Flag) ? Name : $"{Flag}  {Name}";
+        public override string ToString() => Name; // Fallback, falls kein Template greift
     }
 
     private bool _languageReady;
@@ -67,10 +66,103 @@ public partial class SettingsWindow : Window
     private void BuildLanguageList()
     {
         var loc = WebExStudio.Core.Localization.Loc.Instance;
-        LanguageBox.ItemsSource = loc.Languages.Select(c => new LangItem(c, loc.NameOf(c), loc.FlagOf(c))).ToList();
+        // Eigene Zeile: gezeichnete Landesflagge + Eigenname. Echte Flaggen-Emoji (🇩🇪 …) rendern auf
+        // vielen Linux-Systemen nicht (Schrift ohne Regional-Indicator-Glyphen → leere Kästchen), darum
+        // zeichnen wir die Flaggen als Vektor — überall identisch, ohne Schrift-/Bildabhängigkeit.
+        LanguageBox.ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<LangItem>(
+            (item, _) =>
+            {
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+                if (item is not null)
+                {
+                    row.Children.Add(BuildFlag(item.Code));
+                    row.Children.Add(new TextBlock { Text = item.Name, VerticalAlignment = VerticalAlignment.Center });
+                }
+                return row;
+            });
+
+        LanguageBox.ItemsSource = loc.Languages.Select(c => new LangItem(c, loc.NameOf(c))).ToList();
         LanguageBox.SelectedItem = (LanguageBox.ItemsSource as IEnumerable<LangItem>)?
             .FirstOrDefault(i => i.Code == loc.Language);
         _languageReady = true; // erst danach reagiert OnLanguageChanged (nicht beim initialen Befüllen)
+    }
+
+    // ── Gezeichnete Landesflaggen (klein, ~22×15) ─────────────────────────────
+    private const double FlagW = 22, FlagH = 15;
+
+    private static Control BuildFlag(string code)
+    {
+        var canvas = new Canvas { Width = FlagW, Height = FlagH };
+        switch (code)
+        {
+            case "de": StripesH(canvas, "#000000", "#DD0000", "#FFCE00"); break;
+            case "ru": StripesH(canvas, "#FFFFFF", "#0039A6", "#D52B1E"); break;
+            case "fr": StripesV(canvas, "#0055A4", "#FFFFFF", "#EF4135"); break;
+            case "en": UnionJack(canvas); break;
+            default:
+                canvas.Children.Add(new Avalonia.Controls.Shapes.Rectangle
+                { Width = FlagW, Height = FlagH, Fill = new SolidColorBrush(Color.Parse("#90A4AE")) });
+                break;
+        }
+        return new Border
+        {
+            Width = FlagW, Height = FlagH,
+            CornerRadius = new Avalonia.CornerRadius(2),
+            ClipToBounds = true,
+            BorderBrush = new SolidColorBrush(Color.Parse("#4A4A5A")),
+            BorderThickness = new Avalonia.Thickness(1),
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = canvas,
+        };
+    }
+
+    private static void StripesH(Canvas c, string a, string b, string d)
+    {
+        double h = FlagH / 3.0;
+        AddRect(c, 0, 0, FlagW, h + 1, a);
+        AddRect(c, 0, h, FlagW, h + 1, b);
+        AddRect(c, 0, 2 * h, FlagW, h, d);
+    }
+
+    private static void StripesV(Canvas c, string a, string b, string d)
+    {
+        double w = FlagW / 3.0;
+        AddRect(c, 0, 0, w + 1, FlagH, a);
+        AddRect(c, w, 0, w + 1, FlagH, b);
+        AddRect(c, 2 * w, 0, w, FlagH, d);
+    }
+
+    private static void UnionJack(Canvas c)
+    {
+        AddRect(c, 0, 0, FlagW, FlagH, "#012169");          // blaues Feld
+        AddLine(c, 0, 0, FlagW, FlagH, "#FFFFFF", 4);       // weißes Andreaskreuz
+        AddLine(c, FlagW, 0, 0, FlagH, "#FFFFFF", 4);
+        AddLine(c, 0, 0, FlagW, FlagH, "#C8102E", 2);       // rotes Andreaskreuz
+        AddLine(c, FlagW, 0, 0, FlagH, "#C8102E", 2);
+        AddLine(c, FlagW / 2, 0, FlagW / 2, FlagH, "#FFFFFF", 5); // weißes Georgskreuz
+        AddLine(c, 0, FlagH / 2, FlagW, FlagH / 2, "#FFFFFF", 5);
+        AddLine(c, FlagW / 2, 0, FlagW / 2, FlagH, "#C8102E", 3); // rotes Georgskreuz
+        AddLine(c, 0, FlagH / 2, FlagW, FlagH / 2, "#C8102E", 3);
+    }
+
+    private static void AddRect(Canvas c, double x, double y, double w, double h, string color)
+    {
+        var r = new Avalonia.Controls.Shapes.Rectangle
+        { Width = w, Height = h, Fill = new SolidColorBrush(Color.Parse(color)) };
+        Canvas.SetLeft(r, x);
+        Canvas.SetTop(r, y);
+        c.Children.Add(r);
+    }
+
+    private static void AddLine(Canvas c, double x1, double y1, double x2, double y2, string color, double thick)
+    {
+        c.Children.Add(new Avalonia.Controls.Shapes.Line
+        {
+            StartPoint = new Avalonia.Point(x1, y1),
+            EndPoint = new Avalonia.Point(x2, y2),
+            Stroke = new SolidColorBrush(Color.Parse(color)),
+            StrokeThickness = thick,
+        });
     }
 
     private void OnLanguageChanged(object? sender, SelectionChangedEventArgs e)

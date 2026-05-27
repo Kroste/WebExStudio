@@ -151,6 +151,7 @@
   "Search_Placeholder": "Type a name or type…  (Enter = jump, Esc = close)",
 
   "Help_Title": "❓  Help / Quick guide",
+  "Help_LoadIntoFlow": "📥 Load into flow",
 
   "Common_Unexpected": "Unexpected error: {0}",
 
