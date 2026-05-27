@@ -476,6 +476,13 @@ ist thematisch in **Browser**, **Netzwerk** und **KI** unterteilt.
 
 ![Einstellungen](docs/images/settings.png)
 
+**Sprache / Language.** Die Oberfläche ist mehrsprachig (Deutsch, Englisch). Die Sprache wird
+oben in den Einstellungen umgeschaltet und greift **sofort** (ohne Neustart) — inklusive
+Node-Palette, Eigenschaften-Panel, Kontextmenü und den Namen/Beschreibungen/Beispielen aller
+Nodes. Der gespeicherte Node-`type` und das Flow-Format bleiben dabei unverändert, sodass Flows
+sprachunabhängig austauschbar sind. Weitere Sprachen lassen sich durch eine zusätzliche
+`Localization/<code>.json` im Projekt `WebExStudio.Core` ergänzen.
+
 **Tab „Browser"**
 
 | Einstellung | Bedeutung |

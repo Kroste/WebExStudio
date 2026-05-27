@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.UI.ViewModels;
 
@@ -26,6 +27,11 @@ public partial class NodePaletteView : UserControl
     {
         InitializeComponent();
         Loaded += (_, _) => Refresh();
+        // Palette bei Sprachwechsel neu aufbauen (Namen/Beschreibungen/Kategorien).
+        Loc.Instance.PropertyChanged += (_, _) =>
+        {
+            if (IsLoaded) Refresh();
+        };
     }
 
     private MainWindowViewModel? MainVm => DataContext as MainWindowViewModel;
@@ -43,6 +49,7 @@ public partial class NodePaletteView : UserControl
         var filtered = NodeCatalog.All
             .Where(d => !d.Hidden)
             .Where(d => string.IsNullOrEmpty(_search) ||
+                        NodeCatalog.LocalizedName(d).Contains(_search, StringComparison.OrdinalIgnoreCase) ||
                         d.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
                         d.Type.Contains(_search, StringComparison.OrdinalIgnoreCase));
 
@@ -51,7 +58,7 @@ public partial class NodePaletteView : UserControl
             // Category header
             PaletteContent.Children.Add(new TextBlock
             {
-                Text = group.Key,
+                Text = NodeCatalog.LocalizedCategory(group.Key),
                 FontWeight = FontWeight.SemiBold,
                 Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
                 FontSize = 11,
@@ -132,13 +139,13 @@ public partial class NodePaletteView : UserControl
                         {
                             new TextBlock
                             {
-                                Text = def.DisplayName,
+                                Text = NodeCatalog.LocalizedName(def),
                                 Foreground = Brushes.White,
                                 FontSize = 12,
                             },
                             new TextBlock
                             {
-                                Text = def.Description,
+                                Text = NodeCatalog.LocalizedDescription(def),
                                 Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
                                 FontSize = 10,
                                 TextWrapping = Avalonia.Media.TextWrapping.Wrap,

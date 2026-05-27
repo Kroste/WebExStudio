@@ -1,3 +1,5 @@
+using WebExStudio.Core.Localization;
+
 namespace WebExStudio.Core.Models;
 
 /// <summary>
@@ -580,4 +582,37 @@ public static class NodeCatalog
             Type = type, DisplayName = type, Category = "Unbekannt",
             Color = "#546E7A", Icon = "❔"
         };
+
+    // ── Lokalisierung ──────────────────────────────────────────────────────────
+    // Die deutschen Literale oben bleiben der Standard (Fallback). Übersetzungen liegen unter
+    // Schlüsseln "Node_<type>_Name/_Desc/_Ex", Property-Labels "Node_<type>_P_<key>",
+    // Ausgangs-Labels "Node_<type>_Out<index>" und Kategorien "Cat_<Kategorie>".
+    // Der Node-`type` selbst wird NIE übersetzt (Flow-Format bleibt stabil).
+
+    /// <summary>Lokalisierter Anzeigename (Fallback: deutsches Literal).</summary>
+    public static string LocalizedName(NodeDefinition def) =>
+        Loc.T($"Node_{def.Type}_Name", def.DisplayName);
+
+    /// <summary>Lokalisierte Beschreibung (Fallback: deutsches Literal).</summary>
+    public static string LocalizedDescription(NodeDefinition def) =>
+        Loc.T($"Node_{def.Type}_Desc", def.Description);
+
+    /// <summary>Lokalisiertes Beispiel (Fallback: deutsches Literal).</summary>
+    public static string LocalizedExample(NodeDefinition def) =>
+        Loc.T($"Node_{def.Type}_Ex", def.Example);
+
+    /// <summary>Lokalisierter Kategoriename (Fallback: der Kategorie-Schlüssel selbst, der deutsch ist).</summary>
+    public static string LocalizedCategory(string category) =>
+        Loc.T($"Cat_{category}", category);
+
+    /// <summary>Lokalisiertes Property-Label (Fallback: deutsches Literal).</summary>
+    public static string LocalizedLabel(string type, PropertyDefinition prop) =>
+        Loc.T($"Node_{type}_P_{prop.Key}", prop.Label);
+
+    /// <summary>Lokalisiertes Ausgangs-Label (Fallback: deutsches Literal).</summary>
+    public static string LocalizedOutputLabel(NodeDefinition def, int index)
+    {
+        var fallback = index >= 0 && index < def.OutputLabels.Length ? def.OutputLabels[index] : string.Empty;
+        return Loc.T($"Node_{def.Type}_Out{index}", fallback);
+    }
 }

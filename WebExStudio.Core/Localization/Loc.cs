@@ -39,6 +39,10 @@ public sealed class Loc : INotifyPropertyChanged
     /// <summary>Verfügbare Sprachcodes (alphabetisch).</summary>
     public IReadOnlyList<string> Languages => _langs.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList();
 
+    /// <summary>Prüft, ob eine Sprache einen Schlüssel kennt (für Vollständigkeits-Tests).</summary>
+    public bool Has(string lang, string key) =>
+        _langs.TryGetValue(lang, out var d) && d.ContainsKey(key);
+
     /// <summary>Eigenname einer Sprache (Eintrag <c>@name</c> im Wörterbuch), sonst der Code.</summary>
     public string NameOf(string lang) =>
         _langs.TryGetValue(lang, out var d) && d.TryGetValue("@name", out var n) ? n : lang;
@@ -57,6 +61,17 @@ public sealed class Loc : INotifyPropertyChanged
 
     /// <summary>Übersetzung im Code (nicht live; für transiente Texte wie Statusmeldungen).</summary>
     public static string T(string key) => Instance[key];
+
+    /// <summary>
+    /// Übersetzung mit Rückfallwert: Liefert den Eintrag der aktuellen Sprache, sonst <paramref name="fallback"/>.
+    /// Gedacht für den Node-Katalog — die deutschen Literale bleiben der Standard (Fallback), Übersetzungen
+    /// (z. B. en.json) werden nur dort hinterlegt, wo nötig.
+    /// </summary>
+    public string Tr(string key, string fallback) =>
+        _current.TryGetValue(key, out var v) ? v : fallback;
+
+    /// <summary>Statische Kurzform von <see cref="Tr(string,string)"/>.</summary>
+    public static string T(string key, string fallback) => Instance.Tr(key, fallback);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

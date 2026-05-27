@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using NLog;
+using WebExStudio.Core.Models;
 using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Controls;
@@ -161,7 +162,7 @@ public sealed class NodeControl : Panel
             {
                 var lbl = new TextBlock
                 {
-                    Text = i < labels.Length ? labels[i] : i.ToString(),
+                    Text = i < labels.Length ? NodeCatalog.LocalizedOutputLabel(vm.Definition, i) : i.ToString(),
                     FontSize = 9,
                     Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
                     IsHitTestVisible = false,

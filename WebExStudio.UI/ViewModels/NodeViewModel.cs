@@ -1,5 +1,7 @@
+using System.ComponentModel;
 using Avalonia;
 using ReactiveUI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 
 namespace WebExStudio.UI.ViewModels;
@@ -101,7 +103,7 @@ public sealed class NodeViewModel : ViewModelBase
         }
     }
 
-    public string DisplayName => Definition.DisplayName;
+    public string DisplayName => NodeCatalog.LocalizedName(Definition);
     public string Icon => Definition.Icon;
     public string Color => Definition.Color;
 
@@ -145,6 +147,14 @@ public sealed class NodeViewModel : ViewModelBase
         Definition = NodeCatalog.GetOrUnknown(node.Type);
         _x = node.X;
         _y = node.Y;
+        // Anzeigename/Titel bei Sprachwechsel aktualisieren (der gespeicherte Node-Typ bleibt unberührt).
+        Loc.Instance.PropertyChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        this.RaisePropertyChanged(nameof(DisplayName));
+        this.RaisePropertyChanged(nameof(Title));
     }
 }
 

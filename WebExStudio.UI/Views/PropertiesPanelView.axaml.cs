@@ -16,6 +16,8 @@ public partial class PropertiesPanelView : UserControl
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+        // Eigenschaften-Formular bei Sprachwechsel neu aufbauen (Labels/Beschreibung/Beispiel).
+        Loc.Instance.PropertyChanged += (_, _) => RebuildForm();
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -139,7 +141,7 @@ public partial class PropertiesPanelView : UserControl
                     {
                         Children =
                         {
-                            new TextBlock { Text = def.DisplayName, FontWeight = FontWeight.Bold, Foreground = Brushes.White },
+                            new TextBlock { Text = NodeCatalog.LocalizedName(def), FontWeight = FontWeight.Bold, Foreground = Brushes.White },
                             new TextBlock { Text = def.Type, FontSize = 11, Foreground = new SolidColorBrush(Color.Parse("#90A4AE")) },
                         }
                     }
@@ -155,7 +157,7 @@ public partial class PropertiesPanelView : UserControl
             Background = new SolidColorBrush(Color.Parse("#1B2A1B")),
             Child = new TextBlock
             {
-                Text = "👁 Vorschau — zum Bearbeiten per Drag & Drop in den Flow ziehen.",
+                Text = Loc.T("Prop_PreviewHint"),
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Color.Parse("#A5D6A7")),
                 TextWrapping = TextWrapping.Wrap,
@@ -166,31 +168,31 @@ public partial class PropertiesPanelView : UserControl
         {
             PropertiesPanel.Children.Add(new TextBlock
             {
-                Text = "Eigenschaften",
+                Text = Loc.T("Prop_Properties"),
                 FontSize = 11,
                 FontWeight = FontWeight.Bold,
                 Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
                 Margin = new Avalonia.Thickness(0, 6, 0, 2),
             });
             foreach (var prop in def.Properties)
-                PropertiesPanel.Children.Add(BuildPreviewField(prop));
+                PropertiesPanel.Children.Add(BuildPreviewField(def.Type, prop));
         }
 
         PropertiesPanel.Children.Add(BuildInfoBox(def));
     }
 
-    private static Control BuildPreviewField(PropertyDefinition prop)
+    private static Control BuildPreviewField(string type, PropertyDefinition prop)
     {
         var name = new TextBlock
         {
-            Text = prop.Label + (prop.Required ? " *" : ""),
+            Text = NodeCatalog.LocalizedLabel(type, prop) + (prop.Required ? " *" : ""),
             FontSize = 12,
             Foreground = Brushes.White,
             TextWrapping = TextWrapping.Wrap,
         };
         var bits = new List<string> { prop.Key, KindName(prop.Kind) };
-        if (!string.IsNullOrEmpty(prop.DefaultValue)) bits.Add("Standard: " + Shorten(prop.DefaultValue!));
-        else if (!string.IsNullOrEmpty(prop.Placeholder)) bits.Add("z. B. " + prop.Placeholder);
+        if (!string.IsNullOrEmpty(prop.DefaultValue)) bits.Add(Loc.T("Prop_Default") + ": " + Shorten(prop.DefaultValue!));
+        else if (!string.IsNullOrEmpty(prop.Placeholder)) bits.Add(Loc.T("Prop_Eg") + " " + prop.Placeholder);
         var detail = new TextBlock
         {
             Text = string.Join("  ·  ", bits),
@@ -203,14 +205,14 @@ public partial class PropertiesPanelView : UserControl
 
     private static string KindName(PropertyKind k) => k switch
     {
-        PropertyKind.Boolean => "ja/nein",
-        PropertyKind.Number => "Zahl",
-        PropertyKind.Selector => "Selektor",
-        PropertyKind.Url => "URL",
-        PropertyKind.FilePath => "Pfad",
-        PropertyKind.Dropdown => "Auswahl",
-        PropertyKind.MultilineText or PropertyKind.Code => "Text (mehrzeilig)",
-        _ => "Text",
+        PropertyKind.Boolean => Loc.T("Kind_Boolean"),
+        PropertyKind.Number => Loc.T("Kind_Number"),
+        PropertyKind.Selector => Loc.T("Kind_Selector"),
+        PropertyKind.Url => Loc.T("Kind_Url"),
+        PropertyKind.FilePath => Loc.T("Kind_Path"),
+        PropertyKind.Dropdown => Loc.T("Kind_Dropdown"),
+        PropertyKind.MultilineText or PropertyKind.Code => Loc.T("Kind_Multiline"),
+        _ => Loc.T("Kind_Text"),
     };
 
     private static string Shorten(string s) =>
@@ -258,16 +260,18 @@ public partial class PropertiesPanelView : UserControl
             Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
         });
 
-        if (!string.IsNullOrEmpty(def.Description))
+        var description = NodeCatalog.LocalizedDescription(def);
+        if (!string.IsNullOrEmpty(description))
             panel.Children.Add(new TextBlock
             {
-                Text = def.Description,
+                Text = description,
                 FontSize = 12,
                 Foreground = new SolidColorBrush(Color.Parse("#B0BEC5")),
                 TextWrapping = TextWrapping.Wrap,
             });
 
-        if (!string.IsNullOrEmpty(def.Example))
+        var example = NodeCatalog.LocalizedExample(def);
+        if (!string.IsNullOrEmpty(example))
         {
             panel.Children.Add(new TextBlock
             {
@@ -284,7 +288,7 @@ public partial class PropertiesPanelView : UserControl
                 Padding = new Avalonia.Thickness(8, 6),
                 Child = new TextBlock
                 {
-                    Text = def.Example,
+                    Text = example,
                     FontSize = 11,
                     FontFamily = new FontFamily("Monospace"),
                     Foreground = new SolidColorBrush(Color.Parse("#80CBC4")),
@@ -324,9 +328,15 @@ public partial class PropertiesPanelView : UserControl
         }
         if (string.IsNullOrEmpty(currentValue)) currentValue = prop.DefaultValue ?? string.Empty;
 
+        // Property-Label lokalisiert (für die universellen Felder retry/* gibt es keinen Katalog-Eintrag
+        // → dann steht das fertige Label schon in prop.Label).
+        var propLabel = _currentNode is not null
+            ? NodeCatalog.LocalizedLabel(_currentNode.ActionType, prop)
+            : prop.Label;
+
         var label = new TextBlock
         {
-            Text = prop.Label + (prop.Required ? " *" : ""),
+            Text = propLabel + (prop.Required ? " *" : ""),
             FontSize = 12,
             Foreground = new SolidColorBrush(Color.Parse("#B0BEC5")),
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
@@ -374,7 +384,7 @@ public partial class PropertiesPanelView : UserControl
             PropertyKind.Boolean => new CheckBox
             {
                 IsChecked = currentValue == "true",
-                Content = prop.Label,
+                Content = propLabel,
                 Foreground = Brushes.White,
             },
             PropertyKind.MultilineText or PropertyKind.Code => new TextBox
@@ -430,13 +440,13 @@ public partial class PropertiesPanelView : UserControl
         if (secrets.Count == 0)
             return new TextBlock
             {
-                Text = "🔐 Keine Secrets verfügbar — im Tresor (🔐) anlegen/entsperren.",
+                Text = Loc.T("Prop_NoSecrets"),
                 FontSize = 10,
                 Foreground = new SolidColorBrush(Color.Parse("#607D8B")),
                 TextWrapping = TextWrapping.Wrap,
             };
 
-        var items = new List<string> { "🔐 Secret einfügen…" };
+        var items = new List<string> { Loc.T("Prop_InsertSecret") };
         items.AddRange(secrets);
         var combo = new ComboBox
         {

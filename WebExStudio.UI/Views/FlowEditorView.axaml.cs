@@ -469,7 +469,7 @@ public partial class FlowEditorView : UserControl
         {
             var def = Core.Models.NodeCatalog.Get(type);
             icon = def?.Icon ?? "⬚";
-            name = def?.DisplayName ?? type;
+            name = def is not null ? Core.Models.NodeCatalog.LocalizedName(def) : type;
             color = def?.Color ?? "#607D8B";
         }
         else if (e.DataTransfer.TryGetValue(SubnodePanelView.SubnodeNameFormat) is string sub && !string.IsNullOrEmpty(sub))
@@ -540,11 +540,11 @@ public partial class FlowEditorView : UserControl
 
         foreach (var category in Core.Models.NodeCatalog.Categories)
         {
-            var header = new MenuItem { Header = category };
+            var header = new MenuItem { Header = Core.Models.NodeCatalog.LocalizedCategory(category) };
             foreach (var def in Core.Models.NodeCatalog.GetByCategory(category).Where(d => !d.Hidden))
             {
                 var d = def;
-                var item = new MenuItem { Header = $"{d.Icon}  {d.DisplayName}" };
+                var item = new MenuItem { Header = $"{d.Icon}  {Core.Models.NodeCatalog.LocalizedName(d)}" };
                 item.Click += (_, _) =>
                 {
                     Log.Info("Node hinzufügen: {0} @ ({1:F0},{2:F0})", d.Type, worldPos.X, worldPos.Y);

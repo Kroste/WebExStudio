@@ -60,7 +60,7 @@ public partial class NodeSuggestionDialog : Window
         TypeText.Text = _suggestion.Type;
         LabelText.Text = string.IsNullOrWhiteSpace(_suggestion.Label) ? "—" : _suggestion.Label;
         ConfigText.Text = _suggestion.Config.Count == 0
-            ? "(keine)"
+            ? Loc.T("Common_None")
             : string.Join("\n", _suggestion.Config.Select(kv => $"{kv.Key} = {kv.Value}"));
         ReasonText.Text = _suggestion.Reason;
         ResultPanel.IsVisible = true;

@@ -1,3 +1,4 @@
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using Xunit;
 
@@ -5,6 +6,35 @@ namespace WebExStudio.Core.Tests;
 
 public class NodeCatalogTests
 {
+    /// <summary>
+    /// Jeder sichtbare Built-in-Node muss in der englischen Übersetzung vollständig abgedeckt sein
+    /// (Name, Beschreibung, Beispiel, alle Property-Labels, alle Ausgangs-Labels). Deutsch kommt aus
+    /// den Literalen (Fallback); fehlt ein englischer Schlüssel, würde stillschweigend Deutsch erscheinen.
+    /// </summary>
+    [Fact]
+    public void English_CoversAllVisibleBuiltins()
+    {
+        var loc = Loc.Instance;
+        var missing = new List<string>();
+
+        foreach (var def in NodeCatalog.All.Where(d => !d.Hidden && !d.Type.Contains('.')))
+        {
+            void Need(string key) { if (!loc.Has("en", key)) missing.Add(key); }
+
+            Need($"Node_{def.Type}_Name");
+            Need($"Node_{def.Type}_Desc");
+            if (!string.IsNullOrWhiteSpace(def.Example)) Need($"Node_{def.Type}_Ex");
+            foreach (var p in def.Properties) Need($"Node_{def.Type}_P_{p.Key}");
+            for (int i = 0; i < def.OutputLabels.Length; i++) Need($"Node_{def.Type}_Out{i}");
+        }
+
+        // Kategorien ebenfalls.
+        foreach (var cat in NodeCatalog.Categories)
+            if (!loc.Has("en", $"Cat_{cat}")) missing.Add($"Cat_{cat}");
+
+        Assert.True(missing.Count == 0, "Fehlende EN-Schlüssel: " + string.Join(", ", missing));
+    }
+
     [Fact]
     public void Get_ReturnsKnown_AndNullForUnknown()
     {
