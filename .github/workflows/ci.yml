@@ -42,13 +42,20 @@ jobs:
   release:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    # Jedes Paket auf seinem nativen OS bauen — sonst liefert Playwright beim Cross-Publish
+    # die node-Treiber der Host-Plattform aus (z. B. Linux-Treiber im Windows-Paket).
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - rid: linux-x64
+            os: ubuntu-latest
           - rid: win-x64
+            os: windows-latest
+    defaults:
+      run:
+        shell: bash   # Git-Bash auf Windows → tar/zip/Skripte funktionieren auf beiden Runnern
     steps:
       - uses: actions/checkout@v6
 
