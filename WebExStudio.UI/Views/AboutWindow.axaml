@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.AboutWindow"
-        Title="Über WebExStudio"
+        Title="WebExStudio"
         Width="420" Height="370"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -17,7 +18,7 @@
               PointerPressed="OnTitleBarPointerPressed">
         <Grid ColumnDefinitions="*,Auto" Height="36">
           <TextBlock Grid.Column="0"
-                     Text="Über WebExStudio" FontSize="12" FontWeight="SemiBold"
+                     Text="{l:Tr About_Title}" FontSize="12" FontWeight="SemiBold"
                      Foreground="#90A4AE"
                      VerticalAlignment="Center" Margin="14,0"
                      IsHitTestVisible="False" />
@@ -45,19 +46,19 @@
 
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
               HorizontalAlignment="Center" ColumnSpacing="16" RowSpacing="6">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Organisation"
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr About_Organisation}"
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Landeshauptstadt Potsdam"
                      FontSize="12" Foreground="#B0BEC5" />
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="Fachbereich"
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Tr About_Department}"
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="1" Grid.Column="1" Text="54.2"
                      FontSize="12" Foreground="#B0BEC5" />
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="Idee &amp; Konzept"
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Tr About_Concept}"
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="Lars Oste"
                      FontSize="12" Foreground="#B0BEC5" />
-          <TextBlock Grid.Row="3" Grid.Column="0" Text="Umsetzung"
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:Tr About_Implementation}"
                      FontSize="12" Foreground="#607D8B" />
           <TextBlock Grid.Row="3" Grid.Column="1" Text="Claude (Anthropic) · Claude Code"
                      FontSize="12" Foreground="#B0BEC5" />
@@ -67,10 +68,10 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
           <Button Click="OnHelp"
-                  Content="📖  Hilfe / Kurzanleitung"
+                  Content="{l:Tr About_Help}"
                   Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
                   Padding="14,7" FontSize="12" Cursor="Hand"
-                  ToolTip.Tip="Kurzanleitung zur Bedienung öffnen" />
+                  ToolTip.Tip="{l:Tr About_HelpTip}" />
         </StackPanel>
 
         <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0"

@@ -19,7 +19,7 @@ public partial class AboutWindow : Window
         var rawVer = Assembly.GetExecutingAssembly()
                              .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                              ?.InformationalVersion ?? "—";
-        VersionText.Text = $"Version {rawVer.Split('+')[0]}";
+        VersionText.Text = string.Format(WebExStudio.Core.Localization.Loc.T("About_Version"), rawVer.Split('+')[0]);
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)

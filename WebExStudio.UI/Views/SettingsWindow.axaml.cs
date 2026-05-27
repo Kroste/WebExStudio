@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using WebExStudio.AI;
+using WebExStudio.Core.Localization;
 using WebExStudio.Core.Models;
 using WebExStudio.Engine.Plugins;
 
@@ -82,7 +83,7 @@ public partial class SettingsWindow : Window
 
     private void BuildPluginList()
     {
-        PluginDirsText.Text = "Ordner: " + string.Join("  ·  ", AppSettings.PluginDirs);
+        PluginDirsText.Text = Loc.T("Set_PluginDirsLabel") + " " + string.Join("  ·  ", AppSettings.PluginDirs);
         PluginsHost.Children.Clear();
 
         var plugins = NodePluginLoader.Plugins;
@@ -90,7 +91,7 @@ public partial class SettingsWindow : Window
         {
             PluginsHost.Children.Add(new TextBlock
             {
-                Text = "Keine Plugins gefunden. DLL in einen der unten genannten Ordner legen und neu starten.",
+                Text = Loc.T("Set_NoPlugins"),
                 Foreground = new SolidColorBrush(Color.Parse("#90A4AE")),
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Avalonia.Thickness(2, 8, 2, 0),
@@ -105,7 +106,7 @@ public partial class SettingsWindow : Window
                 IsChecked = !_disabledPlugins.Contains(p.File),
                 VerticalAlignment = VerticalAlignment.Center,
             };
-            ToolTip.SetTip(toggle, "Aktiv (Häkchen) / deaktiviert — wirkt nach Neustart");
+            ToolTip.SetTip(toggle, Loc.T("Set_PluginToggleTip"));
             var file = p.File;
             toggle.IsCheckedChanged += (_, _) =>
             {

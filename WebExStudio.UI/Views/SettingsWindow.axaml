@@ -17,7 +17,7 @@
               BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
               PointerPressed="OnTitleBarPointerPressed">
         <Grid ColumnDefinitions="*,Auto" Height="36">
-          <TextBlock Grid.Column="0" Text="⚙ Einstellungen" FontSize="12" FontWeight="SemiBold"
+          <TextBlock Grid.Column="0" Text="{l:Tr Set_Title}" FontSize="12" FontWeight="SemiBold"
                      Foreground="#90A4AE" VerticalAlignment="Center" Margin="14,0"
                      IsHitTestVisible="False"/>
           <Button Grid.Column="1" Click="OnCancel" Content="&#x2715;" FontSize="13"
@@ -30,8 +30,8 @@
       <Border DockPanel.Dock="Bottom" Background="#16162A"
               BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,8">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-          <Button Content="Abbrechen" Click="OnCancel" Padding="14,6"/>
-          <Button Content="Speichern" Click="OnSave" Padding="14,6"
+          <Button Content="{l:Tr Common_Cancel}" Click="OnCancel" Padding="14,6"/>
+          <Button Content="{l:Tr Common_Save}" Click="OnSave" Padding="14,6"
                   Background="#1B5E20" Foreground="White"/>
         </StackPanel>
       </Border>
@@ -50,12 +50,12 @@
         </TabItem>
 
         <!-- ── Browser ───────────────────────────────────────────────── -->
-        <TabItem Header="Browser">
+        <TabItem Header="{l:Tr Set_Tab_Browser}">
           <ScrollViewer>
             <StackPanel Margin="14" Spacing="14">
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Browser-Typ" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBlock Text="{l:Tr Set_BrowserType}" FontSize="12" Foreground="#B0BEC5"/>
                 <ComboBox x:Name="BrowserBox" HorizontalAlignment="Stretch">
                   <ComboBoxItem>chromium</ComboBoxItem>
                   <ComboBoxItem>firefox</ComboBoxItem>
@@ -64,7 +64,7 @@
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="System-Browser (Channel) — leer = Standard/Bundled; brave benötigt Browser-Typ chromium"
+                <TextBlock Text="{l:Tr Set_Channel}"
                            FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
                 <ComboBox x:Name="ChannelBox" HorizontalAlignment="Stretch">
                   <ComboBoxItem Content=""/>
@@ -77,54 +77,54 @@
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Browser-Programmpfad (leer = System/Standard)"
+                <TextBlock Text="{l:Tr Set_ExePath}"
                            FontSize="12" Foreground="#B0BEC5"/>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                  <TextBox Grid.Column="0" x:Name="ExePathBox" PlaceholderText="z. B. /usr/bin/google-chrome"/>
+                  <TextBox Grid.Column="0" x:Name="ExePathBox" PlaceholderText="{l:Tr Set_ExePathPlaceholder}"/>
                   <Button Grid.Column="1" Content="…" Click="OnBrowseExe" Padding="12,0"/>
                 </Grid>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Playwright-Treiberpfad (nur falls nicht automatisch gefunden)"
+                <TextBlock Text="{l:Tr Set_DriverPath}"
                            FontSize="12" Foreground="#B0BEC5"/>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                  <TextBox Grid.Column="0" x:Name="DriverPathBox" PlaceholderText="Ordner der .playwright/node-Installation"/>
+                  <TextBox Grid.Column="0" x:Name="DriverPathBox" PlaceholderText="{l:Tr Set_DriverPlaceholder}"/>
                   <Button Grid.Column="1" Content="…" Click="OnBrowseDriver" Padding="12,0"/>
                 </Grid>
                 <StackPanel Spacing="2" Margin="0,2,0,0">
                   <TextBlock FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"
-                             Text="Treiber/Browser lassen sich nicht automatisch laden? Anleitung zur manuellen/Offline-Installation:"/>
+                             Text="{l:Tr Set_DriverHelp1}"/>
                   <Button Content="playwright.dev/dotnet/docs/browsers ↗" Click="OnOpenDriverHelp"
                           Background="Transparent" BorderThickness="0" Padding="0"
                           Foreground="#4FC3F7" Cursor="Hand" FontSize="11" HorizontalAlignment="Left"/>
                   <TextBlock FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"
-                             Text="Hinter einem Proxy: Proxy im Tab „Netzwerk“ setzen (gilt auch für den Download-Host)."/>
+                             Text="{l:Tr Set_DriverHelp2}"/>
                 </StackPanel>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Standard-Downloadpfad (leer = Standard des Browsers)"
+                <TextBlock Text="{l:Tr Set_DownloadPath}"
                            FontSize="12" Foreground="#B0BEC5"/>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                  <TextBox Grid.Column="0" x:Name="DownloadDirBox" PlaceholderText="z. B. /home/user/Downloads"/>
+                  <TextBox Grid.Column="0" x:Name="DownloadDirBox" PlaceholderText="{l:Tr Set_DownloadPlaceholder}"/>
                   <Button Grid.Column="1" Content="…" Click="OnBrowseDownload" Padding="12,0"/>
                 </Grid>
               </StackPanel>
 
-              <CheckBox x:Name="HeadlessBox" Content="Headless (ohne sichtbares Browserfenster)"
+              <CheckBox x:Name="HeadlessBox" Content="{l:Tr Set_Headless}"
                         Foreground="#B0BEC5"/>
-              <CheckBox x:Name="MaximizedBox" Content="Browserfenster maximiert starten (Chromium/Chrome/Edge/Brave)"
+              <CheckBox x:Name="MaximizedBox" Content="{l:Tr Set_Maximized}"
                         Foreground="#B0BEC5"/>
 
               <StackPanel Spacing="4">
                 <CheckBox x:Name="SessionPersistBox"
-                          Content="Sitzung wiederverwenden (Cookies/Login) — mit „Sitzung speichern“-Node speichern"
+                          Content="{l:Tr Set_SessionReuse}"
                           Foreground="#B0BEC5"/>
-                <TextBlock Text="Sitzungsdatei (leer = session.json im Projektordner)"
+                <TextBlock Text="{l:Tr Set_SessionFile}"
                            FontSize="12" Foreground="#B0BEC5"/>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                  <TextBox Grid.Column="0" x:Name="SessionFileBox" PlaceholderText="z. B. /home/user/projekt/session.json"/>
+                  <TextBox Grid.Column="0" x:Name="SessionFileBox" PlaceholderText="{l:Tr Set_SessionPlaceholder}"/>
                   <Button Grid.Column="1" Content="…" Click="OnBrowseSession" Padding="12,0"/>
                 </Grid>
               </StackPanel>
@@ -133,31 +133,31 @@
         </TabItem>
 
         <!-- ── Netzwerk / Proxy ──────────────────────────────────────── -->
-        <TabItem Header="Netzwerk">
+        <TabItem Header="{l:Tr Set_Tab_Network}">
           <ScrollViewer>
             <StackPanel Margin="14" Spacing="14">
 
-              <TextBlock Text="Proxy — gilt für den Browser und für KI-Anfragen."
+              <TextBlock Text="{l:Tr Set_ProxyIntro}"
                          FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Proxy-Server (leer = kein Proxy / Systemstandard)"
+                <TextBlock Text="{l:Tr Set_ProxyServer}"
                            FontSize="12" Foreground="#B0BEC5"/>
-                <TextBox x:Name="ProxyServerBox" PlaceholderText="http://proxy.firma.de:8080"/>
+                <TextBox x:Name="ProxyServerBox" PlaceholderText="{l:Tr Set_ProxyServerPlaceholder}"/>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Ausnahmen / Bypass (kommagetrennt)" FontSize="12" Foreground="#B0BEC5"/>
-                <TextBox x:Name="ProxyBypassBox" PlaceholderText="localhost, 127.0.0.1, *.intern"/>
+                <TextBlock Text="{l:Tr Set_ProxyBypass}" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="ProxyBypassBox" PlaceholderText="{l:Tr Set_ProxyBypassPlaceholder}"/>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Proxy-Benutzer (optional)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBlock Text="{l:Tr Set_ProxyUser}" FontSize="12" Foreground="#B0BEC5"/>
                 <TextBox x:Name="ProxyUserBox"/>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Proxy-Passwort (optional)" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBlock Text="{l:Tr Set_ProxyPass}" FontSize="12" Foreground="#B0BEC5"/>
                 <TextBox x:Name="ProxyPassBox" PasswordChar="•"/>
               </StackPanel>
             </StackPanel>
@@ -165,15 +165,15 @@
         </TabItem>
 
         <!-- ── KI ────────────────────────────────────────────────────── -->
-        <TabItem Header="KI">
+        <TabItem Header="{l:Tr Set_Tab_Ai}">
           <ScrollViewer>
             <StackPanel Margin="14" Spacing="14">
 
-              <TextBlock Text="Flow aus Beschreibung erzeugen (Toolbar: 🤖 KI-Flow)."
+              <TextBlock Text="{l:Tr Set_AiIntro}"
                          FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Anbieter" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBlock Text="{l:Tr Set_Provider}" FontSize="12" Foreground="#B0BEC5"/>
                 <ComboBox x:Name="AiProviderBox" HorizontalAlignment="Stretch">
                   <ComboBoxItem Content="anthropic"/>
                   <ComboBoxItem Content="openai"/>
@@ -182,55 +182,55 @@
                   <ComboBoxItem Content="ollama"/>
                 </ComboBox>
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                  <Button Grid.Column="0" x:Name="DetectLocalAiButton" Content="🔍 Lokale KI suchen"
+                  <Button Grid.Column="0" x:Name="DetectLocalAiButton" Content="{l:Tr Set_DetectLocalAi}"
                           Click="OnDetectLocalAi" Padding="10,4"
-                          ToolTip.Tip="Prüft lokal laufende LLM-Server (Ollama, LM Studio, llama.cpp, Jan)"/>
+                          ToolTip.Tip="{l:Tr Set_DetectLocalAiTip}"/>
                   <TextBlock Grid.Column="1" x:Name="LocalAiStatus" VerticalAlignment="Center"
                              FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"/>
                 </Grid>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="API-Schlüssel (bei Ollama nicht nötig)" FontSize="12" Foreground="#B0BEC5"/>
-                <TextBox x:Name="AiApiKeyBox" PasswordChar="•" PlaceholderText="sk-ant-…"/>
+                <TextBlock Text="{l:Tr Set_ApiKey}" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiApiKeyBox" PasswordChar="•" PlaceholderText="{l:Tr Set_ApiKeyPlaceholder}"/>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Modell (leer = Standard des Anbieters)" FontSize="12" Foreground="#B0BEC5"/>
-                <TextBox x:Name="AiModelBox" PlaceholderText="z. B. claude-sonnet-4-6 / gpt-4o / llama3.1"/>
+                <TextBlock Text="{l:Tr Set_Model}" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiModelBox" PlaceholderText="{l:Tr Set_ModelPlaceholder}"/>
               </StackPanel>
 
               <StackPanel Spacing="4">
-                <TextBlock Text="Basis-URL (optional, z. B. lokale Ollama-Instanz)" FontSize="12" Foreground="#B0BEC5"/>
-                <TextBox x:Name="AiBaseUrlBox" PlaceholderText="leer = Standard"/>
+                <TextBlock Text="{l:Tr Set_BaseUrl}" FontSize="12" Foreground="#B0BEC5"/>
+                <TextBox x:Name="AiBaseUrlBox" PlaceholderText="{l:Tr Set_BaseUrlPlaceholder}"/>
               </StackPanel>
 
               <Border Background="#2E2E4E" Height="1" Margin="0,4"/>
 
-              <CheckBox x:Name="AiSendHintsBox" Content="Hinweise / Problemlösungen an die KI mitsenden"
+              <CheckBox x:Name="AiSendHintsBox" Content="{l:Tr Set_SendHints}"
                         Foreground="#B0BEC5"/>
               <StackPanel Spacing="4">
-                <TextBlock Text="Bekannte Probleme &amp; Lösungen (eine pro Zeile, kurz halten — die KI bekommt sie mit jeder Anfrage)"
+                <TextBlock Text="{l:Tr Set_Hints}"
                            FontSize="12" Foreground="#B0BEC5" TextWrapping="Wrap"/>
                 <TextBox x:Name="AiHintsBox" AcceptsReturn="True" TextWrapping="Wrap"
                          Height="140" VerticalContentAlignment="Top"
-                         PlaceholderText="- Kurzer Hinweis / gelöstes Problem …"/>
+                         PlaceholderText="{l:Tr Set_HintsPlaceholder}"/>
               </StackPanel>
             </StackPanel>
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Plugins">
+        <TabItem Header="{l:Tr Set_Tab_Plugins}">
           <DockPanel Margin="0">
             <Border DockPanel.Dock="Top" Background="#16162A" Padding="14,8">
-              <TextBlock Text="Eigene Nodes als DLL im plugins-Ordner. Änderungen (aktiv/inaktiv) wirken nach einem Neustart."
+              <TextBlock Text="{l:Tr Set_PluginsIntro}"
                          FontSize="11" Foreground="#90A4AE" TextWrapping="Wrap"/>
             </Border>
             <Border DockPanel.Dock="Bottom" Background="#16162A" BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,8">
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <TextBlock Grid.Column="0" x:Name="PluginDirsText" FontSize="10" Foreground="#607D8B"
                            VerticalAlignment="Center" TextWrapping="Wrap"/>
-                <Button Grid.Column="1" Content="📂 Ordner öffnen" Click="OnOpenPluginFolder" Padding="10,5"/>
+                <Button Grid.Column="1" Content="{l:Tr Set_OpenFolder}" Click="OnOpenPluginFolder" Padding="10,5"/>
               </Grid>
             </Border>
             <ScrollViewer Padding="12">

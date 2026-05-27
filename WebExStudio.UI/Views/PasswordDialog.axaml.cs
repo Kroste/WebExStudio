@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using WebExStudio.Core.Localization;
 
 namespace WebExStudio.UI.Views;
 
@@ -11,7 +12,7 @@ public partial class PasswordDialog : Window
     public string Password { get; private set; } = string.Empty;
     public bool Confirmed { get; private set; }
 
-    public PasswordDialog() : this("Passwort", "Passwort eingeben:") { }
+    public PasswordDialog() : this(Loc.T("Pw_DefaultTitle"), Loc.T("Pw_DefaultPrompt")) { }
 
     public PasswordDialog(string title, string prompt, bool confirm = false)
     {
@@ -27,8 +28,8 @@ public partial class PasswordDialog : Window
     private void OnOk(object? sender, RoutedEventArgs e)
     {
         var pw = PwBox.Text ?? string.Empty;
-        if (pw.Length == 0) { ShowError("Bitte ein Passwort eingeben."); return; }
-        if (_confirm && pw != (PwBox2.Text ?? string.Empty)) { ShowError("Die Passwörter stimmen nicht überein."); return; }
+        if (pw.Length == 0) { ShowError(Loc.T("Pw_EmptyError")); return; }
+        if (_confirm && pw != (PwBox2.Text ?? string.Empty)) { ShowError(Loc.T("Pw_MismatchError")); return; }
         Password = pw;
         Confirmed = true;
         Close();
