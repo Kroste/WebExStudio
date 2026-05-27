@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WebExStudio.UI.ViewModels"
         xmlns:views="using:WebExStudio.UI.Views"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="WebExStudio"
@@ -28,22 +29,22 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
-          <Button Content="⚙" Click="OnSettings" ToolTip.Tip="Einstellungen"
+          <Button Content="⚙" Click="OnSettings" ToolTip.Tip="{l:Tr Tip_Settings}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="14"/>
-          <Button Content="❓" Click="OnHelp" ToolTip.Tip="Hilfe / Kurzanleitung"
+          <Button Content="❓" Click="OnHelp" ToolTip.Tip="{l:Tr Tip_Help}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="14"/>
-          <Button Content="ℹ" Click="OnAbout" ToolTip.Tip="Über"
+          <Button Content="ℹ" Click="OnAbout" ToolTip.Tip="{l:Tr Tip_About}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="14"/>
-          <Button Content="&#x2014;" Click="OnMinimize" ToolTip.Tip="Minimieren"
+          <Button Content="&#x2014;" Click="OnMinimize" ToolTip.Tip="{l:Tr Tip_Minimize}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="13"/>
-          <Button Content="&#x2610;" Click="OnToggleMaximize" ToolTip.Tip="Maximieren"
+          <Button Content="&#x2610;" Click="OnToggleMaximize" ToolTip.Tip="{l:Tr Tip_Maximize}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="42" Padding="0" FontSize="13"/>
-          <Button Content="&#x2715;" Click="OnCloseWindow" ToolTip.Tip="Schließen"
+          <Button Content="&#x2715;" Click="OnCloseWindow" ToolTip.Tip="{l:Tr Tip_Close}"
                   Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
                   Width="46" Padding="0" FontSize="13"/>
         </StackPanel>
@@ -56,58 +57,58 @@
             BorderThickness="0,0,0,1" Padding="8,4">
       <StackPanel Orientation="Horizontal" Spacing="6">
 
-        <Button Content="✨ Neuer Flow"     Click="OnNewFlow"     Padding="8,4"/>
-        <Button Content="📄 Flow öffnen"    Click="OnOpenFlow"    Padding="8,4"/>
-        <Button Content="🕘" Click="OnRecent" Padding="8,4" ToolTip.Tip="Zuletzt geöffnete Flows"/>
-        <Button Content="💾 Speichern"      Click="OnSaveFlow"    Padding="8,4"
+        <Button Content="{l:Tr Tb_NewFlow}"  Click="OnNewFlow"     Padding="8,4"/>
+        <Button Content="{l:Tr Tb_OpenFlow}" Click="OnOpenFlow"    Padding="8,4"/>
+        <Button Content="🕘" Click="OnRecent" Padding="8,4" ToolTip.Tip="{l:Tr Tip_Recent}"/>
+        <Button Content="{l:Tr Tb_Save}"     Click="OnSaveFlow"    Padding="8,4"
                 IsEnabled="{Binding FlowEditor.CanSave}"/>
-        <Button Content="♻ Convert"         Click="OnConvert"     Padding="8,4"
-                ToolTip.Tip="Alten (Python-)Flow aus einem Projektordner in das neue Format konvertieren"/>
-        <Button Content="↶" Click="OnUndo" Padding="8,4" ToolTip.Tip="Rückgängig (Strg+Z)"
+        <Button Content="{l:Tr Tb_Convert}"  Click="OnConvert"     Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Convert}"/>
+        <Button Content="↶" Click="OnUndo" Padding="8,4" ToolTip.Tip="{l:Tr Tip_Undo}"
                 IsEnabled="{Binding FlowEditor.CanUndo}"/>
-        <Button Content="↷" Click="OnRedo" Padding="8,4" ToolTip.Tip="Wiederholen (Strg+Y)"
+        <Button Content="↷" Click="OnRedo" Padding="8,4" ToolTip.Tip="{l:Tr Tip_Redo}"
                 IsEnabled="{Binding FlowEditor.CanRedo}"/>
-        <Button Content="🤖 KI-Flow"        Click="OnGenerateFlow" Padding="8,4"
-                ToolTip.Tip="Flow aus einer Beschreibung erzeugen"/>
-        <Button Content="💬 KI-Chat"        Click="OnChat" Padding="8,4"
-                ToolTip.Tip="Chat-Fenster mit der KI öffnen"/>
-        <Button Content="🧾 Erklären"       Click="OnExplainFlow" Padding="8,4"
-                ToolTip.Tip="Den aktuellen Flow von der KI erklären lassen"/>
-        <Button Content="💡 Vorschlag"      Click="OnSuggestNode" Padding="8,4"
+        <Button Content="{l:Tr Tb_AiFlow}"   Click="OnGenerateFlow" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_AiFlow}"/>
+        <Button Content="{l:Tr Tb_AiChat}"   Click="OnChat" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_AiChat}"/>
+        <Button Content="{l:Tr Tb_Explain}"  Click="OnExplainFlow" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Explain}"/>
+        <Button Content="{l:Tr Tb_Suggest}"  Click="OnSuggestNode" Padding="8,4"
                 IsEnabled="{Binding SuggestionsEnabled}"
-                ToolTip.Tip="Nächsten Node nach dem ausgewählten von der KI vorschlagen lassen"/>
-        <Button Content="🔐 Tresor"         Click="OnVault" Padding="8,4"
-                ToolTip.Tip="Anmeldedaten-Tresor verwalten (verschlüsselt, {secret[name].feld})"/>
+                ToolTip.Tip="{l:Tr Tip_Suggest}"/>
+        <Button Content="{l:Tr Tb_Vault}"    Click="OnVault" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Vault}"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
-        <Button Content="▶ Ausführen" Click="OnRun" Padding="8,4"
+        <Button Content="{l:Tr Tb_Run}" Click="OnRun" Padding="8,4"
                 IsEnabled="{Binding CanRun}"
                 Background="#1B5E20" Foreground="White"/>
-        <Button Content="⏹ Stopp"    Click="OnStop" Padding="8,4"
+        <Button Content="{l:Tr Tb_Stop}"    Click="OnStop" Padding="8,4"
                 IsEnabled="{Binding CanStop}"
                 Background="#B71C1C" Foreground="White"/>
-        <Button Content="⏸ Pause"    Click="OnPause" Padding="8,4"
+        <Button Content="{l:Tr Tb_Pause}"    Click="OnPause" Padding="8,4"
                 IsVisible="{Binding CanPause}"
                 Background="#F57F17" Foreground="White"/>
-        <Button Content="👣 Schritt"  Click="OnStep" Padding="8,4"
+        <Button Content="{l:Tr Tb_Step}"  Click="OnStep" Padding="8,4"
                 IsVisible="{Binding CanStep}"
-                ToolTip.Tip="Einen Node weiter, dann wieder pausieren"
+                ToolTip.Tip="{l:Tr Tip_Step}"
                 Background="#1565C0" Foreground="White"/>
-        <Button Content="⏭ Weiter"   Click="OnResume" Padding="8,4"
+        <Button Content="{l:Tr Tb_Resume}"   Click="OnResume" Padding="8,4"
                 IsVisible="{Binding IsPaused}"
                 Background="#2E7D32" Foreground="White"/>
 
         <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
 
-        <Button Content="🔎 Suchen"     Click="OnSearchNode" Padding="8,4"
-                ToolTip.Tip="Node suchen / dorthin springen (Strg+F)"/>
-        <Button Content="🪄 Layout"     Click="OnAutoLayout" Padding="8,4"
-                ToolTip.Tip="Nodes automatisch anordnen"/>
-        <Button Content="▦ Ausrichten"  Click="OnSnapToGrid" Padding="8,4"
-                ToolTip.Tip="Alle Nodes am Raster ausrichten"/>
-        <Button Content="⊞ Fit"         Click="OnFitView"   Padding="8,4"/>
-        <Button Content="🔍 Reset View" Click="OnResetView" Padding="8,4"/>
+        <Button Content="{l:Tr Tb_Search}"     Click="OnSearchNode" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Search}"/>
+        <Button Content="{l:Tr Tb_Layout}"     Click="OnAutoLayout" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Layout}"/>
+        <Button Content="{l:Tr Tb_Align}"  Click="OnSnapToGrid" Padding="8,4"
+                ToolTip.Tip="{l:Tr Tip_Align}"/>
+        <Button Content="{l:Tr Tb_Fit}"         Click="OnFitView"   Padding="8,4"/>
+        <Button Content="{l:Tr Tb_Reset}" Click="OnResetView" Padding="8,4"/>
       </StackPanel>
     </Border>
 
@@ -137,9 +138,9 @@
                      VerticalAlignment="Center"/>
           <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
           <CheckBox IsChecked="{Binding SuggestionsEnabled}"
-                    Content="Node-Vorschlag" Foreground="#B0BEC5" FontSize="12"
+                    Content="{l:Tr Status_NodeSuggest}" Foreground="#B0BEC5" FontSize="12"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="KI-Vorschlag für den nächsten Node ein-/ausschalten"/>
+                    ToolTip.Tip="{l:Tr Tip_NodeSuggest}"/>
         </StackPanel>
       </Grid>
     </Border>

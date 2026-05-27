@@ -65,6 +65,7 @@ public static class AppSettings
         // Oberfläche
         public bool SuggestionsEnabled { get; set; } = true;
         public List<string> RecentFiles { get; set; } = [];
+        public string Language { get; set; } = "de";
 
         // Plugins (Dateinamen deaktivierter Plugins)
         public List<string> DisabledPlugins { get; set; } = [];
@@ -183,6 +184,16 @@ public static class AppSettings
     {
         var m = ReadModel();
         m.SuggestionsEnabled = enabled;
+        WriteModel(m);
+    }
+
+    /// <summary>Gespeicherter UI-Sprachcode (z. B. "de", "en"). Standard: "de".</summary>
+    public static string LoadLanguage() => ReadModel().Language;
+
+    public static void SaveLanguage(string lang)
+    {
+        var m = ReadModel();
+        m.Language = lang;
         WriteModel(m);
     }
 }

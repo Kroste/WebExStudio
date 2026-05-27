@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.SettingsWindow"
         Title="Einstellungen"
         Width="560" Height="560"
@@ -37,6 +38,16 @@
 
       <!-- Body: thematisch getrennte Tabs -->
       <TabControl Margin="8">
+
+        <!-- ── Sprache / Language ────────────────────────────────────── -->
+        <TabItem Header="{l:Tr Set_Language}">
+          <StackPanel Margin="14" Spacing="6">
+            <TextBlock Text="{l:Tr Set_Language}" Foreground="#B0BEC5"/>
+            <ComboBox x:Name="LanguageBox" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnLanguageChanged"/>
+            <TextBlock Text="{l:Tr Set_LanguageHint}" FontSize="11" Foreground="#78909C" TextWrapping="Wrap"/>
+          </StackPanel>
+        </TabItem>
 
         <!-- ── Browser ───────────────────────────────────────────────── -->
         <TabItem Header="Browser">

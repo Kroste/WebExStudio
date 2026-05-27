@@ -50,6 +50,32 @@ public partial class SettingsWindow : Window
         AiHintsBox.Text = _ai.Hints;
 
         BuildPluginList();
+        BuildLanguageList();
+    }
+
+    // ── Sprache (Laufzeit-Umschaltung) ────────────────────────────────────────
+
+    private sealed record LangItem(string Code, string Name)
+    {
+        public override string ToString() => Name; // ComboBox zeigt den Namen
+    }
+
+    private bool _languageReady;
+
+    private void BuildLanguageList()
+    {
+        var loc = WebExStudio.Core.Localization.Loc.Instance;
+        LanguageBox.ItemsSource = loc.Languages.Select(c => new LangItem(c, loc.NameOf(c))).ToList();
+        LanguageBox.SelectedItem = (LanguageBox.ItemsSource as IEnumerable<LangItem>)?
+            .FirstOrDefault(i => i.Code == loc.Language);
+        _languageReady = true; // erst danach reagiert OnLanguageChanged (nicht beim initialen Befüllen)
+    }
+
+    private void OnLanguageChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_languageReady || LanguageBox.SelectedItem is not LangItem item) return;
+        WebExStudio.Core.Localization.Loc.Instance.SetLanguage(item.Code); // wirkt sofort
+        AppSettings.SaveLanguage(item.Code);
     }
 
     // ── Plugins (zuvor im Über-Fenster) ───────────────────────────────────────

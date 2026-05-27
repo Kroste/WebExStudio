@@ -16,6 +16,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Gespeicherte UI-Sprache anwenden (vor dem Fenster, damit Texte gleich stimmen).
+            WebExStudio.Core.Localization.Loc.Instance.SetLanguage(AppSettings.LoadLanguage());
+
             // Plugins VOR dem ViewModel laden, damit die Palette die zusätzlichen Nodes kennt.
             var disabled = new HashSet<string>(AppSettings.LoadDisabledPlugins(), StringComparer.OrdinalIgnoreCase);
             NodePluginLoader.IsDisabled = disabled.Contains;
