@@ -443,20 +443,23 @@ Unabhängig davon lässt sich ein laufender Flow jederzeit mit **⏸ Pause** anh
 
 ## Anmeldedaten-Tresor (Secrets)
 
-Anmeldedaten gehören **nicht** in den Flow. Stattdessen liegen sie in einem **verschlüsselten Tresor**
-und werden im Flow nur per Namen referenziert.
+**Klartext**-Anmeldedaten gehören nicht in den Flow. Stattdessen liegen sie **verschlüsselt** im Flow
+und werden nur per Namen referenziert.
 
-- **Speicher**: eine verschlüsselte Datei (`credentials.enc` im Konfig-Ordner), **AES-256-GCM** mit
-  Schlüssel aus deinem **Master-Passwort** (PBKDF2). Plattformneutral, keine OS-Abhängigkeit.
+- **Speicher**: **pro Flow** — als verschlüsselter Blob direkt im Flow (Feld `credentials` der `.json`),
+  **AES-256-GCM** mit Schlüssel aus deinem **Master-Passwort** (PBKDF2). So liegen **Flow und Passwörter
+  zusammen** und reisen gemeinsam; die Passwörter von Flow A landen **nie** in Flow B. (Früher: eine
+  globale Datei für alle Flows — dort gespeicherte Daten musst du pro Flow neu hinterlegen.)
 - **Verwalten**: Toolbar **🔐 Tresor** (oder Doppelklick auf einen `credential_store`-Node). Pro Eintrag
-  (z. B. `F95`, `Pixeldrain`) die Felder **Benutzer / Passwort / API-Key** anlegen.
+  (z. B. `F95`, `Pixeldrain`) die Felder **Benutzer / Passwort / API-Key** anlegen. Änderungen werden in den
+  Flow geschrieben und sofort gespeichert (sofern der Flow schon einen Dateipfad hat — sonst beim nächsten Speichern).
 - **Verwenden**: per Platzhalter `{secret[name].user}`, `{secret[name].password}`, `{secret[name].api}` —
   z. B. in **Text eingeben** (`value`), **Navigate** (`url`), **Dropdown wählen**, **Klicken** (Text).
   In diesen Feldern bietet das Eigenschaften-Panel zusätzlich ein Dropdown **„🔐 Secret einfügen…"** an,
   das den passenden Platzhalter direkt einfügt (sobald der Tresor entsperrt ist).
 - **Lebenszyklus**: standardmäßig **verschlossen**. Beim Flow-Start (wenn Secrets genutzt werden) erscheint
   die **Master-Passwort-Abfrage**; danach ist der Tresor für die Sitzung entsperrt. Beim **Neu/Laden** eines
-  Flows und beim **Programm-Ende** wird er wieder verschlossen.
+  Flows wird er **neu an den Flow gebunden** (und dabei verschlossen), ebenso beim **Programm-Ende**.
 - **Sicherheit**: Secret-Werte werden **erst beim Verwenden** aufgelöst und gelangen **nie in den Payload**
   (auch nicht über `set_payload`/`function`) — der **Debug-Node** zeigt also nie den Wert. In **Logs/Traces**
   werden sie **maskiert** (`***`). Schutz greift gegen Weitergabe/Repo/Logs — nicht gegen einen Angreifer mit

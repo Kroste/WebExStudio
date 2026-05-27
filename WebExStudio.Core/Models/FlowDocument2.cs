@@ -9,6 +9,14 @@ public sealed class FlowDocument2
     public List<FlowGroup> Groups { get; set; } = [];
     public string? FilePath { get; set; }
 
+    /// <summary>
+    /// Verschlüsselter Anmeldedaten-Tresor dieses Flows (Base64 eines AES-256-GCM-Blobs, Schlüssel via
+    /// PBKDF2 aus dem Master-Passwort). Opak — nur <c>WebExStudio.Core.Credentials.CredentialVault</c>
+    /// liest/schreibt ihn. So liegen Flow und (verschlüsselte) Passwörter zusammen; Flow A enthält nie
+    /// die Secrets von Flow B. Null/leer = kein Tresor.
+    /// </summary>
+    public string? Credentials { get; set; }
+
     /// <summary>Visual groups on the given tab.</summary>
     public IEnumerable<FlowGroup> GetGroups(string tabId) =>
         Groups.Where(g => g.TabId == tabId);

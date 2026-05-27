@@ -27,9 +27,9 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public RunConfig RunConfig { get; } = new();
 
-    /// <summary>Verschlüsselter Anmeldedaten-Tresor (gesperrt bis zum Entsperren per Master-Passwort).</summary>
-    public WebExStudio.Core.Credentials.CredentialVault Vault { get; } =
-        new(AppSettings.CredentialVaultPath);
+    /// <summary>Verschlüsselter Anmeldedaten-Tresor des aktuellen Flows (gesperrt bis zum Entsperren
+    /// per Master-Passwort). An das jeweils geöffnete Dokument gebunden — Passwörter liegen im Flow.</summary>
+    public WebExStudio.Core.Credentials.CredentialVault Vault { get; } = new();
 
     /// <summary>True, wenn der aktuelle Flow Secrets nutzt ({secret[..]} oder einen Tresor-Node enthält).</summary>
     public bool CurrentFlowUsesSecrets()
@@ -144,7 +144,11 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             if (e.PropertyName is nameof(FlowEditorViewModel.Document) or nameof(FlowEditorViewModel.CanSave))
                 this.RaisePropertyChanged(nameof(CanRun));
+            // Tresor an den gerade geöffneten Flow binden (verschließt dabei den vorherigen).
+            if (e.PropertyName == nameof(FlowEditorViewModel.Document))
+                Vault.Bind(FlowEditor.Document);
         };
+        Vault.Bind(FlowEditor.Document); // initiales Dokument
         // Secret-Picker im Eigenschaften-Panel: liefert die verfügbaren {secret[..]}-Platzhalter
         // (nur wenn der Tresor entsperrt ist).
         FlowEditor.AvailableSecrets = SecretPlaceholders;
@@ -205,17 +209,25 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public void NewFlow()
     {
-        Vault.Lock(); // Tresor beim Flow-Wechsel wieder verschließen
+        // Tresor wird über das Document-Change-Event neu gebunden (und damit verschlossen).
         FlowEditor.NewDocument();
         StatusText = "Neuer Flow";
     }
 
     public async Task OpenFlowAsync(string path)
     {
-        Vault.Lock();
         await FlowEditor.LoadAsync(path);
         AddRecent(path);
         StatusText = $"Flow geladen: {Path.GetFileName(path)}";
+    }
+
+    /// <summary>Persistiert den aktuellen Flow (inkl. der in ihn geschriebenen, verschlüsselten
+    /// Anmeldedaten), sofern er bereits einen Pfad hat. Ohne Pfad: no-op — die Daten werden beim
+    /// nächsten „Speichern unter…" mitgesichert.</summary>
+    public async Task PersistCurrentFlowAsync()
+    {
+        if (FlowEditor.Document?.FilePath is { } path)
+            await FlowEditor.SaveAsync(path);
     }
 
     public async Task SaveFlowAsync(string path)

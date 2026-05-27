@@ -204,7 +204,9 @@ public partial class MainWindow : Window
 
     private async Task OpenVaultAsync()
     {
-        await new CredentialVaultWindow(Vm.Vault).ShowDialog(this);
+        // persist: schreibt den (in den Flow eingebetteten) Tresor sofort auf die Platte, wenn der Flow
+        // bereits gespeichert ist — sonst landet er beim nächsten Speichern mit.
+        await new CredentialVaultWindow(Vm.Vault, Vm.PersistCurrentFlowAsync).ShowDialog(this);
         // Falls der Tresor jetzt entsperrt ist, den Secret-Picker im Eigenschaften-Panel aktualisieren.
         Vm.FlowEditor.RefreshProperties();
     }

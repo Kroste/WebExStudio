@@ -86,11 +86,18 @@ public static class CliApp
             return Usage;
         }
 
-        // 2) Tresor nur entsperren, wenn der Flow Secrets verwendet.
+        // 2) Tresor (im Flow eingebettet) nur entsperren, wenn der Flow Secrets verwendet.
         var refs = SecretReferenceScanner.Scan(doc);
-        var vault = new CredentialVault(Paths.VaultPath);
+        var vault = new CredentialVault();
+        vault.Bind(doc);
         if (refs.Count > 0)
         {
+            if (!vault.HasData)
+            {
+                Console.Error.WriteLine($"✗ Der Flow referenziert {refs.Count} Tresor-Wert(e), enthält aber "
+                    + "keinen Tresor. Anmeldedaten im Editor (🔒) im Flow hinterlegen.");
+                return VaultError;
+            }
             var pw = ResolvePassword(o);
             if (pw is null)
             {
@@ -265,8 +272,6 @@ public static class CliApp
     {
         private static string ConfigDir =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WebExStudio");
-
-        public static string VaultPath => Path.Combine(ConfigDir, "credentials.enc");
 
         public static string[] PluginDirs =>
         [

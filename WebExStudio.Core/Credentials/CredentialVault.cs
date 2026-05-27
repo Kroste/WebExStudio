@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using WebExStudio.Core.Models;
 
 namespace WebExStudio.Core.Credentials;
 
@@ -8,32 +9,42 @@ namespace WebExStudio.Core.Credentials;
 /// Plattformneutraler, verschlüsselter Anmeldedaten-Tresor (AES-256-GCM, Schlüssel via PBKDF2 aus
 /// einem Master-Passwort). Hält die Einträge nur im entsperrten Zustand im Speicher.
 /// Datenmodell: Name → (Feld → Wert), z. B. "F95" → { "user": …, "password": …, "api": … }.
+///
+/// Der Tresor gehört zu <b>einem Flow</b>: Ver-/entschlüsselt wird der opake Blob in
+/// <see cref="FlowDocument2.Credentials"/> (Base64). So liegen Flow und Passwörter zusammen, und die
+/// Passwörter von Flow A landen nie in Flow B. Persistiert wird beim Speichern des Flows
+/// (<see cref="Save"/> schreibt nur in das Dokument, nicht auf die Platte).
 /// </summary>
 public sealed class CredentialVault
 {
-    private readonly string _path;
+    private FlowDocument2? _doc; // Hintergrundspeicher: _doc.Credentials (Base64-Blob)
     // null = verschlossen
     private Dictionary<string, Dictionary<string, string>>? _data;
     private string? _password;
 
-    public CredentialVault(string path) => _path = path;
+    /// <summary>Bindet den Tresor an ein Flow-Dokument (verschließt vorher). Bei Flow-Wechsel aufrufen.</summary>
+    public void Bind(FlowDocument2? doc)
+    {
+        Lock();
+        _doc = doc;
+    }
 
-    /// <summary>Existiert bereits eine Tresor-Datei?</summary>
-    public bool FileExists => File.Exists(_path);
+    /// <summary>Enthält der gebundene Flow bereits einen (verschlüsselten) Tresor?</summary>
+    public bool HasData => !string.IsNullOrEmpty(_doc?.Credentials);
 
     public bool IsUnlocked => _data is not null;
 
-    /// <summary>Entsperrt den Tresor (oder legt einen neuen leeren an, wenn keine Datei existiert).
+    /// <summary>Entsperrt den Tresor des gebundenen Flows (oder beginnt leer, wenn noch keiner existiert).
     /// Wirft bei falschem Passwort eine <see cref="CryptographicException"/>.</summary>
     public void Unlock(string password)
     {
-        if (!FileExists)
+        if (string.IsNullOrEmpty(_doc?.Credentials))
         {
             _data = new(StringComparer.OrdinalIgnoreCase);
             _password = password;
             return;
         }
-        _data = CredentialCrypto.Decrypt(File.ReadAllBytes(_path), password);
+        _data = CredentialCrypto.Decrypt(Convert.FromBase64String(_doc.Credentials), password);
         _password = password;
     }
 
@@ -71,13 +82,16 @@ public sealed class CredentialVault
         _data!.Remove(name);
     }
 
-    /// <summary>Schreibt den Tresor verschlüsselt auf die Platte.</summary>
+    /// <summary>Schreibt den Tresor verschlüsselt in das gebundene Flow-Dokument
+    /// (<see cref="FlowDocument2.Credentials"/>). Die Persistenz auf die Platte erfolgt beim
+    /// Speichern des Flows. Leerer Tresor ⇒ Feld wird auf null gesetzt (kein Blob im Flow).</summary>
     public void Save()
     {
         EnsureUnlocked();
-        var dir = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-        File.WriteAllBytes(_path, CredentialCrypto.Encrypt(_data!, _password!));
+        if (_doc is null) throw new InvalidOperationException("Kein Flow an den Tresor gebunden.");
+        _doc.Credentials = _data!.Count == 0
+            ? null
+            : Convert.ToBase64String(CredentialCrypto.Encrypt(_data!, _password!));
     }
 
     /// <summary>Ändert das Master-Passwort und speichert sofort neu verschlüsselt.</summary>
