@@ -31,4 +31,13 @@ public partial class AboutWindow : Window
     private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
 
     private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow(_onLoadExample).ShowDialog(this);
+
+    /// <summary>Öffnet die Buy-Me-a-Coffee-Seite von Kroste im Standardbrowser
+    /// (plattformneutral via Avalonia-Launcher: Windows ShellExecute, Linux xdg-open, macOS open).</summary>
+    private async void OnCoffee(object? _, RoutedEventArgs e)
+    {
+        var top = GetTopLevel(this);
+        if (top is not null)
+            await top.Launcher.LaunchUriAsync(new System.Uri("https://buymeacoffee.com/kroste"));
+    }
 }
