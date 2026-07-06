@@ -53,6 +53,13 @@ Version nicht anheben.
 > per `-p:Version`. Der Wert in `Directory.Build.props` ist die Dev-/Basisversion –
 > idealerweise passend zum nächsten geplanten Tag.
 
+## NuGet-Pakete (Central Package Management)
+
+Alle Paketversionen werden zentral in **`Directory.Packages.props`** (Repo-Wurzel)
+gepflegt. Die `.csproj`-Dateien enthalten `<PackageReference>` **ohne**
+`Version`-Attribut. Beim Hinzufügen eines Pakets: Eintrag in
+`Directory.Packages.props` ergänzen + versionslose Referenz im Projekt.
+
 ## Code-Konventionen
 
 - MVVM einhalten: Logik in ViewModels/Core/Engine, Views möglichst dünn.
