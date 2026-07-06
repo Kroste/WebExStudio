@@ -20,7 +20,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: .NET einrichten
         uses: actions/setup-dotnet@v5
@@ -66,7 +66,7 @@ jobs:
       run:
         shell: bash   # Git-Bash auf Windows → tar/zip/Skripte funktionieren auf beiden Runnern
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: .NET einrichten
         uses: actions/setup-dotnet@v5
