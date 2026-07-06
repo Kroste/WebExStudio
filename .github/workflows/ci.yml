@@ -27,6 +27,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: NuGet-Cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          # Key hängt an der zentralen Paketliste (CPM): ändert sich die
+          # Directory.Packages.props, wird ein neuer Cache aufgebaut.
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore
         run: dotnet restore WebExStudio.slnx
 
@@ -63,6 +72,15 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: NuGet-Cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          # Key hängt an der zentralen Paketliste (CPM): ändert sich die
+          # Directory.Packages.props, wird ein neuer Cache aufgebaut.
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Version aus Tag/Run ableiten
         id: ver

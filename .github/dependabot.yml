@@ -1,0 +1,36 @@
+# Dependabot: automatische Update-PRs für Abhängigkeiten.
+#
+# - nuget: liest die zentrale Directory.Packages.props (CPM wird vom neuen
+#   NuGet-Updater nativ unterstützt) und aktualisiert Versionen direkt dort.
+# - github-actions: hält die Action-Versionen in .github/workflows aktuell.
+#
+# Updates kommen wöchentlich montags als je EIN gruppierter Sammel-PR
+# (statt vieler Einzel-PRs). CI (Build + 306 Tests) läuft automatisch dagegen.
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Berlin"
+    groups:
+      nuget-pakete:
+        patterns: ["*"]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Abhängigkeiten"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Berlin"
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
