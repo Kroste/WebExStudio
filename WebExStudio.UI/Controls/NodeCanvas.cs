@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.VisualTree;
 using WebExStudio.UI.ViewModels;
 
@@ -312,10 +313,33 @@ public sealed class WireDropEventArgs(NodeViewModel source, int outputPort, Poin
     public Point WorldPos { get; } = worldPos;
 }
 
-/// <summary>Draws the background dot-grid behind the canvas (not transformed, just offset).</summary>
+/// <summary>
+/// Draws the background dot-grid behind the canvas (not transformed, just offset).
+///
+/// Performance: Pinsel/Stifte sind unveränderliche statische Instanzen, und
+/// Punkte/Linien liegen in gecachten StreamGeometry-Objekten, die nur bei
+/// Zoom-/Größenänderung neu aufgebaut werden. Beim Pannen kostet ein Frame
+/// damit nur noch drei Draw-Aufrufe (Hintergrund + Linien + Punkte) statt
+/// tausender DrawEllipse/DrawLine. Unter 8 px Rasterabstand verdoppelt sich
+/// der Schritt (Level of Detail), damit tiefes Rauszoomen nicht explodiert.
+/// </summary>
 public sealed class GridOverlay : Control
 {
+    private const double BaseGrid = 20.0;
+    private const double MinStepPx = 8.0;
+    private const double DotRadius = 1.5;
+
+    private static readonly ImmutableSolidColorBrush BgBrush = new(Color.Parse("#12121F"));
+    private static readonly ImmutableSolidColorBrush DotBrush = new(Color.Parse("#303050"));
+    private static readonly ImmutablePen LinePen = new(new ImmutableSolidColorBrush(Color.Parse("#252540")), 0.5);
+
     private double _ox, _oy, _scale = 1;
+
+    // Geometrie-Cache (gültig für _cachedStep/_cachedSize)
+    private StreamGeometry? _lines;
+    private StreamGeometry? _dots;
+    private double _cachedStep = -1;
+    private Size _cachedSize;
 
     public void UpdateOffset(double ox, double oy, double scale)
     {
@@ -323,22 +347,76 @@ public sealed class GridOverlay : Control
         InvalidateVisual();
     }
 
+    /// <summary>Normalisiert einen Offset auf [0, size) — auch für negative Werte.</summary>
+    public static double Wrap(double value, double size)
+        => value - Math.Floor(value / size) * size;
+
+    /// <summary>
+    /// Effektiver Rasterschritt: verdoppelt den Basis-Schritt, bis er mindestens
+    /// <see cref="MinStepPx"/> beträgt (bleibt dadurch am Welt-Raster ausgerichtet).
+    /// </summary>
+    public static double ComputeStep(double gridSize)
+    {
+        var step = gridSize;
+        while (step < MinStepPx) step *= 2;
+        return step;
+    }
+
     public override void Render(DrawingContext ctx)
     {
-        ctx.FillRectangle(new SolidColorBrush(Color.Parse("#12121F")), new Rect(Bounds.Size));
+        ctx.FillRectangle(BgBrush, new Rect(Bounds.Size));
 
-        var gridSize = 20.0 * _scale;
-        var pen = new Pen(new SolidColorBrush(Color.Parse("#252540")), 0.5);
-        var dotBrush = new SolidColorBrush(Color.Parse("#303050"));
+        var step = ComputeStep(BaseGrid * _scale);
+        EnsureGeometry(step);
+        if (_lines is null || _dots is null) return;
 
-        var ox = _ox % gridSize;
-        var oy = _oy % gridSize;
-
-        for (var x = ox - gridSize; x < Bounds.Width + gridSize; x += gridSize)
+        // Geometrie ist bei (0,0) verankert und ragt einen Schritt über den Rand
+        // hinaus — die Verschiebung um den gewrappten Offset deckt so immer alles ab.
+        var tx = Wrap(_ox, step) - step;
+        var ty = Wrap(_oy, step) - step;
+        using (ctx.PushTransform(Matrix.CreateTranslation(tx, ty)))
         {
-            ctx.DrawLine(pen, new Point(x, 0), new Point(x, Bounds.Height));
-            for (var y = oy - gridSize; y < Bounds.Height + gridSize; y += gridSize)
-                ctx.DrawEllipse(dotBrush, null, new Point(x, y), 1.5, 1.5);
+            ctx.DrawGeometry(null, LinePen, _lines);
+            ctx.DrawGeometry(DotBrush, null, _dots);
         }
+    }
+
+    private void EnsureGeometry(double step)
+    {
+        if (step == _cachedStep && Bounds.Size == _cachedSize) return;
+        _cachedStep = step;
+        _cachedSize = Bounds.Size;
+
+        var w = Bounds.Width + 2 * step;
+        var h = Bounds.Height + 2 * step;
+
+        var lines = new StreamGeometry();
+        using (var c = lines.Open())
+        {
+            for (var x = 0.0; x <= w; x += step)
+            {
+                c.BeginFigure(new Point(x, 0), isFilled: false);
+                c.LineTo(new Point(x, h));
+                c.EndFigure(false);
+            }
+        }
+
+        var dots = new StreamGeometry();
+        using (var c = dots.Open())
+        {
+            var r = DotRadius;
+            for (var x = 0.0; x <= w; x += step)
+                for (var y = 0.0; y <= h; y += step)
+                {
+                    // Kreis aus zwei Halbbögen (StreamGeometry kennt keine Ellipse direkt).
+                    c.BeginFigure(new Point(x - r, y), isFilled: true);
+                    c.ArcTo(new Point(x + r, y), new Size(r, r), 0, false, SweepDirection.Clockwise);
+                    c.ArcTo(new Point(x - r, y), new Size(r, r), 0, false, SweepDirection.Clockwise);
+                    c.EndFigure(true);
+                }
+        }
+
+        _lines = lines;
+        _dots = dots;
     }
 }

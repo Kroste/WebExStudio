@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Controls;
@@ -11,6 +12,21 @@ namespace WebExStudio.UI.Controls;
 /// </summary>
 public sealed class ConnectionRenderer : Control
 {
+    // Unveränderliche Zeichenressourcen: einmal erzeugt, nie pro Frame alloziert
+    // (mutable Brushes/Pens erzeugen zudem Compositor-Subscriptions).
+    private static readonly Color PreviewColor = Color.Parse("#FFFFFF88");
+    private static readonly Color SelectedColor = Color.Parse("#FF5252");
+    private static readonly Color NormalColor = Color.Parse("#90A4AE");
+    private static readonly ImmutablePen PreviewPen =
+        new(new ImmutableSolidColorBrush(PreviewColor), 2.0, new ImmutableDashStyle([6, 3], 0));
+    private static readonly ImmutablePen SelectedPen = new(new ImmutableSolidColorBrush(SelectedColor), 3.0);
+    private static readonly ImmutablePen NormalPen = new(new ImmutableSolidColorBrush(NormalColor), 2.0);
+    private static readonly ImmutableSolidColorBrush SelectedArrowBrush = new(SelectedColor);
+    private static readonly ImmutableSolidColorBrush NormalArrowBrush = new(NormalColor);
+    private static readonly ImmutableSolidColorBrush SelectionFill = new(Color.Parse("#4FC3F7"), 0.15);
+    private static readonly ImmutablePen SelectionPen =
+        new(new ImmutableSolidColorBrush(Color.Parse("#4FC3F7")), 1.0, new ImmutableDashStyle([4, 3], 0));
+
     private List<WireViewModel> _wires = [];
     private Dictionary<string, NodeViewModel> _nodeMap = new();
     private Point? _dragFrom;
@@ -131,14 +147,7 @@ public sealed class ConnectionRenderer : Control
 
         // Draw rubber-band selection rectangle
         if (_selectionRect is { } sel)
-        {
-            var fill = new SolidColorBrush(Color.Parse("#4FC3F7"), 0.15);
-            var pen = new Pen(new SolidColorBrush(Color.Parse("#4FC3F7")), 1)
-            {
-                DashStyle = new DashStyle([4, 3], 0),
-            };
-            ctx.DrawRectangle(fill, pen, sel);
-        }
+            ctx.DrawRectangle(SelectionFill, SelectionPen, sel);
     }
 
     private static void DrawWire(DrawingContext ctx, Point from, Point to, bool isPreview, bool isSelected)
@@ -147,38 +156,36 @@ public sealed class ConnectionRenderer : Control
         var c1 = new Point(from.X, from.Y + dy);
         var c2 = new Point(to.X, to.Y - dy);
 
-        var geo = new PathGeometry();
-        var figure = new PathFigure { StartPoint = from, IsClosed = false };
-        (figure.Segments ??= []).Add(new BezierSegment { Point1 = c1, Point2 = c2, Point3 = to });
-        (geo.Figures ??= []).Add(figure);
-
-        var color = isPreview ? Color.Parse("#FFFFFF88")
-                  : isSelected ? Color.Parse("#FF5252")
-                  : Color.Parse("#90A4AE");
-        var pen = new Pen(new SolidColorBrush(color), isSelected ? 3.0 : 2.0)
+        var geo = new StreamGeometry();
+        using (var c = geo.Open())
         {
-            DashStyle = isPreview ? new DashStyle([6, 3], 0) : null,
-        };
+            c.BeginFigure(from, isFilled: false);
+            c.CubicBezierTo(c1, c2, to);
+            c.EndFigure(false);
+        }
 
+        var pen = isPreview ? PreviewPen : isSelected ? SelectedPen : NormalPen;
         ctx.DrawGeometry(null, pen, geo);
 
         if (!isPreview)
-            DrawArrowHead(ctx, to, color);
+            DrawArrowHead(ctx, to, isSelected ? SelectedArrowBrush : NormalArrowBrush);
     }
 
-    private static void DrawArrowHead(DrawingContext ctx, Point tip, Color color)
+    private static void DrawArrowHead(DrawingContext ctx, Point tip, IBrush brush)
     {
         const double size = 8;
         var left = new Point(tip.X - size / 2, tip.Y - size);
         var right = new Point(tip.X + size / 2, tip.Y - size);
 
-        var geo = new PathGeometry();
-        var fig = new PathFigure { StartPoint = left, IsClosed = true };
-        var segs = fig.Segments ??= [];
-        segs.Add(new LineSegment { Point = tip });
-        segs.Add(new LineSegment { Point = right });
-        (geo.Figures ??= []).Add(fig);
+        var geo = new StreamGeometry();
+        using (var c = geo.Open())
+        {
+            c.BeginFigure(left, isFilled: true);
+            c.LineTo(tip);
+            c.LineTo(right);
+            c.EndFigure(true);
+        }
 
-        ctx.DrawGeometry(new SolidColorBrush(color), null, geo);
+        ctx.DrawGeometry(brush, null, geo);
     }
 }
