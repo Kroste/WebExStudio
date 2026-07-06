@@ -25,9 +25,16 @@ class Program
         }
 
         Log.Info("WebExStudio startet");
+        GlobalExceptionHandler.Register();
         try
         {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            // Absturz beim Start oder im Hauptloop: Ursache loggen, dann weiterreichen.
+            GlobalExceptionHandler.LogFatal(ex, "Main", isTerminating: true);
+            throw;
         }
         finally
         {

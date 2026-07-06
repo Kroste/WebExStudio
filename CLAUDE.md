@@ -67,6 +67,10 @@ gepflegt. Die `.csproj`-Dateien enthalten `<PackageReference>` **ohne**
 - **Logging-Pflicht:** Jede nennenswerte Aktion wird über NLog protokolliert
   (`LogManager.GetCurrentClassLogger()`, Meldungen auf Deutsch) — inkl. KI-Chat
   (Anfrage/Antwort), Flow-Generierung, Ausführung, Laden/Speichern.
+- **Globaler Exception-Handler:** `GlobalExceptionHandler.Register()` (in
+  `Program.Main`) fängt AppDomain-, Task- und UI-Thread-Ausnahmen ab →
+  NLog-Fatal + Fehlerdialog. Nicht entfernen; neue Einstiegspunkte (z. B.
+  weitere Prozesse) bekommen dasselbe Muster.
 - **Secrets maskieren:** Vor dem Loggen von Inhalten, die Geheimnisse enthalten können
   (KI-Chat-Texte, Flow-/Config-JSON, Proxy/Anbieter-Daten), immer
   `WebExStudio.Core.Logging.SecretMasker.Mask(...)` verwenden und konkrete Geheimwerte

@@ -519,6 +519,8 @@ NLog writes to `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
 | `debug.log` | Debug level for `WebExStudio.*` (verbose). |
 | `error.log` | Errors incl. stack trace. |
 
+Unhandled exceptions (including those from UI event handlers) are caught by a global handler: they are logged as **Fatal** to `error.log` and shown in an error dialog — the app keeps running where possible.
+
 During execution, node status and `debug` output also appear live in the **execution log** at the bottom of the app. Per entry:
 
 - **Double-click** → jumps to the corresponding node in the editor (opens its tab, selects it and centers the view).

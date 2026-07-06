@@ -518,6 +518,8 @@ NLog écrit dans `WebExStudio.UI/bin/<Config>/net10.0/logs/` :
 | `debug.log` | Niveau debug pour `WebExStudio.*` (détaillé). |
 | `error.log` | Erreurs avec pile d'appels. |
 
+Les exceptions non gérées (y compris celles des gestionnaires d'événements de l'interface) sont interceptées par un gestionnaire global : elles sont journalisées en **Fatal** dans `error.log` et affichées dans une boîte de dialogue d'erreur — l'application continue de fonctionner dans la mesure du possible.
+
 Pendant l'exécution, le statut des nœuds et les sorties `debug` apparaissent aussi en direct dans le **journal d'exécution** en bas de l'appli. Par entrée :
 
 - **Double-clic** → saute au nœud correspondant dans l'éditeur (ouvre son onglet, le sélectionne et centre la vue).

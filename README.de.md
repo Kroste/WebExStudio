@@ -519,6 +519,8 @@ NLog schreibt nach `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
 | `debug.log` | Debug-Ebene für `WebExStudio.*` (ausführlich). |
 | `error.log` | Fehler inkl. Stacktrace. |
 
+Unbehandelte Ausnahmen (auch aus UI-Eventhandlern) fängt ein globaler Handler ab: Sie werden als **Fatal** in `error.log` protokolliert und in einem Fehlerdialog angezeigt — die App läuft nach Möglichkeit weiter.
+
 Während der Ausführung erscheinen Node-Status und `debug`-Ausgaben außerdem live im **Ausführungsprotokoll** unten in der App. Dort gilt pro Eintrag:
 
 - **Doppelklick** → springt im Editor zum zugehörigen Node (öffnet dessen Tab, wählt ihn aus und zentriert die Ansicht).

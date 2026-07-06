@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <!-- Erzeugt eine plugin-taugliche *.deps.json und markiert Host-Refs als nicht-kopierend. -->
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <!-- Plugin (kein App-Bestandteil): wird als DLL in den plugins/-Ordner gelegt. -->
