@@ -1,0 +1,155 @@
+name: Release
+
+# Release-Builds für Linux + Windows (GUI + CLI + AppImage) und Veröffentlichung
+# als GitHub-Release-Assets. Läuft NUR bei Tags v* oder manuell — nicht bei
+# jedem Push (spart Artefakt-Speicher).
+on:
+  push:
+    tags: ['v*']        # z. B. v1.0.0 → erzeugt ein GitHub-Release
+  workflow_dispatch:
+
+permissions:
+  contents: write       # nötig, damit das Release angelegt werden kann
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  # Vor dem Release nochmal komplett testen. Der reguläre CI-Lauf auf main deckt
+  # das zwar schon ab, ein Tag könnte aber auf einem noch nicht getesteten Commit
+  # sitzen — die Vorab-Tests hier verhindern kaputte Releases.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: .NET einrichten
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: NuGet-Cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore WebExStudio.slnx
+
+      - name: Build (Release)
+        run: dotnet build WebExStudio.slnx -c Release --no-restore
+
+      - name: Tests
+        run: dotnet test WebExStudio.slnx -c Release --no-build --verbosity normal
+
+  release:
+    needs: test
+    # Jedes Paket auf seinem nativen OS bauen — sonst liefert Playwright beim Cross-Publish
+    # die node-Treiber der Host-Plattform aus (z. B. Linux-Treiber im Windows-Paket).
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: win-x64
+            os: windows-latest
+    defaults:
+      run:
+        shell: bash   # Git-Bash auf Windows → tar/zip/Skripte funktionieren auf beiden Runnern
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: .NET einrichten
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: NuGet-Cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Version aus Tag/Run ableiten
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish GUI (${{ matrix.rid }})
+        run: |
+          dotnet publish WebExStudio.UI/WebExStudio.UI.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:Version=${{ steps.ver.outputs.version }} \
+            -o publish/${{ matrix.rid }}
+
+      - name: Publish CLI (${{ matrix.rid }})
+        run: |
+          dotnet publish WebExStudio.Cli/WebExStudio.Cli.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:Version=${{ steps.ver.outputs.version }} \
+            -o publish-cli/${{ matrix.rid }}
+
+      - name: Pakete schnüren (Linux .tar.gz)
+        if: matrix.rid == 'linux-x64'
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          (cd "publish/linux-x64"     && tar -czf "../../WebExStudio-$V-linux-x64.tar.gz" .)
+          (cd "publish-cli/linux-x64" && tar -czf "../../webex-$V-linux-x64.tar.gz" .)
+
+      - name: Pakete schnüren (Windows .zip)
+        if: matrix.rid == 'win-x64'
+        shell: pwsh
+        run: |
+          $V = "${{ steps.ver.outputs.version }}"
+          Compress-Archive -Path publish/win-x64/*     -DestinationPath "WebExStudio-$V-win-x64.zip" -Force
+          Compress-Archive -Path publish-cli/win-x64/* -DestinationPath "webex-$V-win-x64.zip" -Force
+
+      - name: AppImage bauen (nur linux-x64)
+        if: matrix.rid == 'linux-x64'
+        run: bash build/make-appimage.sh publish/linux-x64 "${{ steps.ver.outputs.version }}" .
+
+      # Actions-Artefakt nur bei manuellem Lauf (workflow_dispatch) — bei Tags ist das
+      # GitHub-Release die Verteilung (dessen Assets zählen NICHT gegens Artefakt-Kontingent).
+      # continue-on-error: ein voller Artefakt-Speicher darf das Release nie blockieren.
+      - name: Artefakte hochladen (nur bei manuellem Lauf)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: WebExStudio-${{ matrix.rid }}
+          path: |
+            WebExStudio-*-${{ matrix.rid }}.zip
+            WebExStudio-*-${{ matrix.rid }}.tar.gz
+            webex-*-${{ matrix.rid }}.zip
+            webex-*-${{ matrix.rid }}.tar.gz
+            WebExStudio-*-x86_64.AppImage
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: GitHub-Release anlegen/aktualisieren (nur bei Tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            WebExStudio-*-${{ matrix.rid }}.zip
+            WebExStudio-*-${{ matrix.rid }}.tar.gz
+            webex-*-${{ matrix.rid }}.zip
+            webex-*-${{ matrix.rid }}.tar.gz
+            WebExStudio-*-x86_64.AppImage
+          fail_on_unmatched_files: false
+          generate_release_notes: true
