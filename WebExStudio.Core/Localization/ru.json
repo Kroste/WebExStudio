@@ -110,6 +110,12 @@
   "About_Help": "📖  Справка / Краткое руководство",
   "About_HelpTip": "Открыть краткое руководство по использованию",
   "About_BuyMeCoffeeTip": "Поддержать разработку виртуальной чашкой кофе (buymeacoffee.com/kroste)",
+  "About_CheckUpdate": "🔄 Проверить обновления",
+  "About_UpdateChecking": "Проверка…",
+  "About_UpdateCurrent": "✓ Установлена последняя версия.",
+  "About_UpdateAvailable": "⬆ Доступна версия {0}",
+  "About_UpdateError": "Не удалось проверить обновления (нет сети или прокси)",
+  "About_UpdateOpenRelease": "📥 Открыть страницу релиза",
   "About_Version": "Версия {0}",
 
   "Pw_MasterPlaceholder": "Мастер-пароль",

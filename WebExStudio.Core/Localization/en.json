@@ -110,6 +110,12 @@
   "About_Help": "📖  Help / Quick guide",
   "About_HelpTip": "Open the quick usage guide",
   "About_BuyMeCoffeeTip": "Support development with a virtual coffee (buymeacoffee.com/kroste)",
+  "About_CheckUpdate": "🔄 Check for updates",
+  "About_UpdateChecking": "Checking…",
+  "About_UpdateCurrent": "✓ You have the latest version.",
+  "About_UpdateAvailable": "⬆ Version {0} available",
+  "About_UpdateError": "Update check failed (offline or proxy issue)",
+  "About_UpdateOpenRelease": "📥 Open release page",
   "About_Version": "Version {0}",
 
   "Pw_MasterPlaceholder": "Master password",

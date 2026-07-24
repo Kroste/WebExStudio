@@ -3,7 +3,7 @@
         xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.AboutWindow"
         Title="WebExStudio"
-        Width="420" Height="420"
+        Width="420" Height="480"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         WindowDecorations="None"
@@ -69,6 +69,26 @@
                   Padding="14,7" FontSize="12" Cursor="Hand"
                   ToolTip.Tip="{l:Tr About_HelpTip}" />
         </StackPanel>
+
+        <!-- Update-Check gegen GitHub Releases (proxy-aware, nicht blockierend) -->
+        <Border Margin="0,14,0,0" Padding="10,8" CornerRadius="6" Background="#16162A"
+                BorderBrush="#2A2A4E" BorderThickness="1">
+          <StackPanel Spacing="6" HorizontalAlignment="Center">
+            <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="#B0BEC5"
+                       HorizontalAlignment="Center" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+              <Button x:Name="UpdateCheckButton" Click="OnCheckUpdate"
+                      Content="{l:Tr About_CheckUpdate}"
+                      Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                      Padding="12,6" FontSize="11" Cursor="Hand" />
+              <Button x:Name="UpdateOpenReleaseButton" Click="OnOpenRelease"
+                      Content="{l:Tr About_UpdateOpenRelease}"
+                      Background="#2E7D32" Foreground="White" BorderThickness="0"
+                      Padding="12,6" FontSize="11" Cursor="Hand"
+                      IsVisible="False" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
 
         <!-- Buy Me a Coffee — Markenfarbe (#FFDD00) + Markenname (englisch lassen) -->
         <Button Click="OnCoffee"

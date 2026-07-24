@@ -110,6 +110,12 @@
   "About_Help": "📖  Hilfe / Kurzanleitung",
   "About_HelpTip": "Kurzanleitung zur Bedienung öffnen",
   "About_BuyMeCoffeeTip": "Entwicklung mit einem virtuellen Kaffee unterstützen (buymeacoffee.com/kroste)",
+  "About_CheckUpdate": "🔄 Auf Updates prüfen",
+  "About_UpdateChecking": "Prüfe…",
+  "About_UpdateCurrent": "✓ Du hast die aktuelle Version.",
+  "About_UpdateAvailable": "⬆ Version {0} verfügbar",
+  "About_UpdateError": "Update-Prüfung fehlgeschlagen (offline oder Proxy-Problem)",
+  "About_UpdateOpenRelease": "📥 Release-Seite öffnen",
   "About_Version": "Version {0}",
 
   "Pw_MasterPlaceholder": "Master-Passwort",
