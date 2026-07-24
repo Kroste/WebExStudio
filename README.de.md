@@ -22,6 +22,7 @@
 - [Plugins (eigene Nodes)](#plugins-eigene-nodes)
 - [Kommandozeile (CLI / headless)](#kommandozeile-cli--headless)
 - [Einstellungen (Browser / Netzwerk / KI)](#einstellungen)
+- [System-Tray & Update-Prüfung](#system-tray--update-prüfung)
 - [Logging](#logging)
 - [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung)
 - [Legacy-Projekte importieren](#legacy-projekte-importieren)
@@ -506,6 +507,24 @@ sprachunabhängig austauschbar sind. Weitere Sprachen lassen sich durch eine zus
 | **Benutzer / Passwort** | optional, für authentifizierte Proxys. |
 
 **Tab „KI"** — siehe [KI: Flow aus Beschreibung](#ki-flow-aus-beschreibung).
+
+---
+
+## System-Tray & Update-Prüfung
+
+**System-Tray.** Das Minimieren des Hauptfensters (über den `—`-Button in der Titelleiste) legt
+WebExStudio in den System-Tray statt in die Taskleiste. Das Tray-Icon bietet **Anzeigen**
+(auch per Linksklick) und **Beenden**; das Schließen mit `✕` beendet die App weiterhin wie
+gewohnt. Bietet die Desktop-Umgebung keinen Tray (Headless-Server, manche Wayland-Compositoren
+ohne Status-Notifier), fällt das Minimieren auf das Standardverhalten zurück — ohne Fehlermeldung.
+
+**Update-Prüfung.** Das **Über**-Fenster prüft beim Öffnen automatisch gegen GitHub Releases
+(nicht blockierend, proxy-aware — nutzt den System-Proxy mit Default-Credentials, funktioniert
+also auch hinter einem Firmen-Kerberos/Negotiate-Proxy). Ist eine neuere Version verfügbar,
+erscheint der Button `📥 Release-Seite öffnen`, der `github.com/Kroste/WebExStudio/releases/latest`
+im Browser aufruft — kein Silent-Auto-Install, du entscheidest wann und wie du aktualisierst.
+Ein `🔄 Auf Updates prüfen`-Button löst auf Wunsch einen frischen Check aus. Fehler (offline
+oder Proxy-Problem) werden nur geloggt, nie als Fehlerdialog gezeigt.
 
 ---
 

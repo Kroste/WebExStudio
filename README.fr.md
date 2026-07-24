@@ -22,6 +22,7 @@
 - [Plugins (nœuds personnalisés)](#plugins-nœuds-personnalisés)
 - [Ligne de commande (CLI / sans interface)](#ligne-de-commande-cli--sans-interface)
 - [Paramètres (Navigateur / Réseau / IA)](#paramètres)
+- [Zone de notification & vérification des mises à jour](#zone-de-notification--vérification-des-mises-à-jour)
 - [Journalisation](#journalisation)
 - [IA : flux à partir d'une description](#ia--flux-à-partir-dune-description)
 - [Importer des projets hérités](#importer-des-projets-hérités)
@@ -505,6 +506,26 @@ peuvent être ajoutées avec un fichier `Localization/<code>.json` supplémentai
 | **Utilisateur / mot de passe** | facultatif, pour les proxys authentifiés. |
 
 **Onglet « IA »** — voir [IA : flux à partir d'une description](#ia--flux-à-partir-dune-description).
+
+---
+
+## Zone de notification & vérification des mises à jour
+
+**Zone de notification (system tray).** Réduire la fenêtre principale (via le bouton `—` dans la
+barre de titre) place WebExStudio dans la zone de notification au lieu de la barre des tâches.
+L'icône propose **Afficher** (aussi par clic gauche) et **Quitter** ; fermer avec `✕` met fin à
+l'application comme d'habitude. Si l'environnement de bureau n'offre pas de zone de notification
+(serveur sans interface, certains compositeurs Wayland sans Status-Notifier), la réduction retombe
+sur le comportement standard — sans message d'erreur.
+
+**Vérification des mises à jour.** La fenêtre **À propos** vérifie automatiquement GitHub Releases
+à l'ouverture (non bloquant, compatible proxy — utilise le proxy système avec les identifiants par
+défaut, fonctionne donc aussi derrière un proxy d'entreprise Kerberos/Negotiate). Si une nouvelle
+version est disponible, le bouton `📥 Ouvrir la page du release` apparaît et ouvre
+`github.com/Kroste/WebExStudio/releases/latest` dans le navigateur — pas d'installation silencieuse,
+vous décidez quand et comment mettre à jour. Le bouton `🔄 Vérifier les mises à jour` déclenche une
+nouvelle vérification sur demande. Les erreurs (hors ligne ou proxy) sont uniquement journalisées,
+jamais affichées comme boîte de dialogue.
 
 ---
 

@@ -22,6 +22,7 @@
 - [Plugins (custom nodes)](#plugins-custom-nodes)
 - [Command line (CLI / headless)](#command-line-cli--headless)
 - [Settings (Browser / Network / AI)](#settings)
+- [System tray & update check](#system-tray--update-check)
 - [Logging](#logging)
 - [AI: flow from a description](#ai-flow-from-a-description)
 - [Importing legacy projects](#importing-legacy-projects)
@@ -506,6 +507,23 @@ regardless of language. Additional languages can be added with another
 | **User / password** | optional, for authenticated proxies. |
 
 **"AI" tab** — see [AI: flow from a description](#ai-flow-from-a-description).
+
+---
+
+## System tray & update check
+
+**System tray.** Minimising the main window (the `—` button in the title bar) puts WebExStudio
+into the system tray instead of the taskbar. The tray icon offers **Show** (also on left-click) and
+**Quit**; closing the window with `✕` still quits the app as usual. If the desktop has no tray
+support (headless server, some Wayland compositors without a status-notifier), minimising falls
+back to the normal behaviour — no error message.
+
+**Update check.** The **About** dialog automatically checks GitHub Releases on open (non-blocking,
+proxy-aware — uses the system proxy with default credentials, so it also works behind a corporate
+Kerberos/Negotiate proxy). If a newer version is available, an `📥 Open release page` button appears
+that opens `github.com/Kroste/WebExStudio/releases/latest` in your browser — no silent auto-install,
+you decide when and how to update. A `🔄 Check for updates` button triggers a fresh check on demand.
+Errors (offline / proxy issue) are only logged, never shown as an error dialog.
 
 ---
 
