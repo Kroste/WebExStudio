@@ -2,6 +2,9 @@
   "@name": "Deutsch",
   "@flag": "🇩🇪",
 
+  "Tray_Show": "Anzeigen",
+  "Tray_Quit": "Beenden",
+
   "Tip_Settings": "Einstellungen",
   "Tip_Help": "Hilfe / Kurzanleitung",
   "Tip_About": "Über",

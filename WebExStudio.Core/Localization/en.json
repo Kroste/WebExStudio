@@ -2,6 +2,9 @@
   "@name": "English",
   "@flag": "🇬🇧",
 
+  "Tray_Show": "Show",
+  "Tray_Quit": "Quit",
+
   "Tip_Settings": "Settings",
   "Tip_Help": "Help / Quick guide",
   "Tip_About": "About",

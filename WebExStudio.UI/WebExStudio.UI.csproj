@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- App-Icon als Avalonia-Ressource (Fenster/Tray). Master-PNG liegt unter Assets/. -->
+    <AvaloniaResource Include="Assets\**" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

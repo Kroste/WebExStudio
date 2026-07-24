@@ -10,6 +10,9 @@ namespace WebExStudio.UI;
 
 public partial class App : Application
 {
+    /// <summary>GC-Referenz auf den Tray-Controller — sonst räumt der GC das TrayIcon still weg.</summary>
+    private TrayController? _tray;
+
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     public override void OnFrameworkInitializationCompleted()
@@ -29,7 +32,12 @@ public partial class App : Application
             AppSettings.LoadAi(vm.AiOptions);
             vm.InitSuggestionsEnabled(AppSettings.LoadSuggestionsEnabled());
             vm.InitRecentFiles(AppSettings.LoadRecentFiles());
-            desktop.MainWindow = new MainWindow { DataContext = vm };
+            var window = new MainWindow { DataContext = vm };
+            desktop.MainWindow = window;
+
+            // Tray NACH der MainWindow-Erzeugung; Instanz als Feld halten (GC-Referenz).
+            // Minimieren legt ins Tray, Schließen (✕) beendet regulär.
+            _tray = new TrayController(this, desktop, window);
         }
         base.OnFrameworkInitializationCompleted();
     }
