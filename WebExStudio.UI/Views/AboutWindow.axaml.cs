@@ -10,6 +10,7 @@ public partial class AboutWindow : Window
 {
     private readonly System.Action<string>? _onLoadExample;
     private string _releaseUrl = UpdateService.ReleasePageUrl;
+    private UpdateService.UpdateResult? _update;
 
     public AboutWindow() : this(null) { }
 
@@ -58,10 +59,12 @@ public partial class AboutWindow : Window
     private async Task RunUpdateCheckAsync(bool force)
     {
         UpdateCheckButton.IsEnabled = false;
+        UpdateInstallButton.IsVisible = false;
         UpdateOpenReleaseButton.IsVisible = false;
         UpdateStatusText.Text = Loc.T("About_UpdateChecking");
 
         var result = await UpdateService.CheckForUpdateAsync(force);
+        _update = result;
         _releaseUrl = result.ReleaseUrl;
 
         if (result.Error is not null)
@@ -71,6 +74,13 @@ public partial class AboutWindow : Window
         else if (result.HasUpdate && result.Latest is not null)
         {
             UpdateStatusText.Text = string.Format(Loc.T("About_UpdateAvailable"), result.Latest);
+            if (result.CanSelfUpdate)
+            {
+                // Installierbar: „⬇ Update installieren" als Primäraktion, Prüf-Button ausblenden.
+                UpdateInstallButton.IsVisible = true;
+                UpdateCheckButton.IsVisible = false;
+            }
+            // Release-Seite bleibt als sekundäre Option immer erreichbar.
             UpdateOpenReleaseButton.IsVisible = true;
         }
         else
@@ -78,5 +88,38 @@ public partial class AboutWindow : Window
             UpdateStatusText.Text = Loc.T("About_UpdateCurrent");
         }
         UpdateCheckButton.IsEnabled = true;
+    }
+
+    /// <summary>
+    /// Echtes Self-Update: lädt das Asset (mit Fortschritt), startet den Austausch-Prozess und
+    /// beendet die App. Der explizite Klick auf diesen Button ist die Zustimmung (kein Silent-Install).
+    /// </summary>
+    private async void OnInstallUpdate(object? _, RoutedEventArgs e)
+    {
+        if (_update is null || !_update.CanSelfUpdate) return;
+
+        UpdateInstallButton.IsEnabled = false;
+        UpdateCheckButton.IsEnabled = false;
+        UpdateOpenReleaseButton.IsEnabled = false;
+        UpdateProgress.IsVisible = true;
+        UpdateProgress.Value = 0;
+        UpdateStatusText.Text = Loc.T("About_UpdateDownloading");
+
+        var progress = new System.Progress<double>(p => UpdateProgress.Value = p * 100);
+        var ok = await UpdateService.DownloadAndApplyAsync(_update, progress);
+        if (ok)
+        {
+            // Pflicht: App beenden, sonst wartet der Installer ewig auf das Prozessende.
+            UpdateStatusText.Text = Loc.T("About_UpdateRestarting");
+            UpdateService.TerminateForUpdate();
+            return;
+        }
+
+        // Fehlgeschlagen (Download/Proxy/Asset): zurück in den bedienbaren Zustand.
+        UpdateStatusText.Text = Loc.T("About_UpdateError");
+        UpdateProgress.IsVisible = false;
+        UpdateInstallButton.IsEnabled = true;
+        UpdateCheckButton.IsEnabled = true;
+        UpdateOpenReleaseButton.IsEnabled = true;
     }
 }

@@ -116,6 +116,9 @@
   "About_UpdateAvailable": "⬆ Version {0} disponible",
   "About_UpdateError": "Échec de la vérification des mises à jour (hors ligne ou proxy)",
   "About_UpdateOpenRelease": "📥 Ouvrir la page du release",
+  "About_UpdateInstall": "⬇ Installer la mise à jour",
+  "About_UpdateDownloading": "Téléchargement de la mise à jour…",
+  "About_UpdateRestarting": "Installation — redémarrage…",
   "About_Version": "Version {0}",
 
   "Pw_MasterPlaceholder": "Mot de passe maître",

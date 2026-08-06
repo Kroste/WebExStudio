@@ -116,6 +116,9 @@
   "About_UpdateAvailable": "⬆ Доступна версия {0}",
   "About_UpdateError": "Не удалось проверить обновления (нет сети или прокси)",
   "About_UpdateOpenRelease": "📥 Открыть страницу релиза",
+  "About_UpdateInstall": "⬇ Установить обновление",
+  "About_UpdateDownloading": "Загрузка обновления…",
+  "About_UpdateRestarting": "Установка — перезапуск…",
   "About_Version": "Версия {0}",
 
   "Pw_MasterPlaceholder": "Мастер-пароль",

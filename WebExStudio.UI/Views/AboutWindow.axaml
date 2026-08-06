@@ -76,14 +76,25 @@
           <StackPanel Spacing="6" HorizontalAlignment="Center">
             <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="#B0BEC5"
                        HorizontalAlignment="Center" TextWrapping="Wrap" />
+            <!-- Download-Fortschritt beim Self-Update (nur während des Ladens sichtbar). -->
+            <ProgressBar x:Name="UpdateProgress" Width="240" Height="6"
+                         Minimum="0" Maximum="100" IsVisible="False"
+                         Foreground="#4FC3F7" Background="#0E0E1C" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
               <Button x:Name="UpdateCheckButton" Click="OnCheckUpdate"
                       Content="{l:Tr About_CheckUpdate}"
                       Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
                       Padding="12,6" FontSize="11" Cursor="Hand" />
+              <!-- Echtes Self-Update: Download + Austausch + Neustart. Nur sichtbar, wenn ein
+                   Update da ist UND ein Asset für die laufende Plattform existiert. -->
+              <Button x:Name="UpdateInstallButton" Click="OnInstallUpdate"
+                      Content="{l:Tr About_UpdateInstall}"
+                      Background="#2E7D32" Foreground="White" BorderThickness="0"
+                      Padding="12,6" FontSize="11" Cursor="Hand"
+                      IsVisible="False" />
               <Button x:Name="UpdateOpenReleaseButton" Click="OnOpenRelease"
                       Content="{l:Tr About_UpdateOpenRelease}"
-                      Background="#2E7D32" Foreground="White" BorderThickness="0"
+                      Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
                       Padding="12,6" FontSize="11" Cursor="Hand"
                       IsVisible="False" />
             </StackPanel>

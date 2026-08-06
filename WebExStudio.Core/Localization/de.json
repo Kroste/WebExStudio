@@ -116,6 +116,9 @@
   "About_UpdateAvailable": "⬆ Version {0} verfügbar",
   "About_UpdateError": "Update-Prüfung fehlgeschlagen (offline oder Proxy-Problem)",
   "About_UpdateOpenRelease": "📥 Release-Seite öffnen",
+  "About_UpdateInstall": "⬇ Update installieren",
+  "About_UpdateDownloading": "Lade Update…",
+  "About_UpdateRestarting": "Installiere — Neustart…",
   "About_Version": "Version {0}",
 
   "Pw_MasterPlaceholder": "Master-Passwort",
