@@ -88,19 +88,23 @@ jobs:
 
       - name: Publish GUI (${{ matrix.rid }})
         run: |
+          # KEIN PublishSingleFile: Der Single-File-Bundler verschluckt die
+          # ausführbare Playwright-Treiber-Binary (.playwright/node/<rid>/node[.exe]),
+          # sie landet dann NICHT als lose Datei neben der App, wo Playwright sie
+          # zur Laufzeit sucht -> "node.exe fehlt im Node-Ordner". Self-contained
+          # als Ordner (im ZIP/tar/AppImage ohnehin gepackt) liefert den Treiber
+          # zuverlässig mit. Siehe Release v0.59.0-Bug.
           dotnet publish WebExStudio.UI/WebExStudio.UI.csproj \
             -c Release -r ${{ matrix.rid }} --self-contained true \
-            -p:PublishSingleFile=true \
-            -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ steps.ver.outputs.version }} \
             -o publish/${{ matrix.rid }}
 
       - name: Publish CLI (${{ matrix.rid }})
         run: |
+          # Wie bei der GUI: kein PublishSingleFile, sonst fehlt der Playwright-
+          # node-Treiber im Paket (die CLI nutzt dieselbe Engine/Playwright).
           dotnet publish WebExStudio.Cli/WebExStudio.Cli.csproj \
             -c Release -r ${{ matrix.rid }} --self-contained true \
-            -p:PublishSingleFile=true \
-            -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ steps.ver.outputs.version }} \
             -o publish-cli/${{ matrix.rid }}
 
