@@ -30,6 +30,9 @@ public class NLogConfigTests
         LogManager.ThrowConfigExceptions = true;
         try
         {
+            // Die ausgelieferte Config nutzt ${masked} — der Renderer muss registriert sein,
+            // sonst wirft das Laden "unknown type-alias 'masked'" (wie zur Laufzeit in Program.cs).
+            WebExStudio.Core.Logging.MaskedLayoutRenderer.Register();
             var config = new XmlLoggingConfiguration(FindConfig());
             Assert.NotEmpty(config.AllTargets);
 

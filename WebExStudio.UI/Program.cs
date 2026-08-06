@@ -1,6 +1,7 @@
 using Avalonia;
 using ReactiveUI.Avalonia;
 using NLog;
+using WebExStudio.Core.Logging;
 using WebExStudio.Core.Serialization;
 
 namespace WebExStudio.UI;
@@ -12,6 +13,9 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // ${masked}-Renderer VOR dem Laden der Config registrieren, sonst wirft NLog beim
+        // Parsen der maskierten Layouts "unknown type-alias 'masked'".
+        MaskedLayoutRenderer.Register();
         LogManager.Setup().LoadConfigurationFromFile("NLog.config");
 
         // Headless legacy-project converter: --convert <legacyProjectDir> <outFile.json>
