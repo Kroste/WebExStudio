@@ -29,7 +29,7 @@ public class FlowGeneratorTests
     public async Task Generate_ParsesAndValidates_ValidFlow()
     {
         var gen = new FlowGenerator(new FakeClient(ValidFlow));
-        var result = await gen.GenerateAsync("Seite öffnen und klicken");
+        var result = await gen.GenerateAsync("Seite öffnen und klicken", ct: TestContext.Current.CancellationToken);
 
         Assert.True(result.Success);
         Assert.NotNull(result.Document);
@@ -42,7 +42,7 @@ public class FlowGeneratorTests
     {
         var fenced = "Hier ist dein Flow:\n```json\n" + ValidFlow + "\n```\nViel Erfolg!";
         var gen = new FlowGenerator(new FakeClient(fenced));
-        var result = await gen.GenerateAsync("egal");
+        var result = await gen.GenerateAsync("egal", ct: TestContext.Current.CancellationToken);
 
         Assert.True(result.Success);
         Assert.Equal(2, result.Document!.Nodes.Count);
@@ -54,7 +54,7 @@ public class FlowGeneratorTests
         // Gültiges JSON, aber unbekannter Node-Typ → Dokument geparst, aber nicht gültig.
         var badType = ValidFlow.Replace("\"type\": \"click\"", "\"type\": \"teleport\"");
         var gen = new FlowGenerator(new FakeClient(badType));
-        var result = await gen.GenerateAsync("egal");
+        var result = await gen.GenerateAsync("egal", ct: TestContext.Current.CancellationToken);
 
         Assert.False(result.Success);
         Assert.NotNull(result.Document);
@@ -65,7 +65,7 @@ public class FlowGeneratorTests
     public async Task Generate_InvalidJson_Fails()
     {
         var gen = new FlowGenerator(new FakeClient("das ist überhaupt kein json"));
-        var result = await gen.GenerateAsync("egal");
+        var result = await gen.GenerateAsync("egal", ct: TestContext.Current.CancellationToken);
 
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
@@ -76,7 +76,7 @@ public class FlowGeneratorTests
     public async Task Generate_EmptyDescription_Fails()
     {
         var gen = new FlowGenerator(new FakeClient(ValidFlow));
-        var result = await gen.GenerateAsync("   ");
+        var result = await gen.GenerateAsync("   ", ct: TestContext.Current.CancellationToken);
 
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
@@ -118,7 +118,7 @@ public class FlowGeneratorTests
     public async Task CompleteAsync_Extension_UsesJsonMode()
     {
         var spy = new ModeSpyClient();
-        await spy.CompleteAsync("sys", "user");
+        await spy.CompleteAsync("sys", "user", ct: TestContext.Current.CancellationToken);
         Assert.True(spy.LastJsonMode);
         Assert.Equal("user", spy.LastMessages.Single().Content);
     }

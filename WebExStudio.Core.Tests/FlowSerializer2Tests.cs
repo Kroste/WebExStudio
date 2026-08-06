@@ -109,7 +109,7 @@ public class FlowSerializer2Tests
                       "config": { "wait_ms": 500, "scroll": true }, "wires": [[]] }] }
         """;
         var path = Path.Combine(Path.GetTempPath(), $"webex_{Guid.NewGuid():N}.json");
-        await File.WriteAllTextAsync(path, json);
+        await File.WriteAllTextAsync(path, json, TestContext.Current.CancellationToken);
         try
         {
             var loaded = await FlowSerializer2.LoadAsync(path);

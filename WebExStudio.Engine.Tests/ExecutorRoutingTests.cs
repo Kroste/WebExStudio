@@ -103,7 +103,7 @@ public class ExecutorRoutingTests
             N("dbg", "debug", new() { ["source"] = "payload", ["key"] = "k" }));
 
         await new FlowExecutor().RunTabAsync(doc, "main", page: null!, new RunConfig(),
-            new TargetConfig { Name = "t" }, rec);
+            new TargetConfig { Name = "t" }, rec, ct: TestContext.Current.CancellationToken);
 
         var msgs = rec.Entries.Where(e => e.NodeId == "dbg" && e.Message is not null).Select(e => e.Message!).ToList();
         Assert.Contains(msgs, m => m.Contains("k=a")); // debug key-filter prints "k=<value>"

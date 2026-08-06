@@ -26,9 +26,9 @@
     <PackageVersion Include="NLog" Version="6.1.3" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="6.1.3" />
 
-    <!-- Tests -->
+    <!-- Tests — xunit.v3 (v2/'xunit' ist deprecated). Runner 3.x unterstützt v3. -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>
