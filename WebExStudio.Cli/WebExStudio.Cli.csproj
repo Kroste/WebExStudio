@@ -9,6 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WebExStudio.Core\WebExStudio.Core.csproj" />
     <ProjectReference Include="..\WebExStudio.Engine\WebExStudio.Engine.csproj" />
   </ItemGroup>

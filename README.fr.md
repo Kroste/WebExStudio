@@ -465,7 +465,12 @@ et référencés uniquement par leur nom.
   payload** (pas même via `set_payload`/`function`) — le **nœud debug** n'affiche donc jamais la valeur. Dans les
   **journaux/traces**, elles sont **masquées** (`***`). La protection vaut contre le partage/dépôt/journaux — pas contre un
   attaquant disposant d'une session déverrouillée ou du mot de passe maître (l'appli doit déchiffrer les valeurs à l'exécution).
-- Les paramètres du programme (clé IA, etc. dans `settings.json`) ne sont pas concernés.
+- Les paramètres du programme disposent de leur **propre** protection : la **clé API de l'IA** et le
+  **mot de passe du proxy** dans `settings.json` sont stockés **chiffrés** (Windows : DPAPI par
+  utilisateur ; Linux/macOS : AES lié à la machine et au compte), jamais en clair. Les valeurs issues
+  d'anciennes versions sont migrées automatiquement au démarrage suivant. Cela protège contre la
+  transmission d'un fichier de configuration (pièce jointe de support, sauvegarde, capture d'écran) —
+  pas contre un attaquant qui dispose déjà de votre compte utilisateur.
 
 ---
 
@@ -531,13 +536,22 @@ jamais affichées comme boîte de dialogue.
 
 ## Journalisation
 
-NLog écrit dans `WebExStudio.UI/bin/<Config>/net10.0/logs/` :
+NLog écrit dans le répertoire de données utilisateur — `~/.config/WebExStudio/logs/`
+(sous Windows `%AppData%\WebExStudio\logs\`). Délibérément **pas** à côté de l'exécutable :
+dans un AppImage en cours d'exécution ou une installation système, ce répertoire est en lecture
+seule et l'application n'écrirait alors silencieusement aucun journal.
 
 | Fichier | Contenu |
 |---|---|
 | `info.log` | Niveau info (déroulement, démarrage de nœud, targets …) — aussi en couleur sur la console. |
 | `debug.log` | Niveau debug pour `WebExStudio.*` (détaillé). |
 | `error.log` | Erreurs avec pile d'appels. |
+| `cli-debug.log` | Idem pour le runner en ligne de commande `webex` (sans doublon console). |
+| `cli-error.log` | Erreurs du runner en ligne de commande, avec pile d'appels. |
+
+Les secrets (clés API, mots de passe, jetons) sont **masqués dans chaque ligne de journal** (`***`) —
+de manière centralisée dans le pipeline NLog, et non à chaque appel : un appel oublié ne peut donc
+rien laisser fuiter.
 
 Les exceptions non gérées (y compris celles des gestionnaires d'événements de l'interface) sont interceptées par un gestionnaire global : elles sont journalisées en **Fatal** dans `error.log` et affichées dans une boîte de dialogue d'erreur — l'application continue de fonctionner dans la mesure du possible.
 
@@ -560,7 +574,7 @@ en langage naturel. Étapes :
    sur la zone de travail (en flux non enregistré à vérifier). En cas d'erreurs de validation, elles sont affichées ;
    en option, le flux peut être ouvert via **« Charger quand même »** pour une correction manuelle.
 
-**Fournisseurs** (sélectionnables dans les **Paramètres ⚙**, la clé est enregistrée dans `settings.json`) :
+**Fournisseurs** (sélectionnables dans les **Paramètres ⚙**, la clé est enregistrée **chiffrée** dans `settings.json`) :
 
 | Fournisseur | Modèle par défaut | Remarque |
 |---|---|---|

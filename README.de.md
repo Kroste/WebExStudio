@@ -465,7 +465,12 @@ und werden nur per Namen referenziert.
   (auch nicht über `set_payload`/`function`) — der **Debug-Node** zeigt also nie den Wert. In **Logs/Traces**
   werden sie **maskiert** (`***`). Schutz greift gegen Weitergabe/Repo/Logs — nicht gegen einen Angreifer mit
   entsperrter Sitzung bzw. dem Master-Passwort (die App muss die Werte zur Laufzeit entschlüsseln).
-- Die Programm-Einstellungen (AI-Key etc. in `settings.json`) bleiben davon unberührt.
+- Die Programm-Einstellungen haben einen **eigenen** Schutz: der **KI-API-Key** und das
+  **Proxy-Passwort** in `settings.json` liegen **verschlüsselt** auf Platte (Windows: DPAPI je
+  Benutzer; Linux/macOS: AES, an Rechner und Benutzerkonto gebunden), nie im Klartext. Werte aus
+  älteren Versionen werden beim nächsten Start automatisch nachgezogen. Das schützt gegen ein
+  weitergegebenes Konfigurationsfile (Support-Anhang, Backup, Screenshot) — nicht gegen einen
+  Angreifer, der bereits dein Benutzerkonto hat.
 
 ---
 
@@ -530,13 +535,21 @@ oder Proxy-Problem) werden nur geloggt, nie als Fehlerdialog gezeigt.
 
 ## Logging
 
-NLog schreibt nach `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
+NLog schreibt in das Benutzer-Datenverzeichnis — `~/.config/WebExStudio/logs/`
+(unter Windows `%AppData%\WebExStudio\logs\`). Bewusst **nicht** neben die ausführbare Datei:
+im laufenden AppImage und bei einer systemweiten Installation ist dieses Verzeichnis read-only,
+die App würde dort still gar nichts loggen.
 
 | Datei | Inhalt |
 |---|---|
 | `info.log` | Info-Ebene (Ablauf, Node-Start, Targets …) — zusätzlich farbig auf der Konsole. |
 | `debug.log` | Debug-Ebene für `WebExStudio.*` (ausführlich). |
 | `error.log` | Fehler inkl. Stacktrace. |
+| `cli-debug.log` | Dasselbe für den Kommandozeilen-Runner `webex` (ohne Konsolen-Dublette). |
+| `cli-error.log` | Fehler des Kommandozeilen-Runners inkl. Stacktrace. |
+
+Geheimnisse (API-Keys, Passwörter, Tokens) werden **in jeder Logzeile maskiert** (`***`) — zentral
+in der NLog-Pipeline, nicht pro Aufrufstelle, damit eine vergessene Stelle nichts durchlassen kann.
 
 Unbehandelte Ausnahmen (auch aus UI-Eventhandlern) fängt ein globaler Handler ab: Sie werden als **Fatal** in `error.log` protokolliert und in einem Fehlerdialog angezeigt — die App läuft nach Möglichkeit weiter.
 
@@ -562,8 +575,8 @@ Beschreibung ein kompletter Flow erzeugen. Ablauf:
    Validierungsfehlern werden diese angezeigt; optional lässt sich der Flow per
    **„Trotzdem laden"** zum manuellen Korrigieren öffnen.
 
-**Anbieter** (in den **Einstellungen ⚙** wählbar, Schlüssel wird in `settings.json`
-gespeichert):
+**Anbieter** (in den **Einstellungen ⚙** wählbar, Schlüssel wird **verschlüsselt** in
+`settings.json` gespeichert):
 
 | Anbieter | Standardmodell | Hinweis |
 |---|---|---|

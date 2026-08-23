@@ -465,7 +465,11 @@ and only referenced by name.
   `set_payload`/`function`) — so the **debug node** never shows the value. In **logs/traces** they are
   **masked** (`***`). The protection guards against sharing/repo/logs — not against an attacker with an
   unlocked session or the master password (the app must decrypt the values at runtime).
-- The program settings (AI key etc. in `settings.json`) are unaffected by this.
+- The program settings have their **own** protection: the **AI API key** and the **proxy password** in
+  `settings.json` are stored **encrypted** (Windows: DPAPI per user; Linux/macOS: AES bound to machine
+  and user account), never in clear text. Values written by older versions are migrated automatically on
+  the next start. This guards against a config file being passed on (support attachment, backup,
+  screenshot) — not against an attacker who already has your user account.
 
 ---
 
@@ -529,13 +533,21 @@ Errors (offline / proxy issue) are only logged, never shown as an error dialog.
 
 ## Logging
 
-NLog writes to `WebExStudio.UI/bin/<Config>/net10.0/logs/`:
+NLog writes to the user data directory — `~/.config/WebExStudio/logs/`
+(on Windows `%AppData%\WebExStudio\logs\`). Deliberately **not** next to the executable:
+inside a running AppImage or a system-wide installation that directory is read-only, and the
+app would silently log nothing at all.
 
 | File | Content |
 |---|---|
 | `info.log` | Info level (flow, node start, targets …) — also colored on the console. |
 | `debug.log` | Debug level for `WebExStudio.*` (verbose). |
 | `error.log` | Errors incl. stack trace. |
+| `cli-debug.log` | The same for the `webex` command line runner (no console duplicate). |
+| `cli-error.log` | Errors of the command line runner incl. stack trace. |
+
+Secrets (API keys, passwords, tokens) are **masked in every log line** (`***`) — this happens
+centrally in the NLog pipeline, not per call site, so a forgotten call site cannot leak a secret.
 
 Unhandled exceptions (including those from UI event handlers) are caught by a global handler: they are logged as **Fatal** to `error.log` and shown in an error dialog — the app keeps running where possible.
 
@@ -558,7 +570,7 @@ description. Steps:
    on the canvas (as an unsaved flow to review). On validation errors these are shown; optionally the flow
    can be opened via **"Load anyway"** for manual correction.
 
-**Providers** (selectable in the **Settings ⚙**, the key is stored in `settings.json`):
+**Providers** (selectable in the **Settings ⚙**, the key is stored **encrypted** in `settings.json`):
 
 | Provider | Default model | Note |
 |---|---|---|

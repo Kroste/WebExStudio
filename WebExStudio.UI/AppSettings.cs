@@ -2,6 +2,8 @@ using System.Text.Json;
 using NLog;
 using WebExStudio.AI;
 using WebExStudio.Core.Models;
+using WebExStudio.Core.Security;
+using WebExStudio.Core.Storage;
 
 namespace WebExStudio.UI;
 
@@ -14,6 +16,9 @@ public static class AppSettings
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
+
+    /// <summary>Verhindert die Rekursion beim einmaligen Nachziehen unverschlüsselter Altwerte.</summary>
+    private static bool _migrating;
 
     private static string ConfigDir
     {
@@ -69,6 +74,39 @@ public static class AppSettings
 
         // Plugins (Dateinamen deaktivierter Plugins)
         public List<string> DisabledPlugins { get; set; } = [];
+
+        /// <summary>
+        /// Flache Kopie für die Ablage — damit das Verschlüsseln der Geheimfelder das
+        /// Modell des Aufrufers nicht verändert. Die Listen werden bewusst kopiert,
+        /// damit eine spätere Änderung an der Kopie nicht auf das Original durchschlägt.
+        /// </summary>
+        public Model CloneForDisk()
+        {
+            var c = (Model)MemberwiseClone();
+            c.RecentFiles = [.. RecentFiles];
+            c.DisabledPlugins = [.. DisabledPlugins];
+            return c;
+        }
+    }
+
+    /// <summary>
+    /// Felder, die verschlüsselt auf Platte liegen. Im Speicher hält <see cref="Model"/> sie
+    /// im Klartext — <see cref="ReadModel"/> entschlüsselt, <see cref="WriteModel"/> verschlüsselt.
+    /// So kann keine Aufrufstelle das Verschlüsseln vergessen.
+    /// </summary>
+    /// <returns>True, wenn mindestens ein Wert noch als Klartext auf Platte lag.</returns>
+    private static bool Decrypt(Model m)
+    {
+        var wasPlaintext = SecretProtection.IsPlaintext(m.ProxyPassword) || SecretProtection.IsPlaintext(m.AiApiKey);
+        m.ProxyPassword = SecretProtection.UnprotectOrPlaintext(m.ProxyPassword);
+        m.AiApiKey = SecretProtection.UnprotectOrPlaintext(m.AiApiKey);
+        return wasPlaintext;
+    }
+
+    private static void Encrypt(Model m)
+    {
+        m.ProxyPassword = SecretProtection.Protect(m.ProxyPassword);
+        m.AiApiKey = SecretProtection.Protect(m.AiApiKey);
     }
 
     private static Model ReadModel()
@@ -76,10 +114,30 @@ public static class AppSettings
         try
         {
             if (File.Exists(SettingsPath))
-                return JsonSerializer.Deserialize<Model>(File.ReadAllText(SettingsPath), Options) ?? new Model();
+            {
+                var m = JsonSerializer.Deserialize<Model>(File.ReadAllText(SettingsPath), Options) ?? new Model();
+                if (Decrypt(m) && !_migrating)
+                {
+                    // Altbestand aus einer Version vor der Verschlüsselung: sofort nachziehen, statt
+                    // darauf zu warten, dass der Nutzer irgendwann die Einstellungen speichert.
+                    // Das Flag verhindert eine Endlosschleife über WriteModel → ReadModel.
+                    Log.Info("Geheimwerte lagen im Klartext vor — werden jetzt verschlüsselt nachgezogen");
+                    _migrating = true;
+                    try { WriteModel(m); }
+                    finally { _migrating = false; }
+                }
+                return m;
+            }
+        }
+        catch (JsonException ex)
+        {
+            // Inhalt ist kaputt: Datei sichern statt sie beim nächsten Speichern zu überschreiben.
+            Log.Error(ex, "Einstellungen sind defekt und werden quarantänisiert: {0}", SettingsPath);
+            JsonFileStore.Quarantine(SettingsPath);
         }
         catch (Exception ex)
         {
+            // IO-Fehler (gesperrt, Rechte, Laufwerk weg): Inhalt ist intakt — NICHT anfassen.
             Log.Warn("Einstellungen konnten nicht gelesen werden: {0}", ex.Message);
         }
         return new Model();
@@ -89,7 +147,11 @@ public static class AppSettings
     {
         try
         {
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(m, Options));
+            // Auf Platte gehören die Geheimwerte nur verschlüsselt. Das Modell selbst bleibt
+            // im Klartext (Aufrufer arbeiten damit weiter), deshalb Kopie serialisieren.
+            var onDisk = m.CloneForDisk();
+            Encrypt(onDisk);
+            JsonFileStore.WriteAtomic(SettingsPath, JsonSerializer.Serialize(onDisk, Options));
             Log.Info("Einstellungen gespeichert: {0}", SettingsPath);
         }
         catch (Exception ex)

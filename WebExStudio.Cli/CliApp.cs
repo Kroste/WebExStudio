@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using NLog;
 using WebExStudio.Core.Credentials;
 using WebExStudio.Core.Models;
 using WebExStudio.Core.Serialization;
@@ -16,6 +17,8 @@ namespace WebExStudio.Cli;
 /// </summary>
 public static class CliApp
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
     // Exit-Codes (cron-/CI-tauglich).
     private const int Ok = 0, RunError = 1, Usage = 2, VaultError = 3, Cancelled = 130;
 
@@ -44,6 +47,8 @@ public static class CliApp
         LoadPlugins(); // sonst würden Plugin-Node-Typen als „unbekannt" gemeldet
 
         var result = FlowValidator.Validate(doc);
+        Log.Info("Validierung von {0}: {1} Fehler, {2} Warnungen",
+            o.FlowPath, result.Errors.Count(), result.Warnings.Count());
         PrintIssues(result);
         if (result.IsValid)
         {
@@ -60,6 +65,8 @@ public static class CliApp
         if (doc is null) return Usage;
 
         var refs = SecretReferenceScanner.Scan(doc);
+        // Nur die Anzahl loggen — die Namen der Tresor-Felder gehören nicht ins Log.
+        Log.Info("Tresor-Referenzen in {0}: {1}", o.FlowPath, refs.Count);
         if (refs.Count == 0)
         {
             Console.WriteLine("Keine {secret[..]}-Referenzen im Flow.");
@@ -82,6 +89,8 @@ public static class CliApp
         PrintIssues(validation);
         if (!validation.IsValid)
         {
+            Log.Error("Abbruch vor der Ausführung: {0} Validierungsfehler in {1}",
+                validation.Errors.Count(), o.FlowPath);
             Console.Error.WriteLine($"✗ Abbruch: {validation.Errors.Count()} Validierungsfehler.");
             return Usage;
         }
@@ -105,9 +114,15 @@ public static class CliApp
                     + "(-c, $WEBEX_VAULT_PW oder Eingabe) wurde angegeben.");
                 return VaultError;
             }
-            try { vault.Unlock(pw); }
+            try
+            {
+                vault.Unlock(pw);
+                Log.Info("Tresor entsperrt ({0} referenzierte Werte)", refs.Count);
+            }
             catch (Exception ex)
             {
+                // Kein Passwort ins Log: die Ausnahme enthält es nicht, und der Renderer maskiert zusätzlich.
+                Log.Error(ex, "Tresor konnte nicht entsperrt werden");
                 Console.Error.WriteLine("✗ Tresor konnte nicht entsperrt werden: " + ex.Message);
                 return VaultError;
             }
@@ -133,6 +148,8 @@ public static class CliApp
         var executor = new FlowExecutor();
         var startedAt = DateTime.Now;
 
+        Log.Info("Ausführung startet: {0} — {1} Nodes, headless={2}, Browser={3}, Timeout={4}ms",
+            o.FlowPath, doc.Nodes.Count, config.Headless, config.Browser, config.TimeoutMs);
         Console.WriteLine($"▶ {Path.GetFileName(o.FlowPath)} — {doc.Nodes.Count} Nodes, "
             + $"{(config.Headless ? "headless" : "sichtbar")}, Browser={config.Browser}");
 
@@ -143,18 +160,22 @@ public static class CliApp
         }
         catch (OperationCanceledException)
         {
+            Log.Warn("Ausführung abgebrochen (Strg+C) nach {0:n1}s", (DateTime.Now - startedAt).TotalSeconds);
             Console.Error.WriteLine("✗ Ausführung abgebrochen.");
             WriteReport(o, doc, trace, startedAt, success: false);
             return Cancelled;
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Ausführung fehlgeschlagen nach {0:n1}s", (DateTime.Now - startedAt).TotalSeconds);
             Console.Error.WriteLine("✗ Ausführung fehlgeschlagen: " + ex.Message);
             WriteReport(o, doc, trace, startedAt, success: false);
             return RunError;
         }
 
         var success = trace.ErrorCount == 0;
+        Log.Info("Ausführung beendet: erfolgreich={0}, Fehler={1}, Dauer={2:n1}s",
+            success, trace.ErrorCount, (DateTime.Now - startedAt).TotalSeconds);
         Console.WriteLine(success
             ? "✓ Ausführung abgeschlossen."
             : $"✗ Ausführung mit {trace.ErrorCount} Fehler(n) beendet.");
@@ -168,8 +189,18 @@ public static class CliApp
     {
         if (string.IsNullOrEmpty(o.FlowPath)) { Console.Error.WriteLine("Fehler: -f <flow.json> fehlt."); return null; }
         if (!File.Exists(o.FlowPath)) { Console.Error.WriteLine($"Fehler: Datei nicht gefunden: {o.FlowPath}"); return null; }
-        try { return await FlowSerializer2.LoadAsync(o.FlowPath); }
-        catch (Exception ex) { Console.Error.WriteLine("Fehler beim Laden des Flows: " + ex.Message); return null; }
+        try
+        {
+            var doc = await FlowSerializer2.LoadAsync(o.FlowPath);
+            Log.Debug("Flow geladen: {0} ({1} Nodes)", o.FlowPath, doc.Nodes.Count);
+            return doc;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Flow konnte nicht geladen werden: {0}", o.FlowPath);
+            Console.Error.WriteLine("Fehler beim Laden des Flows: " + ex.Message);
+            return null;
+        }
     }
 
     private static void LoadPlugins()

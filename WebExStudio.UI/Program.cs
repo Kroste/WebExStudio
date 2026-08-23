@@ -15,6 +15,14 @@ class Program
     {
         // ${masked}-Renderer VOR dem Laden der Config registrieren, sonst wirft NLog beim
         // Parsen der maskierten Layouts "unknown type-alias 'masked'".
+        // Der ${masked}-Renderer registriert sich per [ModuleInitializer] beim Laden von
+        // WebExStudio.Core — hier ist deshalb kein Aufruf mehr nötig (und wäre auch zu spät
+        // für Prozesse ohne dieses Main, siehe MaskedLayoutRenderer).
+        // Reihenfolge ist kritisch: der ${masked}-Renderer MUSS registriert sein, bevor NLog die
+        // Config parst — sonst verschluckt NLog den kompletten Message-Text (im Log steht nur "}}").
+        // Der [ModuleInitializer] in MaskedLayoutRenderer allein reicht hier NICHT: er läuft erst,
+        // wenn WebExStudio.Core zum ersten Mal berührt wird, und das wäre nach dem Config-Load.
+        // Er deckt die Prozesse ohne eigenes Main ab (Tests), dieser Aufruf den Start hier.
         MaskedLayoutRenderer.Register();
         LogManager.Setup().LoadConfigurationFromFile("NLog.config");
 
