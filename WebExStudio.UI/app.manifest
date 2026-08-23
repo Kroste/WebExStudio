@@ -1,26 +1,26 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
-  <!-- This manifest is used on Windows only.
-       Don't remove it as it might cause problems with window transparency and embedded controls.
-       For more details visit https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests -->
-  <assemblyIdentity version="1.0.0.0" name="WebExStudio.UI.Desktop"/>
+  <!-- Windows-only. Nicht entfernen — sonst leiden Fenster-Transparenz und die Einbettung von
+       Standard-Windows-Controls (ComboBox-Popups etc.).
+       Details: https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests -->
+  <assemblyIdentity version="1.0.0.0" name="WebExStudio.Desktop"/>
 
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
-      <!-- Windows 10 UND Windows 11: Microsoft hat für Windows 11 KEINE eigene
-           GUID vergeben — die Windows-10-GUID deckt beide ab. -->
+      <!-- Windows 10 + 11 (dieselbe GUID gilt für beide). -->
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
     </application>
   </compatibility>
 
-  <!-- Per-Monitor-DPI-Awareness v2: ohne diesen Block skaliert Windows die App auf
-       4K/HiDPI per Bitmap-Stretch (blurry). Mit PerMonitorV2 zeichnet Avalonia nativ
-       scharf und reagiert live auf Monitor-Wechsel. longPathAware hebt das MAX_PATH-
-       Limit (260 Zeichen) auf — billige Absicherung gegen tiefe Projektpfade. -->
+  <!-- Per-Monitor-DPI-Awareness v2: Avalonia rendert damit scharf auf HiDPI-Displays und beim
+       Umziehen zwischen Monitoren mit unterschiedlichem Skalierungsfaktor. Ohne den Eintrag wirkt
+       die App auf 4K/HiDPI unter Windows unscharf, weil der System-DPI-Fallback des OS das fertige
+       Bitmap hochskaliert statt Avalonia nativ zeichnen zu lassen.
+       longPathAware ist billige Absicherung gegen MAX_PATH-Ärger bei tief verschachtelten Pfaden —
+       relevant hier, weil Flow-Projekte samt Downloads irgendwo im Benutzerverzeichnis liegen. -->
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
-      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
-      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
       <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
     </windowsSettings>
   </application>

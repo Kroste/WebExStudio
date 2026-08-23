@@ -8,7 +8,7 @@ using WebExStudio.Core.Serialization;
 namespace WebExStudio.UI.ViewModels;
 
 // Teil von FlowEditorViewModel — Aufteilung nach Verantwortlichkeit (siehe FlowEditorViewModel.cs).
-partial class FlowEditorViewModel
+public partial class FlowEditorViewModel
 {
     // ── Undo / Redo (Snapshot des gesamten Dokuments) ───────────────────────────
     private const int UndoCap = 100;

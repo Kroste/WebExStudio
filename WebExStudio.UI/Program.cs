@@ -1,12 +1,14 @@
 using Avalonia;
-using ReactiveUI.Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Fonts;
 using NLog;
+using ReactiveUI.Avalonia;
 using WebExStudio.Core.Logging;
 using WebExStudio.Core.Serialization;
 
 namespace WebExStudio.UI;
 
-class Program
+internal class Program
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -64,5 +66,21 @@ class Program
             .With(new X11PlatformOptions { WmClass = "WebExStudio" })
             .UseReactiveUI(_ => { })
             .WithInterFont()
+            // Inter bringt keine Emoji-Glyphen mit. Ohne expliziten Fallback auf den Farb-Emoji-Font
+            // des Systems rendern die Piktogramme der Oberfläche (🔒 ⚙ 🤖 🔍 ▶ ✓ ✗) als leere
+            // Ersatzkästchen. FALLE: WithInterFont() setzt die Standardfamilie über dieselben
+            // FontManagerOptions — wer sie ersetzt, muss DefaultFamilyName erneut angeben, sonst
+            // fällt die gesamte App auf die System-Schrift zurück.
+            .With(new FontManagerOptions
+            {
+                DefaultFamilyName = "fonts:Inter#Inter",
+                FontFallbacks = [new FontFallback { FontFamily = new FontFamily(EmojiFontName) }],
+            })
             .LogToTrace();
+
+    /// <summary>Farb-Emoji-Font der jeweiligen Plattform (Fallback für Piktogramme).</summary>
+    private static string EmojiFontName =>
+        OperatingSystem.IsWindows() ? "Segoe UI Emoji"
+        : OperatingSystem.IsMacOS() ? "Apple Color Emoji"
+        : "Noto Color Emoji";
 }

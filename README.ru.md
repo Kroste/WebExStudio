@@ -864,4 +864,4 @@ dotnet test
 | `WebExStudio.Cli` | Runner без интерфейса `webex` (`run`/`validate`/`secrets`) — выполнять потоки без GUI (cron/CI). |
 | `WebExStudio.AI` | Подключение ИИ: экспорт схемы узлов, построение prompt, `FlowGenerator` и поставщики (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
-Технологии: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.
+Технологии: **.NET 10**, **Avalonia 12.1**, **Microsoft.Playwright 1.61**, **NLog 6**, тесты на **xunit.v3**.

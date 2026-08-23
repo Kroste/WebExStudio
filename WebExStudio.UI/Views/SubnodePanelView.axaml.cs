@@ -39,8 +39,7 @@ public partial class SubnodePanelView : UserControl
     private void OnListPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(SubnodeList).Properties.IsLeftButtonPressed) return;
-        var item = (e.Source as Control)?.DataContext as FlowTabViewModel;
-        if (item is null) return;
+        if ((e.Source as Control)?.DataContext is not FlowTabViewModel item) return;
         _dragSubnode = item;
         _dragStart = e.GetPosition(SubnodeList);
         _dragging = false;

@@ -8,7 +8,7 @@ using WebExStudio.Core.Serialization;
 namespace WebExStudio.UI.ViewModels;
 
 // Teil von FlowEditorViewModel — Aufteilung nach Verantwortlichkeit (siehe FlowEditorViewModel.cs).
-partial class FlowEditorViewModel
+public partial class FlowEditorViewModel
 {
     // ── Execution state ───────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ partial class FlowEditorViewModel
     public void SetNodeStatus(string nodeId, ExecutionStatusUi status)
     {
         var vm = FindNode(nodeId);
-        if (vm is not null) vm.Status = status;
+        vm?.Status = status;
     }
 
     public void ClearExecutionState()

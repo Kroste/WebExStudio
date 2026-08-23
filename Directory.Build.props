@@ -6,7 +6,7 @@
     CI überschreibt die Version bei Releases per -p:Version aus dem Git-Tag.
   -->
   <PropertyGroup>
-    <Version>0.60.0</Version>
+    <Version>0.61.0</Version>
   </PropertyGroup>
 
   <!--
@@ -20,5 +20,9 @@
     <Nullable>enable</Nullable>
     <!-- Warnungen sind Fehler: hält den Build dauerhaft warnungsfrei. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Ohne das ist die .editorconfig zahnlos: die Stilregeln erscheinen nur im Editor und nie
+         im Build. Zusammen mit TreatWarningsAsErrors sind Stilverstöße Compile-Fehler statt
+         Fundsachen im Review. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 </Project>

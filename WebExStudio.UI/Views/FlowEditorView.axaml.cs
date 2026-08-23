@@ -102,8 +102,7 @@ public partial class FlowEditorView : UserControl
     private void RebuildCanvas()
     {
         // Stop observing the previous tab's collection
-        if (_observedNodes is not null)
-            _observedNodes.CollectionChanged -= OnNodesCollectionChanged;
+        _observedNodes?.CollectionChanged -= OnNodesCollectionChanged;
         _observedNodes = null;
 
         SelectWire(null);

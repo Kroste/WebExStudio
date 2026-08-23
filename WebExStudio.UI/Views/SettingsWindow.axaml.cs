@@ -66,9 +66,11 @@ public partial class SettingsWindow : Window
     private void BuildLanguageList()
     {
         var loc = WebExStudio.Core.Localization.Loc.Instance;
-        // Eigene Zeile: gezeichnete Landesflagge + Eigenname. Echte Flaggen-Emoji (🇩🇪 …) rendern auf
-        // vielen Linux-Systemen nicht (Schrift ohne Regional-Indicator-Glyphen → leere Kästchen), darum
-        // zeichnen wir die Flaggen als Vektor — überall identisch, ohne Schrift-/Bildabhängigkeit.
+        // Eigene Zeile: gezeichnete Landesflagge + Eigenname. Echte Flaggen-Emoji (🇩🇪 …) brauchen
+        // Regional-Indicator-Glyphen, die nicht jedes Linux-System installiert hat — dort blieben leere
+        // Kästchen. Der Emoji-Font-Fallback in Program.BuildAvaloniaApp deckt die übrigen Piktogramme
+        // (🔒 ⚙ 🤖 …) ab, kann aber keinen Font ersetzen, den das System gar nicht hat. Die Flaggen
+        // zeichnen wir deshalb als Vektor: überall identisch, ohne Schrift-/Bildabhängigkeit.
         LanguageBox.ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<LangItem>(
             (item, _) =>
             {

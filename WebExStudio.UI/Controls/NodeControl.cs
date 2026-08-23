@@ -224,8 +224,7 @@ public sealed class NodeControl : Panel
 
         _border.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
 
-        if (_inputPort is not null)
-            _inputPort.Arrange(new Rect(finalSize.Width / 2 - PortRadius, -PortRadius, PortRadius * 2, PortRadius * 2));
+        _inputPort?.Arrange(new Rect(finalSize.Width / 2 - PortRadius, -PortRadius, PortRadius * 2, PortRadius * 2));
 
         for (int i = 0; i < _outputPorts.Count; i++)
         {
@@ -283,15 +282,14 @@ public sealed class NodeControl : Panel
 
         for (int i = 0; i < _outputPorts.Count; i++)
             _outputPorts[i].Fill = i == hitOut ? Brushes.White : PortIdle;
-        if (_inputPort is not null)
-            _inputPort.Fill = IsOnInputPort(pos) ? Brushes.White : PortIdle;
+        _inputPort?.Fill = IsOnInputPort(pos) ? Brushes.White : PortIdle;
     }
 
     private void OnPointerExited(object? sender, PointerEventArgs e)
     {
         Cursor = new Cursor(StandardCursorType.SizeAll);
         foreach (var p in _outputPorts) p.Fill = PortIdle;
-        if (_inputPort is not null) _inputPort.Fill = PortIdle;
+        _inputPort?.Fill = PortIdle;
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)

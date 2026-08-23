@@ -874,4 +874,4 @@ Les tests du moteur s'exécutent **sans navigateur** — les nœuds nécessitant
 | `WebExStudio.Cli` | Runner sans interface `webex` (`run`/`validate`/`secrets`) — exécuter des flux sans GUI (cron/CI). |
 | `WebExStudio.AI` | Connexion IA : export du schéma de nœuds, construction du prompt, `FlowGenerator` et fournisseurs (`ILlmClient` : Anthropic/OpenAI/Ollama). |
 
-Technique : **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.
+Technique : **.NET 10**, **Avalonia 12.1**, **Microsoft.Playwright 1.61**, **NLog 6**, tests avec **xunit.v3**.

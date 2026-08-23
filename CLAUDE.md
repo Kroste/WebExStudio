@@ -53,6 +53,47 @@ Version nicht anheben.
 > per `-p:Version`. Der Wert in `Directory.Build.props` ist die Dev-/Basisversion –
 > idealerweise passend zum nächsten geplanten Tag.
 
+## Tooling-Regeln (nicht wegkonfigurieren)
+
+- **`.editorconfig` + `<EnforceCodeStyleInBuild>true</…>`**: Stilregeln sind zusammen mit
+  `TreatWarningsAsErrors` **Compile-Fehler**, nicht Review-Fundsachen. Ohne die Property
+  wäre die `.editorconfig` zahnlos (Regeln nur im Editor). Verstöße beheben statt die
+  Regel zu lockern; `dotnet format style WebExStudio.slnx --diagnostics IDE…` erledigt die
+  mechanischen Fälle.
+- **`global.json`**: pinnt das SDK **und** enthält den Block
+  `"test": { "runner": "Microsoft.Testing.Platform" }`. Der gehört genau dorthin — eine
+  `dotnet.config` oder ein `<TestingPlatformDotnetTestSupport>` in der csproj wird ignoriert.
+- **Tests laufen auf xunit.v3 / Microsoft.Testing.Platform.** Die Testprojekte sind
+  `<OutputType>Exe</OutputType>` (xunit.v3 erzeugt einen eigenen Entry-Point) und
+  referenzieren **weder** `Microsoft.NET.Test.Sdk` **noch** `xunit.runner.visualstudio` —
+  beide gehören zum alten VSTest-Pfad und reaktivieren ihn. Auch keine VSTest-Flags an
+  `dotnet test` durchreichen (`--nologo` lässt den Lauf mit Exitcode 5 und „keine Tests
+  ausgeführt" abbrechen).
+- **`.vscode/settings.json` braucht `dotnet.defaultSolution`**, weil die Solution im
+  `.slnx`-Format vorliegt. Fehlt der Eintrag, generiert sich das C# Dev Kit eine eigene
+  `.sln` im Workspace-Cache und der Test-Explorer arbeitet auf einer veralteten Projektliste.
+- **GitHub Actions auf Node-24-Majors halten** (Stand 2026-08: checkout@v7, setup-dotnet@v6,
+  cache@v6, upload-artifact@v7, action-gh-release@v3).
+
+## Sicherheit & Persistenz
+
+- **Geheimwerte nie im Klartext auf Platte**: API-Key und Proxy-Passwort laufen durch
+  `WebExStudio.Core.Security.SecretProtection` (Windows DPAPI, sonst AES mit Rechner-/
+  Benutzerbindung, Format `v1:<base64>`). Neue Geheimfelder in `AppSettings` gehören in
+  `Decrypt`/`Encrypt` — dann kann keine Aufrufstelle es vergessen.
+- **Persistente JSON-Dateien immer über `WebExStudio.Core.Storage.JsonFileStore`**:
+  `WriteAtomic` (tmp + Move) und `Quarantine` (`.broken`). Quarantäne **nur** bei
+  `JsonException` — bei IO-Fehlern ist der Inhalt intakt, ein Verschieben würde gute Daten
+  wegräumen.
+- **Der `${masked}`-Renderer muss vor dem Laden der NLog-Config registriert sein.** Jeder
+  Einstiegspunkt ruft `MaskedLayoutRenderer.Register()` direkt vor
+  `LoadConfigurationFromFile` auf. Der `[ModuleInitializer]` allein reicht dort nicht (er
+  läuft erst beim ersten Berühren von Core, also zu spät); er deckt die Prozesse ohne
+  eigenes `Main` ab. Symptom bei falscher Reihenfolge: im Log steht nur `}}`.
+- **Logs liegen unter `~/.config/WebExStudio/logs` bzw. `%AppData%\WebExStudio\logs`**,
+  nicht neben der Exe — im AppImage und bei systemweiter Installation ist das
+  Exe-Verzeichnis read-only.
+
 ## NuGet-Pakete (Central Package Management)
 
 Alle Paketversionen werden zentral in **`Directory.Packages.props`** (Repo-Wurzel)

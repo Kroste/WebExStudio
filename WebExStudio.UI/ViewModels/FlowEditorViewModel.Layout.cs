@@ -8,7 +8,7 @@ using WebExStudio.Core.Serialization;
 namespace WebExStudio.UI.ViewModels;
 
 // Teil von FlowEditorViewModel — Aufteilung nach Verantwortlichkeit (siehe FlowEditorViewModel.cs).
-partial class FlowEditorViewModel
+public partial class FlowEditorViewModel
 {
     // ── Auto-Layout ─────────────────────────────────────────────────────────────
     /// <summary>Ordnet die Nodes des aktiven Tabs als von oben nach unten verlaufenden Graphen an.</summary>

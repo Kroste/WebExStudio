@@ -9,7 +9,7 @@ using WebExStudio.UI.ViewModels;
 namespace WebExStudio.UI.Views;
 
 // Teil von FlowEditorView (Code-behind) — Aufteilung nach Verantwortlichkeit.
-partial class FlowEditorView
+public partial class FlowEditorView
 {
     // ── Group boxes ────────────────────────────────────────────────────────────
 

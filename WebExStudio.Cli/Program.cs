@@ -1,6 +1,6 @@
 using NLog;
-using WebExStudio.Core.Logging;
 using WebExStudio.Cli;
+using WebExStudio.Core.Logging;
 
 // Einstiegspunkt: die eigentliche Logik liegt in CliApp (besser testbar/lesbar).
 // Logging und die Behandlung unbehandelter Ausnahmen werden hier aufgesetzt — die CLI führt

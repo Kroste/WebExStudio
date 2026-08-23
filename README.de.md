@@ -879,4 +879,4 @@ Die Engine-Tests laufen **ohne Browser** — Knoten, die Playwright benötigen, 
 | `WebExStudio.Cli` | Headless-Runner `webex` (`run`/`validate`/`secrets`) — Flows ohne GUI ausführen (cron/CI). |
 | `WebExStudio.AI` | KI-Anbindung: Node-Schema-Export, Prompt-Bau, `FlowGenerator` und Provider (`ILlmClient`: Anthropic/OpenAI/Ollama). |
 
-Technik: **.NET 10**, **Avalonia 12.0**, **Microsoft.Playwright 1.52**, **NLog 6**.
+Technik: **.NET 10**, **Avalonia 12.1**, **Microsoft.Playwright 1.61**, **NLog 6**, Tests mit **xunit.v3**.

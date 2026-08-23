@@ -22,13 +22,11 @@ public partial class PropertiesPanelView : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        if (_flowEditor is not null)
-            _flowEditor.PropertyChanged -= OnFlowEditorPropertyChanged;
+        _flowEditor?.PropertyChanged -= OnFlowEditorPropertyChanged;
 
         _flowEditor = DataContext as FlowEditorViewModel;
 
-        if (_flowEditor is not null)
-            _flowEditor.PropertyChanged += OnFlowEditorPropertyChanged;
+        _flowEditor?.PropertyChanged += OnFlowEditorPropertyChanged;
 
         _currentNode = _flowEditor?.SelectedNode;
         RebuildForm();
