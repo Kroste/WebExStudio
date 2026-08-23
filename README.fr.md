@@ -183,6 +183,7 @@ dotnet build          # toute la solution (WebExStudio.slnx)
 | **Zoom** | **Ctrl**+molette. |
 | **Réinitialiser / ajuster la vue** | Barre d'outils **🔍 Réinitialiser la vue** / **⊞ Ajuster**. |
 | **Agrandir / plein écran** | Barre de titre **☐** ou double-clic sur la barre de titre ; **plein écran** avec **F11**. (L'agrandissement des fenêtres sans bordure peut mal fonctionner selon le gestionnaire de fenêtres Linux/compositeur Wayland. La fenêtre a la classe fixe **`WebExStudio`** — sous KDE par exemple, vous pouvez créer une règle de fenêtre « forcer l'agrandissement ».) |
+| **Fenêtres** | Chaque fenêtre — fenêtre principale, paramètres, aide, à propos, coffre et tous les dialogues — utilise la même barre de titre personnalisée (glisser, **—**, **☐**, **✕**) et est **librement redimensionnable**. |
 | **Créer/renommer/supprimer un sous-nœud** | Panneau Sous-nœuds : **＋ / ✎ / 🗑**. |
 | **Ouvrir un sous-nœud** | Double-clic dans le panneau Sous-nœuds **ou** double-clic sur le nœud `call` dans le flux → ouvre en onglet. |
 | **Fermer un onglet** | **✕** sur l'onglet (Main reste toujours ouvert). |

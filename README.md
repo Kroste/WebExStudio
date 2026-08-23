@@ -183,6 +183,7 @@ dotnet build          # entire solution (WebExStudio.slnx)
 | **Zoom** | **Ctrl**+mouse wheel. |
 | **Reset / fit view** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
 | **Maximize / full screen** | Title bar **☐** or double-click the title bar; **full screen** with **F11**. (Maximizing borderless windows can misbehave depending on the Linux window manager/Wayland compositor. The window has the fixed class **`WebExStudio`** — under KDE, for example, you can create a window rule to "force maximize".) |
+| **Windows** | Every window — main window, settings, help, about, vault and all dialogs — uses the same custom title bar (drag, **—**, **☐**, **✕**) and is **freely resizable**. |
 | **Create/rename/delete subnode** | Subnodes panel: **＋ / ✎ / 🗑**. |
 | **Open subnode** | Double-click in the subnodes panel **or** double-click the `call` node in the flow → opens as a tab. |
 | **Close tab** | **✕** on the tab (Main always stays open). |

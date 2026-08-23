@@ -8,7 +8,7 @@ using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Views;
 
-public partial class AiFlowDialog : Window
+public partial class AiFlowDialog : ChromeWindow
 {
     private readonly MainWindowViewModel _vm;
     private FlowDocument2? _lastDocument;
@@ -21,11 +21,6 @@ public partial class AiFlowDialog : Window
         _vm = vm;
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
     private async void OnGenerate(object? sender, RoutedEventArgs e)
     {

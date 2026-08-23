@@ -7,15 +7,15 @@
 
   <DockPanel>
     <!-- Header toolbar -->
-    <Border DockPanel.Dock="Top" Background="#16162A"
-            BorderBrush="#2E2E4E" BorderThickness="0,0,0,1" Padding="6,4">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource KrosteTitleBarBrush}"
+            BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="0,0,0,1" Padding="6,4">
       <DockPanel>
         <TextBlock Text="{l:Tr Trace_Title}" FontWeight="Bold"
-                   Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
+                   Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
           <CheckBox Content="{l:Tr Trace_AutoScroll}"
                     IsChecked="{Binding AutoScroll}"
-                    Foreground="#90A4AE" FontSize="11"/>
+                    Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="11"/>
           <Button Content="{l:Tr Trace_Clear}" Click="OnClear"
                   Padding="6,2" FontSize="11"/>
         </StackPanel>
@@ -27,7 +27,7 @@
       <ItemsControl ItemsSource="{Binding Entries}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:TraceEntryViewModel">
-            <Border Padding="6,3" BorderBrush="#2A2A3E" BorderThickness="0,0,0,1"
+            <Border Padding="6,3" BorderBrush="{DynamicResource KrosteBorderStrongBrush}" BorderThickness="0,0,0,1"
                     Background="Transparent" Cursor="Hand"
                     DoubleTapped="OnEntryDoubleTapped"
                     ToolTip.Tip="{l:Tr Trace_Tip}">
@@ -42,7 +42,7 @@
 
                 <TextBlock Grid.Column="0" Text="{Binding Time}"
                            FontFamily="Monospace" FontSize="11"
-                           Foreground="#546E7A" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource WxFaintTextBrush}" VerticalAlignment="Center"/>
 
                 <Border Grid.Column="1"
                         Background="{Binding StatusColor}"
@@ -54,16 +54,16 @@
                 </Border>
 
                 <TextBlock Grid.Column="2" Text="{Binding ActionType}"
-                           FontSize="11" Foreground="#80CBC4"
+                           FontSize="11" Foreground="{DynamicResource KrosteSuccessBrush}"
                            VerticalAlignment="Center" FontFamily="Monospace"/>
 
                 <SelectableTextBlock Grid.Column="3" Text="{Binding Message}"
-                           FontSize="11" Foreground="#B0BEC5"
+                           FontSize="11" Foreground="{DynamicResource KrosteSecondaryTextBrush}"
                            VerticalAlignment="Center"
                            IsVisible="{Binding HasMessage}"/>
 
                 <TextBlock Grid.Column="4" Text="{Binding TargetName}"
-                           FontSize="10" Foreground="#455A64"
+                           FontSize="10" Foreground="{DynamicResource KrosteBorderStrongBrush}"
                            VerticalAlignment="Center" Margin="8,0,4,0"/>
               </Grid>
             </Border>

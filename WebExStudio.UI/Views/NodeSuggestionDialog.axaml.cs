@@ -7,7 +7,7 @@ using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Views;
 
-public partial class NodeSuggestionDialog : Window
+public partial class NodeSuggestionDialog : ChromeWindow
 {
     private readonly MainWindowViewModel _vm;
     private readonly NodeViewModel _anchor;
@@ -23,11 +23,6 @@ public partial class NodeSuggestionDialog : Window
         Opened += async (_, _) => await FetchAsync();
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
     private async Task FetchAsync()
     {
@@ -61,8 +56,8 @@ public partial class NodeSuggestionDialog : Window
         LabelText.Text = string.IsNullOrWhiteSpace(_suggestion.Label) ? "—" : _suggestion.Label;
         ConfigText.Text = _suggestion.Config.Count == 0
             ? Loc.T("Common_None")
-            : string.Join("\n", _suggestion.Config.Select(kv => $"{kv.Key} = {kv.Value}"));
-        ReasonText.Text = _suggestion.Reason;
+            : Text.WrapSafeText.Sanitize(string.Join("\n", _suggestion.Config.Select(kv => $"{kv.Key} = {kv.Value}")));
+        ReasonText.Text = Text.WrapSafeText.Sanitize(_suggestion.Reason);
         ResultPanel.IsVisible = true;
         AddButton.IsEnabled = true;
     }
@@ -70,7 +65,7 @@ public partial class NodeSuggestionDialog : Window
     private void ShowError(string message)
     {
         StatusText.Text = string.Empty;
-        ErrorText.Text = message;
+        ErrorText.Text = Text.WrapSafeText.Sanitize(message);
         ErrorText.IsVisible = true;
     }
 

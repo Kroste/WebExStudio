@@ -1,33 +1,19 @@
-<Window xmlns="https://github.com/avaloniaui"
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WebExStudio.UI.Controls"
+        xmlns:views="using:WebExStudio.UI.Views"
         xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.AboutWindow"
         Title="WebExStudio"
         Width="420" Height="480"
         WindowStartupLocation="CenterOwner"
-        CanResize="False"
-        WindowDecorations="None"
-        Background="#12121F">
+        Background="{DynamicResource KrosteBackgroundBrush}">
 
-  <Border BorderBrush="#2E2E4E" BorderThickness="1">
+  <Border BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="1">
     <Grid RowDefinitions="Auto,*">
 
       <!-- Titelleiste -->
-      <Border Grid.Row="0" Background="#1E1E2E"
-              BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
-              PointerPressed="OnTitleBarPointerPressed">
-        <Grid ColumnDefinitions="*,Auto" Height="36">
-          <TextBlock Grid.Column="0"
-                     Text="{l:Tr About_Title}" FontSize="12" FontWeight="SemiBold"
-                     Foreground="#90A4AE"
-                     VerticalAlignment="Center" Margin="14,0"
-                     IsHitTestVisible="False" />
-          <Button Grid.Column="1" Click="OnTitleClose"
-                  Content="&#x2715;" FontSize="13"
-                  Background="Transparent" Foreground="#90A4AE"
-                  BorderThickness="0" Width="40" Height="36" Padding="0" />
-        </Grid>
-      </Border>
+      <controls:TitleBar Grid.Row="0" Title="{l:Tr About_Title}" Icon="ℹ" />
 
       <!-- Inhalt -->
       <StackPanel Grid.Row="1" Margin="28,22,28,20" Spacing="0">
@@ -38,63 +24,63 @@
             <TextBlock Text="WebExStudio" FontSize="20" FontWeight="Bold"
                        Foreground="White" />
             <TextBlock x:Name="VersionText" FontSize="12"
-                       Foreground="#90A4AE" />
+                       Foreground="{DynamicResource KrosteMutedTextBrush}" />
           </StackPanel>
         </StackPanel>
 
-        <Border Height="1" Background="#2E2E4E" Margin="0,18" />
+        <Border Height="1" Background="{DynamicResource KrosteBorderBrush}" Margin="0,18" />
 
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
               HorizontalAlignment="Center" ColumnSpacing="16" RowSpacing="6">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr About_Organisation}"
-                     FontSize="12" Foreground="#607D8B" />
+                     FontSize="12" Foreground="{DynamicResource WxFaintTextBrush}" />
           <TextBlock Grid.Row="0" Grid.Column="1" Text="github.com/kroste"
-                     FontSize="12" Foreground="#B0BEC5" />
+                     FontSize="12" Foreground="{DynamicResource KrosteSecondaryTextBrush}" />
           <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Tr About_Concept}"
-                     FontSize="12" Foreground="#607D8B" />
+                     FontSize="12" Foreground="{DynamicResource WxFaintTextBrush}" />
           <TextBlock Grid.Row="1" Grid.Column="1" Text="Lars Oste"
-                     FontSize="12" Foreground="#B0BEC5" />
+                     FontSize="12" Foreground="{DynamicResource KrosteSecondaryTextBrush}" />
           <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Tr About_Implementation}"
-                     FontSize="12" Foreground="#607D8B" />
+                     FontSize="12" Foreground="{DynamicResource WxFaintTextBrush}" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="Claude (Anthropic) · Claude Code"
-                     FontSize="12" Foreground="#B0BEC5" />
+                     FontSize="12" Foreground="{DynamicResource KrosteSecondaryTextBrush}" />
         </Grid>
 
-        <Border Height="1" Background="#2E2E4E" Margin="0,18" />
+        <Border Height="1" Background="{DynamicResource KrosteBorderBrush}" Margin="0,18" />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
           <Button Click="OnHelp"
                   Content="{l:Tr About_Help}"
-                  Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                  Background="{DynamicResource KrosteAccentSoftBrush}" Foreground="{DynamicResource KrosteGoldBrush}" BorderThickness="0"
                   Padding="14,7" FontSize="12" Cursor="Hand"
                   ToolTip.Tip="{l:Tr About_HelpTip}" />
         </StackPanel>
 
         <!-- Update-Check gegen GitHub Releases (proxy-aware, nicht blockierend) -->
-        <Border Margin="0,14,0,0" Padding="10,8" CornerRadius="6" Background="#16162A"
-                BorderBrush="#2A2A4E" BorderThickness="1">
+        <Border Margin="0,14,0,0" Padding="10,8" CornerRadius="6" Background="{DynamicResource KrosteTitleBarBrush}"
+                BorderBrush="{DynamicResource KrosteBorderStrongBrush}" BorderThickness="1">
           <StackPanel Spacing="6" HorizontalAlignment="Center">
-            <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="#B0BEC5"
+            <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="{DynamicResource KrosteSecondaryTextBrush}"
                        HorizontalAlignment="Center" TextWrapping="Wrap" />
             <!-- Download-Fortschritt beim Self-Update (nur während des Ladens sichtbar). -->
             <ProgressBar x:Name="UpdateProgress" Width="240" Height="6"
                          Minimum="0" Maximum="100" IsVisible="False"
-                         Foreground="#4FC3F7" Background="#0E0E1C" />
+                         Foreground="{DynamicResource KrosteGoldBrush}" Background="{DynamicResource WxSunkenBrush}" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
               <Button x:Name="UpdateCheckButton" Click="OnCheckUpdate"
                       Content="{l:Tr About_CheckUpdate}"
-                      Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                      Background="{DynamicResource KrosteAccentSoftBrush}" Foreground="{DynamicResource KrosteGoldBrush}" BorderThickness="0"
                       Padding="12,6" FontSize="11" Cursor="Hand" />
               <!-- Echtes Self-Update: Download + Austausch + Neustart. Nur sichtbar, wenn ein
                    Update da ist UND ein Asset für die laufende Plattform existiert. -->
               <Button x:Name="UpdateInstallButton" Click="OnInstallUpdate"
                       Content="{l:Tr About_UpdateInstall}"
-                      Background="#2E7D32" Foreground="White" BorderThickness="0"
+                      Background="{DynamicResource KrosteSuccessBrush}" Foreground="White" BorderThickness="0"
                       Padding="12,6" FontSize="11" Cursor="Hand"
                       IsVisible="False" />
               <Button x:Name="UpdateOpenReleaseButton" Click="OnOpenRelease"
                       Content="{l:Tr About_UpdateOpenRelease}"
-                      Background="#1E2A38" Foreground="#4FC3F7" BorderThickness="0"
+                      Background="{DynamicResource KrosteAccentSoftBrush}" Foreground="{DynamicResource KrosteGoldBrush}" BorderThickness="0"
                       Padding="12,6" FontSize="11" Cursor="Hand"
                       IsVisible="False" />
             </StackPanel>
@@ -104,7 +90,7 @@
         <!-- Buy Me a Coffee — Markenfarbe (#FFDD00) + Markenname (englisch lassen) -->
         <Button Click="OnCoffee"
                 Content="☕  Buy me a coffee"
-                Background="#FFDD00" Foreground="#1A1400" FontWeight="Bold"
+                Background="{DynamicResource BuyMeACoffeeBrush}" Foreground="{DynamicResource BuyMeACoffeeTextBrush}" FontWeight="Bold"
                 BorderThickness="0" CornerRadius="8"
                 Padding="16,9" FontSize="13" Cursor="Hand"
                 HorizontalAlignment="Center"
@@ -112,9 +98,9 @@
                 ToolTip.Tip="{l:Tr About_BuyMeCoffeeTip}" />
 
         <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0"
-                   FontSize="11" Foreground="#546E7A"
+                   FontSize="11" Foreground="{DynamicResource WxFaintTextBrush}"
                    Text="© 2026 Kroste" />
       </StackPanel>
     </Grid>
   </Border>
-</Window>
+</views:ChromeWindow>

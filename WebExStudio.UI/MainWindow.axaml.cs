@@ -8,7 +8,7 @@ using WebExStudio.UI.Views;
 
 namespace WebExStudio.UI;
 
-public partial class MainWindow : Window
+public partial class MainWindow : ChromeWindow
 {
     private MainWindowViewModel Vm => (MainWindowViewModel)DataContext!;
 
@@ -19,28 +19,8 @@ public partial class MainWindow : Window
         FlowEditorView.CredentialVaultRequested += async (_, _) => await OpenVaultAsync();
     }
 
-    // ── Custom title bar ──────────────────────────────────────────────────────
-
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
-
-    private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e) =>
-        ToggleMaximize();
-
-    private void OnMinimize(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        WindowState = WindowState.Minimized;
-
-    private void OnToggleMaximize(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        ToggleMaximize();
-
-    private void ToggleMaximize() =>
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-
-    private void OnCloseWindow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        Close();
+    // Verschieben, Maximieren und die Min/Max/Close-Buttons liegen in Controls/TitleBar —
+    // hier bleiben nur die fensterspezifischen Aktionen (⚙ ❓ ℹ).
 
     private async void OnAbout(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
         await new AboutWindow(LoadExampleFlow).ShowDialog(this);

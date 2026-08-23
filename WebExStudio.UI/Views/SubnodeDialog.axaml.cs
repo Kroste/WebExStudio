@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 
 namespace WebExStudio.UI.Views;
 
-public partial class SubnodeDialog : Window
+public partial class SubnodeDialog : ChromeWindow
 {
     public bool Confirmed { get; private set; }
     public string SubnodeName => NameBox.Text?.Trim() ?? string.Empty;
@@ -15,16 +15,11 @@ public partial class SubnodeDialog : Window
     public SubnodeDialog(string header, string name, string label)
     {
         InitializeComponent();
-        HeaderText.Text = header;
+        WindowTitleBar.Title = header;
         NameBox.Text = name;
         LabelBox.Text = label;
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
     private void OnOk(object? sender, RoutedEventArgs e)
     {

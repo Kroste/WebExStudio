@@ -5,10 +5,10 @@
              x:Class="WebExStudio.UI.Views.PropertiesPanelView">
 
   <DockPanel>
-    <Border DockPanel.Dock="Top" Background="#16162A"
-            BorderBrush="#2E2E4E" BorderThickness="0,0,0,1" Padding="8,6">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource KrosteTitleBarBrush}"
+            BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="0,0,0,1" Padding="8,6">
       <TextBlock Text="{l:Tr Prop_Title}" FontWeight="Bold"
-                 Foreground="#90A4AE" FontSize="12"/>
+                 Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12"/>
     </Border>
 
     <!-- Dynamic property form rendered by code-behind -->

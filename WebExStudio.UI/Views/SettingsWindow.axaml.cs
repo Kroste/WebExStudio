@@ -11,7 +11,7 @@ using WebExStudio.Engine.Plugins;
 
 namespace WebExStudio.UI.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsWindow : ChromeWindow
 {
     private readonly RunConfig _config;
     private readonly AiOptions _ai;
@@ -256,11 +256,6 @@ public partial class SettingsWindow : Window
 
     private static string ItemText(ComboBoxItem item) => item.Content?.ToString() ?? string.Empty;
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
     private async void OnBrowseExe(object? sender, RoutedEventArgs e)
     {

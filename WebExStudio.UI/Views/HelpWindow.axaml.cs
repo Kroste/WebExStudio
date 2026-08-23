@@ -6,7 +6,7 @@ using NLog;
 
 namespace WebExStudio.UI.Views;
 
-public partial class HelpWindow : Window
+public partial class HelpWindow : ChromeWindow
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -60,18 +60,5 @@ public partial class HelpWindow : Window
              + "Die vollständige Dokumentation liegt als `README.md` im Projektverzeichnis.";
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
-    private void OnResizePressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-        if (sender is Control { Tag: string edge } && System.Enum.TryParse<WindowEdge>(edge, out var we))
-            BeginResizeDrag(we, e);
-    }
-
-    private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
 }

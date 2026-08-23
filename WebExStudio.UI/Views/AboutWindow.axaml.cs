@@ -6,7 +6,7 @@ using WebExStudio.Core.Localization;
 
 namespace WebExStudio.UI.Views;
 
-public partial class AboutWindow : Window
+public partial class AboutWindow : ChromeWindow
 {
     private readonly System.Action<string>? _onLoadExample;
     private string _releaseUrl = UpdateService.ReleasePageUrl;
@@ -28,13 +28,6 @@ public partial class AboutWindow : Window
         Opened += async (_, _) => await RunUpdateCheckAsync(force: false);
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
-
-    private void OnTitleClose(object? _, RoutedEventArgs e) => Close();
 
     private async void OnHelp(object? _, RoutedEventArgs e) => await new HelpWindow(_onLoadExample).ShowDialog(this);
 

@@ -7,7 +7,7 @@ using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Views;
 
-public partial class NodeSearchDialog : Window
+public partial class NodeSearchDialog : ChromeWindow
 {
     /// <summary>Ein Suchtreffer: Anzeige + Node-ID zum Anspringen.</summary>
     public sealed record Item(string Display, string Sub, string NodeId, string Haystack);
@@ -70,11 +70,5 @@ public partial class NodeSearchDialog : Window
         }
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 
-    private void OnClose(object? sender, RoutedEventArgs e) => Close();
 }

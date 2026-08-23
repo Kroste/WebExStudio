@@ -1,32 +1,20 @@
-<Window xmlns="https://github.com/avaloniaui"
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WebExStudio.UI.Controls"
+        xmlns:views="using:WebExStudio.UI.Views"
         xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.Views.HelpWindow"
         Title="WebExStudio"
         Width="640" Height="720"
         MinWidth="420" MinHeight="360"
-        CanResize="True"
         WindowStartupLocation="CenterOwner"
-        WindowDecorations="None"
-        Background="#12121F">
+        Background="{DynamicResource KrosteBackgroundBrush}">
 
-  <Grid RowDefinitions="6,*,6" ColumnDefinitions="6,*,6">
-    <Border Grid.RowSpan="3" Grid.ColumnSpan="3" BorderBrush="#2E2E4E" BorderThickness="1">
+  <Border BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="1">
       <Grid RowDefinitions="Auto,*">
 
         <!-- Titelleiste -->
-        <Border Grid.Row="0" Background="#1E1E2E"
-                BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
-                PointerPressed="OnTitleBarPointerPressed">
-          <Grid ColumnDefinitions="*,Auto" Height="36">
-            <TextBlock Grid.Column="0" Text="{l:Tr Help_Title}"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#90A4AE"
-                       VerticalAlignment="Center" Margin="14,0" IsHitTestVisible="False"/>
-            <Button Grid.Column="1" Click="OnTitleClose" Content="&#x2715;" FontSize="13"
-                    Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                    Width="40" Height="36" Padding="0"/>
-          </Grid>
-        </Border>
+        <controls:TitleBar Grid.Row="0" Title="{l:Tr Help_Title}" Icon="❓" />
 
         <!-- Inhalt: zur Laufzeit aus der eingebetteten README gerendert -->
         <ScrollViewer Grid.Row="1" Padding="22,14,22,18">
@@ -35,22 +23,4 @@
       </Grid>
     </Border>
 
-    <!-- Resize-Griffe (randloses Fenster) -->
-    <Border Grid.Row="0" Grid.Column="0" Background="Transparent" Cursor="TopLeftCorner"
-            Tag="NorthWest" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="0" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
-            Tag="North" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="0" Grid.Column="2" Background="Transparent" Cursor="TopRightCorner"
-            Tag="NorthEast" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="1" Grid.Column="0" Background="Transparent" Cursor="SizeWestEast"
-            Tag="West" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="1" Grid.Column="2" Background="Transparent" Cursor="SizeWestEast"
-            Tag="East" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="2" Grid.Column="0" Background="Transparent" Cursor="BottomLeftCorner"
-            Tag="SouthWest" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="2" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
-            Tag="South" PointerPressed="OnResizePressed"/>
-    <Border Grid.Row="2" Grid.Column="2" Background="Transparent" Cursor="BottomRightCorner"
-            Tag="SouthEast" PointerPressed="OnResizePressed"/>
-  </Grid>
-</Window>
+</views:ChromeWindow>

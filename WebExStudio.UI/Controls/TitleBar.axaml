@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:chrome="using:Avalonia.Controls.Chrome"
+             xmlns:l="using:WebExStudio.UI.Localization"
+             x:Class="WebExStudio.UI.Controls.TitleBar"
+             Height="34">
+  <!-- ElementRole ist der Avalonia-12-Mechanismus für Custom-Chrome-Hit-Testing:
+       TitleBar = das OS übernimmt Drag und Doppelklick-Maximieren nativ (HTCAPTION).
+       Buttons und eingehängte Aktionen = Rolle "User" (HTCLIENT), damit Klicks als
+       normale Client-Eingabe direkt bei den Avalonia-Buttons ankommen. NICHT die
+       Rollen MinimizeButton/MaximizeButton/CloseButton verwenden — die leiten über
+       den Non-Client-Pfad, wo DWM (Snap-Layouts) die Klicks schlucken kann und die
+       Buttons tot bleiben. Ohne Rollen schluckt die Caption-Zone alles.
+
+       Hier stehen bewusst KEINE {Binding}-Ausdrücke: bei aktivierten Compiled
+       Bindings bräuchte jedes Binding ein x:DataType, das ein wiederverwendbares
+       Control nicht haben kann. Title/Icon/Actions sind StyledProperties und werden
+       im Code-behind (OnPropertyChanged) durchgereicht. -->
+  <Border x:Name="Bar"
+          Background="{DynamicResource KrosteTitleBarBrush}"
+          BorderBrush="{DynamicResource KrosteBorderBrush}"
+          BorderThickness="0,0,0,1"
+          chrome:WindowDecorationProperties.ElementRole="TitleBar">
+    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                  VerticalAlignment="Center" Margin="12,0">
+        <TextBlock x:Name="IconText" FontSize="14" VerticalAlignment="Center" />
+        <TextBlock x:Name="TitleText"
+                   FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                   Foreground="{DynamicResource KrosteGoldBrush}" />
+      </StackPanel>
+
+      <!-- Fenster-eigene Aktionen (⚙ ❓ ℹ …). Der ContentPresenter braucht zwingend
+           ElementRole="User", sonst schluckt die Caption-Zone die Klicks darauf. -->
+      <ContentPresenter x:Name="ActionsHost" Grid.Column="2"
+                        VerticalAlignment="Stretch"
+                        chrome:WindowDecorationProperties.ElementRole="User" />
+
+      <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Stretch">
+        <Button x:Name="MinButton" Classes="chrome" Content="&#x2014;"
+                ToolTip.Tip="{l:Tr Tip_Minimize}"
+                chrome:WindowDecorationProperties.ElementRole="User" />
+        <Button x:Name="MaxButton" Classes="chrome" Content="&#x2610;"
+                ToolTip.Tip="{l:Tr Tip_Maximize}"
+                chrome:WindowDecorationProperties.ElementRole="User" />
+        <Button x:Name="CloseButton" Classes="chrome close" Content="&#x2715;"
+                ToolTip.Tip="{l:Tr Tip_Close}"
+                chrome:WindowDecorationProperties.ElementRole="User" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

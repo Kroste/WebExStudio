@@ -6,7 +6,7 @@ using WebExStudio.UI.ViewModels;
 
 namespace WebExStudio.UI.Views;
 
-public partial class ChatWindow : Window
+public partial class ChatWindow : ChromeWindow
 {
     private ChatViewModel? Vm => DataContext as ChatViewModel;
 
@@ -18,20 +18,6 @@ public partial class ChatWindow : Window
         vm.Messages.CollectionChanged += (_, _) => ScrollToEnd();
     }
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
-
-    private void OnResizePressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-        if (sender is Control { Tag: string edgeName } && Enum.TryParse<WindowEdge>(edgeName, out var edge))
-            BeginResizeDrag(edge, e);
-    }
-
-    private void OnClose(object? sender, RoutedEventArgs e) => Close();
 
     private async void OnSend(object? sender, RoutedEventArgs e) => await SendAsync();
 

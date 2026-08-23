@@ -33,5 +33,9 @@
     <!-- Tests — xunit.v3 (v2/'xunit' ist deprecated). Der Runner steckt im Paket selbst;
          Microsoft.NET.Test.Sdk/xunit.runner.visualstudio wären der alte VSTest-Pfad. -->
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <!-- Headless-Avalonia für Fenster-Smoke-Tests (lädt echtes XAML ohne Bildschirm).
+         Muss auf derselben Linie wie Avalonia sitzen. -->
+    <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.1" />
   </ItemGroup>
 </Project>

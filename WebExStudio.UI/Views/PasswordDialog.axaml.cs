@@ -5,7 +5,7 @@ using WebExStudio.Core.Localization;
 
 namespace WebExStudio.UI.Views;
 
-public partial class PasswordDialog : Window
+public partial class PasswordDialog : ChromeWindow
 {
     private readonly bool _confirm;
 
@@ -19,7 +19,7 @@ public partial class PasswordDialog : Window
         InitializeComponent();
         _confirm = confirm;
         Title = title;
-        TitleText.Text = title;
+        WindowTitleBar.Title = title;
         PromptText.Text = prompt;
         PwBox2.IsVisible = confirm;
         Opened += (_, _) => PwBox.Focus();
@@ -49,9 +49,4 @@ public partial class PasswordDialog : Window
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close();
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 }

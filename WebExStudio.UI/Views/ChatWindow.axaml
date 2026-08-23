@@ -1,38 +1,27 @@
-<Window xmlns="https://github.com/avaloniaui"
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WebExStudio.UI.Controls"
+        xmlns:views="using:WebExStudio.UI.Views"
         xmlns:vm="using:WebExStudio.UI.ViewModels"
         xmlns:l="using:WebExStudio.UI.Localization"
+        xmlns:text="using:WebExStudio.UI.Text"
         x:Class="WebExStudio.UI.Views.ChatWindow"
         x:DataType="vm:ChatViewModel"
         Title="WebExStudio"
         Width="520" Height="640"
         MinWidth="380" MinHeight="360"
-        CanResize="True"
         WindowStartupLocation="CenterOwner"
-        WindowDecorations="None"
-        Background="#12121F">
+        Background="{DynamicResource KrosteBackgroundBrush}">
 
-  <Grid RowDefinitions="6,*,6" ColumnDefinitions="6,*,6">
-  <Border Grid.RowSpan="3" Grid.ColumnSpan="3" BorderBrush="#2E2E4E" BorderThickness="1">
+  <Border BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="1">
     <DockPanel>
 
       <!-- Titelleiste -->
-      <Border DockPanel.Dock="Top" Background="#1E1E2E"
-              BorderBrush="#2E2E4E" BorderThickness="0,0,0,1"
-              PointerPressed="OnTitleBarPointerPressed">
-        <Grid ColumnDefinitions="*,Auto" Height="36">
-          <TextBlock Grid.Column="0" Text="{l:Tr Chat_Title}" FontSize="12" FontWeight="SemiBold"
-                     Foreground="#90A4AE" VerticalAlignment="Center" Margin="14,0"
-                     IsHitTestVisible="False"/>
-          <Button Grid.Column="1" Click="OnClose" Content="&#x2715;" FontSize="13"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="40" Height="36" Padding="0"/>
-        </Grid>
-      </Border>
+      <controls:TitleBar DockPanel.Dock="Top" Title="{l:Tr Chat_Title}" Icon="💬" />
 
       <!-- Eingabe -->
-      <Border DockPanel.Dock="Bottom" Background="#16162A"
-              BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="12,10">
+      <Border DockPanel.Dock="Bottom" Background="{DynamicResource KrosteTitleBarBrush}"
+              BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
           <TextBox Grid.Column="0" x:Name="InputBox"
                    Text="{Binding Input}"
@@ -44,19 +33,19 @@
           <Button Grid.Column="1" Content="{l:Tr Chat_Send}" Click="OnSend"
                   IsEnabled="{Binding CanSend}" Padding="16,8"
                   VerticalAlignment="Bottom"
-                  Background="#1B5E20" Foreground="White"/>
+                  Background="{DynamicResource KrosteSuccessBrush}" Foreground="White"/>
         </Grid>
       </Border>
 
       <!-- Fester Lade-Balken: immer erreichbar, sobald die letzte Antwort einen Flow enthält -->
-      <Border DockPanel.Dock="Bottom" Background="#10243A"
-              BorderBrush="#2E2E4E" BorderThickness="0,1,0,0" Padding="10,6"
+      <Border DockPanel.Dock="Bottom" Background="{DynamicResource KrosteAccentSoftBrush}"
+              BorderBrush="{DynamicResource KrosteBorderBrush}" BorderThickness="0,1,0,0" Padding="10,6"
               IsVisible="{Binding HasLoadableFlow}">
         <Button Click="OnLoadLatestFlow"
                 Content="{Binding LoadableFlowNote}"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                Background="#2979FF" Foreground="White" FontWeight="SemiBold"
-                BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6" Padding="12,9"
+                Background="{DynamicResource KrosteAccentBrush}" Foreground="White" FontWeight="SemiBold"
+                BorderBrush="{DynamicResource KrosteAccentHoverBrush}" BorderThickness="1" CornerRadius="6" Padding="12,9"
                 ToolTip.Tip="{l:Tr Chat_LoadLatestTip}"/>
       </Border>
 
@@ -70,20 +59,21 @@
                       MaxWidth="420" HorizontalAlignment="{Binding Align}">
                 <StackPanel Spacing="6">
                   <TextBlock Text="{Binding RoleLabel}" FontSize="10" FontWeight="Bold"
-                             Foreground="#90A4AE"/>
-                  <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                             Foreground="{DynamicResource KrosteMutedTextBrush}"/>
+                  <!-- Sanitize gegen den Layout-Hänger bei Leerzeilen (WrapSafeText) -->
+                  <SelectableTextBlock Text="{Binding Content, Converter={x:Static text:WrapSafeTextConverter.Instance}}" TextWrapping="Wrap"
                                        Foreground="{Binding TextBrush}" FontSize="13"/>
                   <Button Content="{Binding FlowNote}" Click="OnLoadFlow"
                           IsVisible="{Binding HasFlow}"
-                          Background="#2979FF" Foreground="White" FontWeight="SemiBold"
-                          BorderBrush="#82B1FF" BorderThickness="1" CornerRadius="6"
+                          Background="{DynamicResource KrosteAccentBrush}" Foreground="White" FontWeight="SemiBold"
+                          BorderBrush="{DynamicResource KrosteAccentHoverBrush}" BorderThickness="1" CornerRadius="6"
                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                           Padding="12,9" FontSize="13" Margin="0,4,0,0"
                           ToolTip.Tip="{l:Tr Chat_LoadFlowTip}"/>
                   <Button Content="{l:Tr Chat_Remember}" Click="OnRememberHint"
                           IsVisible="{Binding CanRemember}"
-                          Background="Transparent" Foreground="#90A4AE"
-                          BorderBrush="#455A64" BorderThickness="1" CornerRadius="6"
+                          Background="Transparent" Foreground="{DynamicResource KrosteMutedTextBrush}"
+                          BorderBrush="{DynamicResource KrosteBorderStrongBrush}" BorderThickness="1" CornerRadius="6"
                           HorizontalAlignment="Left" Padding="8,3" FontSize="11" Margin="0,4,0,0"
                           ToolTip.Tip="{l:Tr Chat_RememberTip}"/>
                 </StackPanel>
@@ -96,22 +86,4 @@
     </DockPanel>
   </Border>
 
-  <!-- Resize-Griffe (randloses Fenster): transparente Kanten/Ecken über dem Rahmen -->
-  <Border Grid.Row="0" Grid.Column="0" Background="Transparent" Cursor="TopLeftCorner"
-          Tag="NorthWest" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="0" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
-          Tag="North" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="0" Grid.Column="2" Background="Transparent" Cursor="TopRightCorner"
-          Tag="NorthEast" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="1" Grid.Column="0" Background="Transparent" Cursor="SizeWestEast"
-          Tag="West" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="1" Grid.Column="2" Background="Transparent" Cursor="SizeWestEast"
-          Tag="East" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="2" Grid.Column="0" Background="Transparent" Cursor="BottomLeftCorner"
-          Tag="SouthWest" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="2" Grid.Column="1" Background="Transparent" Cursor="SizeNorthSouth"
-          Tag="South" PointerPressed="OnResizePressed"/>
-  <Border Grid.Row="2" Grid.Column="2" Background="Transparent" Cursor="BottomRightCorner"
-          Tag="SouthEast" PointerPressed="OnResizePressed"/>
-  </Grid>
-</Window>
+</views:ChromeWindow>

@@ -9,7 +9,7 @@ using WebExStudio.Core.Localization;
 
 namespace WebExStudio.UI.Views;
 
-public partial class CredentialVaultWindow : Window
+public partial class CredentialVaultWindow : ChromeWindow
 {
     private readonly CredentialVault _vault;
     private readonly Func<Task>? _persist; // schreibt den Flow (mit eingebettetem Tresor) auf die Platte
@@ -156,9 +156,4 @@ public partial class CredentialVaultWindow : Window
 
     private void OnClose(object? sender, RoutedEventArgs e) => Close();
 
-    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
-    }
 }

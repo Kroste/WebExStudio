@@ -1,6 +1,7 @@
-<Window xmlns="https://github.com/avaloniaui"
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WebExStudio.UI.ViewModels"
+        xmlns:controls="using:WebExStudio.UI.Controls"
         xmlns:views="using:WebExStudio.UI.Views"
         xmlns:l="using:WebExStudio.UI.Localization"
         x:Class="WebExStudio.UI.MainWindow"
@@ -9,51 +10,26 @@
         Width="1400" Height="900"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
-        WindowDecorations="None"
-        Background="#12121F">
+        Background="{DynamicResource KrosteBackgroundBrush}">
 
   <DockPanel>
 
-    <!-- ── Custom title bar ── -->
-    <Border DockPanel.Dock="Top"
-            Background="#16162A" BorderBrush="#2E2E4E"
-            BorderThickness="0,0,0,1"
-            PointerPressed="OnTitleBarPointerPressed"
-            DoubleTapped="OnTitleBarDoubleTapped">
-      <Grid ColumnDefinitions="Auto,*,Auto" Height="34">
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
-                    VerticalAlignment="Center" Margin="12,0">
-          <TextBlock Text="🌐" FontSize="14" VerticalAlignment="Center"/>
-          <TextBlock Text="WebExStudio" FontSize="12" FontWeight="SemiBold"
-                     Foreground="#90A4AE" VerticalAlignment="Center"/>
+    <!-- ── Titelleiste (Kroste-Chrome) ──
+         Die fensterspezifischen Aktionen hängen im Actions-Slot; der ContentPresenter
+         dort trägt ElementRole="User", sonst schluckt die Caption-Zone die Klicks. -->
+    <controls:TitleBar DockPanel.Dock="Top" Title="WebExStudio" Icon="🌐">
+      <controls:TitleBar.Actions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+          <Button Content="⚙" Classes="chrome" Click="OnSettings" ToolTip.Tip="{l:Tr Tip_Settings}" FontSize="14"/>
+          <Button Content="❓" Classes="chrome" Click="OnHelp" ToolTip.Tip="{l:Tr Tip_Help}" FontSize="14"/>
+          <Button Content="ℹ" Classes="chrome" Click="OnAbout" ToolTip.Tip="{l:Tr Tip_About}" FontSize="14"/>
         </StackPanel>
-
-        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
-          <Button Content="⚙" Click="OnSettings" ToolTip.Tip="{l:Tr Tip_Settings}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="42" Padding="0" FontSize="14"/>
-          <Button Content="❓" Click="OnHelp" ToolTip.Tip="{l:Tr Tip_Help}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="42" Padding="0" FontSize="14"/>
-          <Button Content="ℹ" Click="OnAbout" ToolTip.Tip="{l:Tr Tip_About}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="42" Padding="0" FontSize="14"/>
-          <Button Content="&#x2014;" Click="OnMinimize" ToolTip.Tip="{l:Tr Tip_Minimize}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="42" Padding="0" FontSize="13"/>
-          <Button Content="&#x2610;" Click="OnToggleMaximize" ToolTip.Tip="{l:Tr Tip_Maximize}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="42" Padding="0" FontSize="13"/>
-          <Button Content="&#x2715;" Click="OnCloseWindow" ToolTip.Tip="{l:Tr Tip_Close}"
-                  Background="Transparent" Foreground="#90A4AE" BorderThickness="0"
-                  Width="46" Padding="0" FontSize="13"/>
-        </StackPanel>
-      </Grid>
-    </Border>
+      </controls:TitleBar.Actions>
+    </controls:TitleBar>
 
     <!-- ── Toolbar ── -->
     <Border DockPanel.Dock="Top"
-            Background="#1E1E2E" BorderBrush="#2E2E4E"
+            Background="{DynamicResource KrosteSurfaceBrush}" BorderBrush="{DynamicResource KrosteBorderBrush}"
             BorderThickness="0,0,0,1" Padding="8,4">
       <StackPanel Orientation="Horizontal" Spacing="6">
 
@@ -80,26 +56,26 @@
         <Button Content="{l:Tr Tb_Vault}"    Click="OnVault" Padding="8,4"
                 ToolTip.Tip="{l:Tr Tip_Vault}"/>
 
-        <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
+        <Separator Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="4,0"/>
 
         <Button Content="{l:Tr Tb_Run}" Click="OnRun" Padding="8,4"
                 IsEnabled="{Binding CanRun}"
-                Background="#1B5E20" Foreground="White"/>
+                Background="{DynamicResource KrosteSuccessBrush}" Foreground="White"/>
         <Button Content="{l:Tr Tb_Stop}"    Click="OnStop" Padding="8,4"
                 IsEnabled="{Binding CanStop}"
-                Background="#B71C1C" Foreground="White"/>
+                Background="{DynamicResource KrosteDangerBrush}" Foreground="White"/>
         <Button Content="{l:Tr Tb_Pause}"    Click="OnPause" Padding="8,4"
                 IsVisible="{Binding CanPause}"
-                Background="#F57F17" Foreground="White"/>
+                Background="{DynamicResource KrosteGoldBrush}" Foreground="White"/>
         <Button Content="{l:Tr Tb_Step}"  Click="OnStep" Padding="8,4"
                 IsVisible="{Binding CanStep}"
                 ToolTip.Tip="{l:Tr Tip_Step}"
-                Background="#1565C0" Foreground="White"/>
+                Background="{DynamicResource KrosteAccentBrush}" Foreground="White"/>
         <Button Content="{l:Tr Tb_Resume}"   Click="OnResume" Padding="8,4"
                 IsVisible="{Binding IsPaused}"
-                Background="#2E7D32" Foreground="White"/>
+                Background="{DynamicResource KrosteSuccessBrush}" Foreground="White"/>
 
-        <Separator Width="1" Background="#2E2E4E" Margin="4,0"/>
+        <Separator Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="4,0"/>
 
         <Button Content="{l:Tr Tb_Search}"     Click="OnSearchNode" Padding="8,4"
                 ToolTip.Tip="{l:Tr Tip_Search}"/>
@@ -114,31 +90,31 @@
 
     <!-- ── Statusleiste (unten) ── -->
     <Border DockPanel.Dock="Bottom"
-            Background="#16162A" BorderBrush="#2E2E4E"
+            Background="{DynamicResource KrosteTitleBarBrush}" BorderBrush="{DynamicResource KrosteBorderBrush}"
             BorderThickness="0,1,0,0" Padding="10,3">
       <Grid ColumnDefinitions="*,Auto">
         <!-- Links: aktueller Status / Operation -->
         <TextBlock Grid.Column="0" Text="{Binding StatusText}"
-                   VerticalAlignment="Center" Foreground="#B0BEC5" FontSize="12"
+                   VerticalAlignment="Center" Foreground="{DynamicResource KrosteSecondaryTextBrush}" FontSize="12"
                    TextTrimming="CharacterEllipsis"/>
 
         <!-- Rechts: Flow-Infos, KI-Status, Vorschlag-Schalter -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0"
                     VerticalAlignment="Center">
-          <TextBlock Text="{Binding FlowEditor.Title}" Foreground="#90A4AE" FontSize="12"
+          <TextBlock Text="{Binding FlowEditor.Title}" Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12"
                      VerticalAlignment="Center"/>
-          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <Border Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="10,2"/>
           <TextBlock Text="{Binding FlowEditor.ActiveTab.Label, StringFormat='Tab: {0}'}"
-                     Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
-          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+                     Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+          <Border Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="10,2"/>
           <TextBlock Text="{Binding FlowEditor.Nodes.Count, StringFormat='Nodes: {0}'}"
-                     Foreground="#90A4AE" FontSize="12" VerticalAlignment="Center"/>
-          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
-          <TextBlock Text="{Binding AiStatus}" Foreground="#90A4AE" FontSize="12"
+                     Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+          <Border Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="10,2"/>
+          <TextBlock Text="{Binding AiStatus}" Foreground="{DynamicResource KrosteMutedTextBrush}" FontSize="12"
                      VerticalAlignment="Center"/>
-          <Border Width="1" Background="#2E2E4E" Margin="10,2"/>
+          <Border Width="1" Background="{DynamicResource KrosteBorderBrush}" Margin="10,2"/>
           <CheckBox IsChecked="{Binding SuggestionsEnabled}"
-                    Content="{l:Tr Status_NodeSuggest}" Foreground="#B0BEC5" FontSize="12"
+                    Content="{l:Tr Status_NodeSuggest}" Foreground="{DynamicResource KrosteSecondaryTextBrush}" FontSize="12"
                     VerticalAlignment="Center"
                     ToolTip.Tip="{l:Tr Tip_NodeSuggest}"/>
         </StackPanel>
@@ -150,11 +126,11 @@
 
       <!-- Left: Node Palette (top) + Subnodes (bottom) -->
       <Border Grid.Column="0"
-              Background="#1A1A2E" BorderBrush="#2E2E4E"
+              Background="{DynamicResource KrosteCardBrush}" BorderBrush="{DynamicResource KrosteBorderBrush}"
               BorderThickness="0,0,1,0">
         <Grid RowDefinitions="*,6,220">
           <views:NodePaletteView Grid.Row="0" DataContext="{Binding}"/>
-          <GridSplitter Grid.Row="1" Background="#2E2E4E" ResizeDirection="Rows" Margin="0"/>
+          <GridSplitter Grid.Row="1" Background="{DynamicResource KrosteBorderBrush}" ResizeDirection="Rows" Margin="0"/>
           <views:SubnodePanelView Grid.Row="2" DataContext="{Binding}"/>
         </Grid>
       </Border>
@@ -162,16 +138,16 @@
       <!-- Center: Flow Editor + Trace panel -->
       <Grid Grid.Column="1" RowDefinitions="*,6,200">
 
-        <Border Grid.Row="0" Background="#12121F">
+        <Border Grid.Row="0" Background="{DynamicResource KrosteBackgroundBrush}">
           <views:FlowEditorView x:Name="FlowEditorView"
                                 DataContext="{Binding FlowEditor}"/>
         </Border>
 
-        <GridSplitter Grid.Row="1" Background="#2E2E4E"
+        <GridSplitter Grid.Row="1" Background="{DynamicResource KrosteBorderBrush}"
                       ResizeDirection="Rows" Margin="0"/>
 
         <Border Grid.Row="2"
-                Background="#1A1A2E" BorderBrush="#2E2E4E"
+                Background="{DynamicResource KrosteCardBrush}" BorderBrush="{DynamicResource KrosteBorderBrush}"
                 BorderThickness="0,1,0,0">
           <views:TracePanelView DataContext="{Binding TracePanel}"/>
         </Border>
@@ -179,11 +155,11 @@
 
       <!-- Right: Properties (with description + example) -->
       <Border Grid.Column="2"
-              Background="#1A1A2E" BorderBrush="#2E2E4E"
+              Background="{DynamicResource KrosteCardBrush}" BorderBrush="{DynamicResource KrosteBorderBrush}"
               BorderThickness="1,0,0,0">
         <views:PropertiesPanelView DataContext="{Binding FlowEditor}"/>
       </Border>
 
     </Grid>
   </DockPanel>
-</Window>
+</views:ChromeWindow>
