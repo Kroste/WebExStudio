@@ -8,11 +8,23 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
+  <!-- Sicherheitsnetz: Ein Layout-Hänger (siehe WrapSafeText) allokiert unbegrenzt weiter und
+       hat den Rechner schon zweimal in den OOM-Killer getrieben — der killt dann irgendeinen
+       Prozess, nicht unbedingt den Test. Mit hartem GC-Limit stirbt stattdessen der Testlauf
+       selbst mit OutOfMemoryException. 1 GiB ist für diese Tests reichlich (real < 200 MB). -->
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.GC.HeapHardLimit" Value="0x40000000" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- xunit.v3 bringt den Microsoft.Testing.Platform-Runner selbst mit. Microsoft.NET.Test.Sdk
          und xunit.runner.visualstudio gehören zum alten VSTest-Pfad, den das .NET-10-SDK nicht mehr
          unterstützt — sie zu referenzieren reaktiviert ihn und "dotnet test" bricht ab. -->
     <PackageReference Include="xunit.v3" />
+    <!-- Headless-Avalonia: lädt die Fenster wirklich (XAML-Parse, Styles, Resource-Keys),
+         ohne einen Bildschirm zu brauchen. Avalonia.Headless.XUnit 12.x setzt xunit.v3 voraus. -->
+    <PackageReference Include="Avalonia.Headless" />
+    <PackageReference Include="Avalonia.Headless.XUnit" />
   </ItemGroup>
 
   <ItemGroup>

@@ -116,6 +116,14 @@ gepflegt. Die `.csproj`-Dateien enthalten `<PackageReference>` **ohne**
   (KI-Chat-Texte, Flow-/Config-JSON, Proxy/Anbieter-Daten), immer
   `WebExStudio.Core.Logging.SecretMasker.Mask(...)` verwenden und konkrete Geheimwerte
   (API-Key, Proxy-Passwort) als `literalSecrets` mitgeben. Nie API-Key/Passwörter im Klartext loggen.
+- **Umbrechender Text mit Leerzeilen muss durch `WebExStudio.UI.Text.WrapSafeText.Sanitize`.**
+  Avalonia 12.1.1 hängt sich im Layout auf, wenn ein `TextBlock`/`SelectableTextBlock` mit
+  `TextWrapping="Wrap"` einen Text mit **leerer Zeile** anzeigt und in einem `StackPanel` steckt
+  (also auch in jedem `ItemsControl` — dessen Standard-Panel ist eins). Der Prozess frisst dann
+  unbegrenzt Speicher: keine Exception, kein Log, der OOM-Killer holt sich irgendeinen Prozess.
+  Betroffen ist alles mit beliebigem Text: KI-Chat, Hilfe-Codeblöcke, Fehlerdialoge. Ein
+  Zero-Width-Space als Füllung hilft nicht (Vorschubbreite 0) — `Sanitize` setzt ein Leerzeichen.
+  In XAML über `Converter={x:Static text:WrapSafeTextConverter.Instance}`.
 - NLog-Layouts: literale `:` in Renderer-Parametern als `\:` escapen (sonst scheitert der
   Config-Load und es wird gar nichts mehr geloggt) — durch `NLogConfigTests` abgesichert.
 

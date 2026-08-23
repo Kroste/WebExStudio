@@ -66,7 +66,7 @@ public static class GlobalExceptionHandler
 
             var text = new SelectableTextBlock
             {
-                Text = $"{ex.GetType().Name}: {ex.Message}",
+                Text = Text.WrapSafeText.Sanitize($"{ex.GetType().Name}: {ex.Message}"),
                 TextWrapping = TextWrapping.Wrap,
             };
             var hint = new TextBlock

@@ -234,7 +234,8 @@ public static class MarkdownRenderer
         CornerRadius = new CornerRadius(4),
         Padding = new Thickness(8, 6),
         Margin = new Thickness(0, 3),
-        Child = new TextBlock { Text = code, FontFamily = Mono, FontSize = 11, Foreground = Accent2, TextWrapping = TextWrapping.Wrap },
+        // Leerzeilen entschärfen — sonst hängt das Layout, siehe WrapSafeText.
+        Child = new TextBlock { Text = Text.WrapSafeText.Sanitize(code), FontFamily = Mono, FontSize = 11, Foreground = Accent2, TextWrapping = TextWrapping.Wrap },
     };
 
     private static Control Table(string[] header, List<string[]> rows)
