@@ -19,8 +19,8 @@
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
 
     <!-- Engine -->
-    <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.62.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
 
     <!-- Sicherheit — DPAPI unter Windows (nicht Teil des Shared Frameworks, daher als Paket).
          Auf Linux/macOS greift SecretProtection auf AES mit Maschinen-/Benutzer-Bindung zurück. -->
@@ -32,7 +32,7 @@
 
     <!-- Tests — xunit.v3 (v2/'xunit' ist deprecated). Der Runner steckt im Paket selbst;
          Microsoft.NET.Test.Sdk/xunit.runner.visualstudio wären der alte VSTest-Pfad. -->
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
     <!-- Headless-Avalonia für Fenster-Smoke-Tests (lädt echtes XAML ohne Bildschirm).
          Muss auf derselben Linie wie Avalonia sitzen. -->
     <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
