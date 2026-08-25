@@ -31,8 +31,17 @@
     <PackageVersion Include="NLog.Extensions.Logging" Version="6.2.0" />
 
     <!-- Tests — xunit.v3 (v2/'xunit' ist deprecated). Der Runner steckt im Paket selbst;
-         Microsoft.NET.Test.Sdk/xunit.runner.visualstudio wären der alte VSTest-Pfad. -->
-    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+         Microsoft.NET.Test.Sdk/xunit.runner.visualstudio wären der alte VSTest-Pfad.
+
+         BLEIBT auf 3.2.2, obwohl 4.0.0 verfügbar ist: Avalonia.Headless.XUnit
+         12.1.1 — die neueste — hängt laut nuspec an xunit.v3 3.2.2 und ist
+         gegen v4 binär inkompatibel. Mit 4.0.0 stirbt schon die Testerkennung
+         mit MissingMethodException auf
+         TestIntrospectionHelper.GetTestCaseDetails, geworfen aus
+         AvaloniaFactDiscoverer — also bevor ein einziger Test läuft.
+         Erst anheben, wenn Avalonia einen Headless.XUnit-Build gegen v4
+         liefert. -->
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <!-- Headless-Avalonia für Fenster-Smoke-Tests (lädt echtes XAML ohne Bildschirm).
          Muss auf derselben Linie wie Avalonia sitzen. -->
     <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
