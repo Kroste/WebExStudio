@@ -291,8 +291,17 @@ public sealed class MainWindowViewModel : ViewModelBase
             var ct = _runCts.Token;
             // KI-Callback für den ai_query-Node: baut bei Bedarf den konfigurierten LLM-Client
             // (gleicher Proxy wie der Browser) und liefert die Antwort zurück. null = KI aus.
+            // EIN HttpClient für den ganzen Lauf. Vorher wurde er im Callback erzeugt, also pro
+            // ai_query-Ausführung neu — in einer foreach-Schleife sind das schnell Tausende
+            // Handler, deren Sockets in TIME_WAIT hängen bleiben (irgendwann SocketException).
+            using var aiHttp = AiOptions.IsConfigured
+                ? ProxyFactory.CreateHttpClient(
+                    RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
+                    TimeSpan.FromMinutes(2))
+                : null;
+
             Func<AiRequest, CancellationToken, Task<string>>? aiComplete = null;
-            if (AiOptions.IsConfigured)
+            if (aiHttp is not null)
                 aiComplete = async (req, token) =>
                 {
                     // Optionale Anbieter-/Modell-Auswahl des Nodes anwenden (sonst Einstellungen).
@@ -310,10 +319,7 @@ public sealed class MainWindowViewModel : ViewModelBase
                             BaseUrl = providerChanged ? "" : AiOptions.BaseUrl,
                         };
                     }
-                    using var http = ProxyFactory.CreateHttpClient(
-                        RunConfig.ProxyServer, RunConfig.ProxyBypass, RunConfig.ProxyUsername, RunConfig.ProxyPassword,
-                        TimeSpan.FromMinutes(2));
-                    var client = LlmClientFactory.Create(opts, http);
+                    var client = LlmClientFactory.Create(opts, aiHttp);
                     return await client.ChatAsync(req.SystemPrompt, [new ChatMessage(ChatRole.User, req.UserPrompt)], req.JsonMode, token);
                 };
 
