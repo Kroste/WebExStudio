@@ -35,7 +35,7 @@ public sealed class GetValueHandler : IActionHandler
 
         if (!string.IsNullOrEmpty(regexPattern))
         {
-            var match = Regex.Match(raw, regexPattern);
+            var match = SafeRegex.Match(raw, regexPattern);
             if (match.Success)
                 raw = match.Groups.Count > 1 ? match.Groups[1].Value : match.Value;
         }

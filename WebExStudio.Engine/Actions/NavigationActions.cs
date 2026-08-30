@@ -92,7 +92,7 @@ public sealed class GetLinksHandler : IActionHandler
         {
             var href = await el.GetAttributeAsync("href");
             if (string.IsNullOrEmpty(href)) continue;
-            if (!string.IsNullOrEmpty(filter) && !System.Text.RegularExpressions.Regex.IsMatch(href, filter)) continue;
+            if (!string.IsNullOrEmpty(filter) && !SafeRegex.IsMatch(href, filter)) continue;
             links.Add(href);
             if (links.Count >= max) break;
         }

@@ -75,34 +75,34 @@ public sealed class IfThenElseHandler : IActionHandler
                 var el = await ctx.Page.QuerySelectorAsync(selector);
                 if (el is null) return false;
                 var text = await el.TextContentAsync() ?? string.Empty;
-                return useRegex ? Regex.IsMatch(text, value) : text.Contains(value, StringComparison.OrdinalIgnoreCase);
+                return useRegex ? SafeRegex.IsMatch(text, value) : text.Contains(value, StringComparison.OrdinalIgnoreCase);
             }
             case "page_title":
             {
                 var title = await ctx.Page.TitleAsync();
-                return useRegex ? Regex.IsMatch(title, value) : title.Contains(value, StringComparison.OrdinalIgnoreCase);
+                return useRegex ? SafeRegex.IsMatch(title, value) : title.Contains(value, StringComparison.OrdinalIgnoreCase);
             }
             case "page_url":
             {
                 var url = ctx.Page.Url;
-                return useRegex ? Regex.IsMatch(url, value) : url.Contains(value, StringComparison.OrdinalIgnoreCase);
+                return useRegex ? SafeRegex.IsMatch(url, value) : url.Contains(value, StringComparison.OrdinalIgnoreCase);
             }
             case "payload_equals":
             case "ctx_equals":
             {
                 var payloadVal = ctx.Get(selector);
-                return useRegex ? Regex.IsMatch(payloadVal, value) : string.Equals(payloadVal, value, StringComparison.OrdinalIgnoreCase);
+                return useRegex ? SafeRegex.IsMatch(payloadVal, value) : string.Equals(payloadVal, value, StringComparison.OrdinalIgnoreCase);
             }
             case "payload_contains":
             case "ctx_contains":
             {
                 var payloadVal = ctx.Get(selector);
-                return useRegex ? Regex.IsMatch(payloadVal, value) : payloadVal.Contains(value, StringComparison.OrdinalIgnoreCase);
+                return useRegex ? SafeRegex.IsMatch(payloadVal, value) : payloadVal.Contains(value, StringComparison.OrdinalIgnoreCase);
             }
             case "page_matches":
             {
                 var text = await ctx.Page.TextContentAsync("body") ?? string.Empty;
-                return Regex.IsMatch(text, value);
+                return SafeRegex.IsMatch(text, value);
             }
             case "page_contains":
             {
