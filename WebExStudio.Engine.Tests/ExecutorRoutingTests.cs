@@ -109,4 +109,22 @@ public class ExecutorRoutingTests
         Assert.Contains(msgs, m => m.Contains("k=a")); // debug key-filter prints "k=<value>"
         Assert.Contains(msgs, m => m.Contains("k=b"));
     }
+
+    /// <summary>Eine Datei ohne Haupt-Tab ist beschädigt — die Meldung muss das auch sagen,
+    /// statt LINQ durchschlagen zu lassen ("Sequence contains no matching element").</summary>
+    [Fact]
+    public async Task OhneHauptTab_NennenDieMeldungDasProblem()
+    {
+        var doc = new FlowDocument2
+        {
+            Tabs = [new FlowTab { Id = "sub", Label = "Sub", IsSubFlow = true }],
+            Nodes = [],
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new FlowExecutor().RunDocumentAsync(doc, new RunConfig { Browser = "chromium" },
+                new TargetConfig { Name = "t" }, ct: TestContext.Current.CancellationToken));
+
+        Assert.Contains("Haupt-Tab", ex.Message);
+    }
 }

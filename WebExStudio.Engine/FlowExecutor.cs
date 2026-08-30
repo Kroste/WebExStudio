@@ -77,7 +77,7 @@ public sealed class FlowExecutor
     {
         var actionsPath = Path.Combine(config.ProjectDir, target.ActionsFile);
         var doc = await FlowSerializer2.LoadAsync(actionsPath);
-        var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
+        var mainTab = MainTab(doc);
         var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct);
         await ExecuteWiredAsync(doc, mainTab.Id, ctx);
     }
@@ -98,6 +98,9 @@ public sealed class FlowExecutor
         Func<string, string, string?>? secretLookup = null)
     {
         Log.Info("Dokument-Ausführung gestartet: {0} Nodes, Browser={1}", doc.Nodes.Count, config.Browser);
+        // Dokument zuerst prüfen: einen Browser hochzufahren, nur um danach an einer kaputten
+        // Datei zu scheitern, kostet Sekunden und hinterlässt einen halben Playwright-Start.
+        var mainTab = MainTab(doc);
         ApplyDriverPath(config);
         using var playwright = await Playwright.CreateAsync();
         var browser = await LaunchBrowserAsync(playwright, config);
@@ -120,7 +123,6 @@ public sealed class FlowExecutor
 
             try
             {
-                var mainTab = doc.Tabs.First(t => !t.IsSubFlow);
                 var ctx = CreateContext(page, target, config, config.ProjectDir, doc, progress, ct, onPause, pauseGate, downloads.Attach, downloads.Save, aiComplete, secretLookup);
                 await ExecuteWiredAsync(doc, mainTab.Id, ctx);
             }
@@ -233,7 +235,7 @@ public sealed class FlowExecutor
                         attempt + 1, maxRetries + 1, node.Type, node.Id, ex.Message);
                     ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
                         DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
-                        $"Fehler – Wiederholung {attempt + 1}/{maxRetries}: {ex.Message}"));
+                        $"Fehler – Versuch {attempt + 1}/{maxRetries + 1}: {ex.Message}"));
                     if (retryDelayMs > 0) await Task.Delay(retryDelayMs, ctx.CancellationToken);
                 }
                 catch (Exception ex)
@@ -290,6 +292,19 @@ public sealed class FlowExecutor
             PauseGate = pauseGate,
         };
     }
+
+    /// <summary>
+    /// Der Haupt-Tab des Dokuments (der einzige, der kein Unterflow ist).
+    ///
+    /// Eine Datei ohne Haupt-Tab ist von Hand verbogen oder halb geschrieben worden. Vorher endete
+    /// das in einer nackten InvalidOperationException aus LINQ ("Sequence contains no matching
+    /// element"), die nichts darüber sagt, welche Datei gemeint ist.
+    /// </summary>
+    private static FlowTab MainTab(FlowDocument2 doc) =>
+        doc.Tabs.FirstOrDefault(t => !t.IsSubFlow)
+        ?? throw new InvalidOperationException(
+            "Der Flow hat keinen Haupt-Tab (alle Tabs sind als Unterflow markiert) — "
+            + "die Datei ist unvollständig oder beschädigt.");
 
     private static bool IsAnnotation(string type) =>
         type is "label" or "caption" or "note";
