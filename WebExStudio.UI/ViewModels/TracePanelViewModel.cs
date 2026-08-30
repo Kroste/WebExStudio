@@ -23,8 +23,20 @@ public sealed class TracePanelViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _filter, value);
     }
 
-    public void AddEntry(TraceEntry entry) =>
+    /// <summary>
+    /// Obergrenze für das Protokoll. Ohne Deckel wächst die Liste mit jeder Node-Ausführung weiter —
+    /// eine Schleife über ein paar tausend Elemente lässt Speicher und Renderaufwand ungebremst
+    /// steigen. Die ältesten Einträge fallen hinten raus; interessant ist am Ende ohnehin, was
+    /// zuletzt passiert ist.
+    /// </summary>
+    public const int MaxEntries = 5000;
+
+    public void AddEntry(TraceEntry entry)
+    {
         Entries.Add(new TraceEntryViewModel(entry));
+        while (Entries.Count > MaxEntries)
+            Entries.RemoveAt(0);
+    }
 
     public void Clear() => Entries.Clear();
 }

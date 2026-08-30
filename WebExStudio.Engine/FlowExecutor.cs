@@ -9,6 +9,18 @@ namespace WebExStudio.Engine;
 public sealed class FlowExecutor
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    /// <summary>
+    /// Leerer Schnappschuss für die Routine-Einträge (Start/Erfolg/Übersprungen).
+    ///
+    /// WARUM: <see cref="ExecutionContext.ContextSnapshot"/> kopiert den kompletten Payload. Bei zwei
+    /// Einträgen je Node und einer Schleife über einige tausend Elemente hängt so ein Vielfaches des
+    /// Payloads im Protokoll fest, das niemand liest — angezeigt wird der Schnappschuss nur vom
+    /// debug-Node, und der baut ihn sich selbst. Bei Fehlern bleibt er erhalten, dort ist er die
+    /// halbe Diagnose.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string> NoSnapshot =
+        new Dictionary<string, string>();
     private readonly ActionRegistry _registry;
 
     public FlowExecutor(ActionRegistry? registry = null)
@@ -177,14 +189,14 @@ public sealed class FlowExecutor
 
         Log.Info("Node startet: {0} ({1})", node.Type, node.Id);
         ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Running,
-            DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+            DateTime.Now, ctx.Target.Name, NoSnapshot));
 
         var handler = _registry.Get(node.Type);
         if (handler is null)
         {
             Log.Warn("Unbekannter Action-Typ: {0} ({1})", node.Type, node.Id);
             ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Skipped,
-                DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(),
+                DateTime.Now, ctx.Target.Name, NoSnapshot,
                 $"Unbekannter Action-Typ: {node.Type}"));
         }
         else
@@ -201,14 +213,14 @@ public sealed class FlowExecutor
                     await handler.ExecuteAsync(ctx, node);
                     Log.Debug("Node erfolgreich: {0} ({1})", node.Type, node.Id);
                     ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot()));
+                        DateTime.Now, ctx.Target.Name, NoSnapshot));
                     break;
                 }
                 catch (QuitException)
                 {
                     Log.Info("Quit: {0} ({1})", node.Type, node.Id);
                     ctx.Report(new TraceEntry(node.Id, node.Type, ExecutionStatus.Success,
-                        DateTime.Now, ctx.Target.Name, ctx.ContextSnapshot(), "Quit"));
+                        DateTime.Now, ctx.Target.Name, NoSnapshot, "Quit"));
                     throw;
                 }
                 catch (OperationCanceledException)
