@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using System.Text.RegularExpressions;
+using System.Text;
 using Microsoft.Playwright;
 using NLog;
 using WebExStudio.Core.Models;
@@ -78,8 +78,8 @@ public sealed class ExecutionContext
     /// in allen Logs/Traces maskiert werden können. Niemals serialisieren/ausgeben.</summary>
     public HashSet<string> SecretValues { get; init; } = [];
 
-    private static readonly Regex SecretRefRegex =
-        new(@"\{secret\[([^\]\r\n]+)\]\.([A-Za-z0-9_]+)\}", RegexOptions.Compiled);
+    private const string SecretPrefix = "secret[";
+    private const string PayloadPrefix = "payload.";
 
     public ExecutionContext(
         IPage page,
@@ -103,40 +103,131 @@ public sealed class ExecutionContext
             foreach (var kv in payload) Payload[kv.Key] = kv.Value;
     }
 
-    /// <summary>Substitutes {key} and {payload.key} tokens with payload values.</summary>
-    public string Fmt(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return string.Empty;
-        foreach (var kv in Payload)
-        {
-            value = value.Replace($"{{payload.{kv.Key}}}", kv.Value, StringComparison.OrdinalIgnoreCase);
-            value = value.Replace($"{{{kv.Key}}}", kv.Value, StringComparison.OrdinalIgnoreCase);
-        }
-        return value;
-    }
+    /// <summary>
+    /// Ersetzt <c>{key}</c> und <c>{payload.key}</c> durch Payload-Werte.
+    /// Löst KEINE <c>{secret[..]}</c>-Verweise auf — die bleiben wörtlich stehen.
+    /// </summary>
+    public string Fmt(string? value) => Expand(value, withSecrets: false, withPayload: true);
 
     /// <summary>Wie <see cref="Fmt"/>, löst zusätzlich <c>{secret[name].field}</c> aus dem Tresor auf.
     /// NUR in seitenwirksamen Nodes verwenden (Text eingeben, goto-URL …) — Secret-Werte gelangen so
     /// nie in den Payload.</summary>
-    public string FmtSecret(string? value) => ResolveSecrets(Fmt(value));
+    public string FmtSecret(string? value) => Expand(value, withSecrets: true, withPayload: true);
 
-    /// <summary>Ersetzt <c>{secret[name].field}</c> durch die Tresor-Werte (für sofortige Verwendung).
-    /// Wirft, wenn der Tresor gesperrt ist oder ein Eintrag fehlt. Aufgelöste Werte werden für die
-    /// Maskierung vermerkt.</summary>
-    public string ResolveSecrets(string text)
+    /// <summary>Ersetzt nur <c>{secret[name].field}</c> durch die Tresor-Werte; Payload-Platzhalter
+    /// bleiben unangetastet. Wirft, wenn der Tresor gesperrt ist oder ein Eintrag fehlt.
+    /// Aufgelöste Werte werden für die Maskierung vermerkt.</summary>
+    public string ResolveSecrets(string text) => Expand(text, withSecrets: true, withPayload: false);
+
+    /// <summary>
+    /// Löst alle Platzhalter in EINEM Durchlauf über die Vorlage auf.
+    ///
+    /// WARUM ein Durchlauf und nicht nacheinander ersetzen — zwei Gründe, beide unangenehm:
+    ///
+    /// 1. <b>Sicherheit.</b> Vorher war <c>FmtSecret</c> = „erst Payload einsetzen, dann Secrets
+    ///    auflösen". Damit wurde eingesetzter Payload-Inhalt erneut nach <c>{secret[..]}</c>
+    ///    durchsucht — und Payload-Inhalt kommt über <c>get_value</c> direkt von der besuchten
+    ///    Seite. Eine Seite mit dem Text <c>{secret[github].password}</c> konnte sich so das echte
+    ///    Passwort in ein Eingabefeld tippen oder in eine URL hängen lassen. Hier wird nur die
+    ///    Vorlage gescannt; eingesetzter Text wird NIE erneut betrachtet.
+    /// 2. <b>Kosten und Vorhersagbarkeit.</b> Der alte Weg lief einmal je Payload-Schlüssel über
+    ///    den ganzen String (zwei <c>Replace</c> pro Schlüssel, auch ohne einen einzigen
+    ///    Platzhalter in der Vorlage) und ersetzte dabei auch in bereits eingesetztem Text — das
+    ///    Ergebnis hing an der Aufzählungsreihenfolge des Dictionary.
+    ///
+    /// Unbekannte Platzhalter bleiben wörtlich stehen (<c>"kein {fehlt}"</c>), damit man im
+    /// Ergebnis sieht, was nicht aufgelöst werden konnte.
+    /// </summary>
+    private string Expand(string? template, bool withSecrets, bool withPayload)
     {
-        if (string.IsNullOrEmpty(text) || !text.Contains("{secret[", StringComparison.OrdinalIgnoreCase))
-            return text;
-        return SecretRefRegex.Replace(text, m =>
+        if (string.IsNullOrEmpty(template)) return string.Empty;
+        if (!template.Contains('{')) return template;
+
+        var sb = new StringBuilder(template.Length);
+        var i = 0;
+        while (i < template.Length)
         {
-            var name = m.Groups[1].Value.Trim();
-            var field = m.Groups[2].Value.Trim();
-            var val = SecretLookup?.Invoke(name, field)
+            if (template[i] != '{')
+            {
+                sb.Append(template[i]);
+                i++;
+                continue;
+            }
+
+            var close = template.IndexOf('}', i + 1);
+            if (close < 0)
+            {
+                sb.Append(template, i, template.Length - i); // offene Klammer: Rest wörtlich
+                break;
+            }
+
+            // Verschachtelte Klammer (z. B. JSON-Text `{ "a": "{payload.x}" }`): das äußere '{'
+            // gehört nicht zu einem Platzhalter — wörtlich ausgeben und beim inneren weitersuchen.
+            var nextOpen = template.IndexOf('{', i + 1);
+            if (nextOpen >= 0 && nextOpen < close)
+            {
+                sb.Append(template, i, nextOpen - i);
+                i = nextOpen;
+                continue;
+            }
+
+            if (TryResolveToken(template.AsSpan(i + 1, close - i - 1), withSecrets, withPayload, out var resolved))
+                sb.Append(resolved);
+            else
+                sb.Append(template, i, close - i + 1); // unbekannt → Platzhalter bleibt stehen
+
+            i = close + 1;
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Löst einen einzelnen Platzhalter-Inhalt (ohne die Klammern) auf.</summary>
+    private bool TryResolveToken(ReadOnlySpan<char> token, bool withSecrets, bool withPayload, out string value)
+    {
+        value = string.Empty;
+
+        if (token.StartsWith(SecretPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TrySplitSecretRef(token, out var name, out var field)) return false;
+            // Ohne Secret-Erlaubnis bleibt der Verweis stehen — so landet er nie im Payload.
+            if (!withSecrets) return false;
+
+            value = SecretLookup?.Invoke(name, field)
                 ?? throw new InvalidOperationException(
                     $"Secret '{name}.{field}' nicht verfügbar (Tresor gesperrt oder Eintrag fehlt).");
-            if (val.Length > 0) SecretValues.Add(val);
-            return val;
-        });
+            if (value.Length > 0) SecretValues.Add(value);
+            return true;
+        }
+
+        if (!withPayload) return false;
+
+        var key = token.StartsWith(PayloadPrefix, StringComparison.OrdinalIgnoreCase)
+            ? token[PayloadPrefix.Length..]
+            : token;
+        return Payload.TryGetValue(key.ToString(), out value!);
+    }
+
+    /// <summary>Zerlegt <c>secret[name].field</c>. Dieselbe Form wie früher der reguläre Ausdruck:
+    /// Name ohne <c>]</c> und ohne Zeilenumbruch, Feld nur Buchstaben/Ziffern/Unterstrich.</summary>
+    private static bool TrySplitSecretRef(ReadOnlySpan<char> token, out string name, out string field)
+    {
+        name = field = string.Empty;
+
+        var close = token.IndexOf(']');
+        if (close <= SecretPrefix.Length) return false;                 // "secret[]" hat keinen Namen
+        if (close + 1 >= token.Length || token[close + 1] != '.') return false;
+
+        var rawName = token[SecretPrefix.Length..close];
+        if (rawName.ContainsAny('\r', '\n')) return false;
+
+        var rawField = token[(close + 2)..];
+        if (rawField.IsEmpty) return false;
+        foreach (var ch in rawField)
+            if (!char.IsAsciiLetterOrDigit(ch) && ch != '_') return false;
+
+        name = rawName.Trim().ToString();
+        field = rawField.Trim().ToString();
+        return true;
     }
 
     /// <summary>Ersetzt bekannte Secret-Werte durch *** (für sicheres Logging).</summary>
