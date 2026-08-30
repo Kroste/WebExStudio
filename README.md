@@ -114,7 +114,7 @@ dotnet build          # entire solution (WebExStudio.slnx)
 | **Tab bar** | Open tabs (Main + opened subnodes). Every tab except Main has a ✕. |
 | **Canvas** | The flow graph: nodes + wires. Zoom/pan, right-click menu. |
 | **Properties** (right) | Fields of the selected node + label + description/example. When you **click a palette node** a **read-only preview** appears here (properties + hints/example) — it becomes editable only once the node is in the flow. |
-| **Execution log** (bottom) | Live trace per node (Running/Success/Error/Skipped) including debug output. |
+| **Execution log** (bottom) | Live trace per node (Running/Success/Error/Skipped) including debug output. Keeps the **last 5000 entries** — older ones drop off so long loops don't grow memory without bound. |
 
 ---
 
@@ -183,6 +183,7 @@ dotnet build          # entire solution (WebExStudio.slnx)
 | **Zoom** | **Ctrl**+mouse wheel. |
 | **Reset / fit view** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
 | **Maximize / full screen** | Title bar **☐** or double-click the title bar; **full screen** with **F11**. (Maximizing borderless windows can misbehave depending on the Linux window manager/Wayland compositor. The window has the fixed class **`WebExStudio`** — under KDE, for example, you can create a window rule to "force maximize".) |
+| **Quit with unsaved changes** | Prompt with **Save / Discard / Cancel**. Escape and the title bar **✕** mean *Cancel*, so an accidental close costs nothing. |
 | **Windows** | Every window — main window, settings, help, about, vault and all dialogs — uses the same custom title bar (drag, **—**, **☐**, **✕**) and is **freely resizable**. |
 | **Create/rename/delete subnode** | Subnodes panel: **＋ / ✎ / 🗑**. |
 | **Open subnode** | Double-click in the subnodes panel **or** double-click the `call` node in the flow → opens as a tab. |
@@ -466,6 +467,7 @@ and only referenced by name.
   `set_payload`/`function`) — so the **debug node** never shows the value. In **logs/traces** they are
   **masked** (`***`). The protection guards against sharing/repo/logs — not against an attacker with an
   unlocked session or the master password (the app must decrypt the values at runtime).
+- Placeholders that arrive **from the page** are never expanded: if scraped text happens to contain `{secret[…]}` and is inserted via `{payload.…}`, it stays literal. Only references written in the node's own configuration resolve — otherwise a prepared page could have the vault type its own secrets into a form.
 - The program settings have their **own** protection: the **AI API key** and the **proxy password** in
   `settings.json` are stored **encrypted** (Windows: DPAPI per user; Linux/macOS: AES bound to machine
   and user account), never in clear text. Values written by older versions are migrated automatically on

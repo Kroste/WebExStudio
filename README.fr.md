@@ -114,7 +114,7 @@ dotnet build          # toute la solution (WebExStudio.slnx)
 | **Barre d'onglets** | Onglets ouverts (Main + sous-nœuds ouverts). Chaque onglet sauf Main a un ✕. |
 | **Zone de travail** | Le graphe de flux : nœuds + connexions. Zoom/déplacement, menu clic droit. |
 | **Propriétés** (à droite) | Champs du nœud sélectionné + libellé + description/exemple. Au **clic sur un nœud de la palette**, un **aperçu en lecture seule** apparaît ici (propriétés + indices/exemple) — il ne devient modifiable qu'une fois le nœud dans le flux. |
-| **Journal d'exécution** (en bas) | Trace en direct par nœud (Running/Success/Error/Skipped), y compris les sorties debug. |
+| **Journal d'exécution** (en bas) | Trace en direct par nœud (Running/Success/Error/Skipped), y compris les sorties debug. Conserve les **5000 dernières entrées** — les plus anciennes disparaissent afin que les longues boucles ne fassent pas croître la mémoire sans limite. |
 
 ---
 
@@ -183,6 +183,7 @@ dotnet build          # toute la solution (WebExStudio.slnx)
 | **Zoom** | **Ctrl**+molette. |
 | **Réinitialiser / ajuster la vue** | Barre d'outils **🔍 Réinitialiser la vue** / **⊞ Ajuster**. |
 | **Agrandir / plein écran** | Barre de titre **☐** ou double-clic sur la barre de titre ; **plein écran** avec **F11**. (L'agrandissement des fenêtres sans bordure peut mal fonctionner selon le gestionnaire de fenêtres Linux/compositeur Wayland. La fenêtre a la classe fixe **`WebExStudio`** — sous KDE par exemple, vous pouvez créer une règle de fenêtre « forcer l'agrandissement ».) |
+| **Quitter avec des modifications non enregistrées** | Demande avec **Enregistrer / Abandonner / Annuler**. Échap et le **✕** de la barre de titre valent *Annuler*, une fermeture accidentelle ne coûte donc rien. |
 | **Fenêtres** | Chaque fenêtre — fenêtre principale, paramètres, aide, à propos, coffre et tous les dialogues — utilise la même barre de titre personnalisée (glisser, **—**, **☐**, **✕**) et est **librement redimensionnable**. |
 | **Créer/renommer/supprimer un sous-nœud** | Panneau Sous-nœuds : **＋ / ✎ / 🗑**. |
 | **Ouvrir un sous-nœud** | Double-clic dans le panneau Sous-nœuds **ou** double-clic sur le nœud `call` dans le flux → ouvre en onglet. |
@@ -466,6 +467,7 @@ et référencés uniquement par leur nom.
   payload** (pas même via `set_payload`/`function`) — le **nœud debug** n'affiche donc jamais la valeur. Dans les
   **journaux/traces**, elles sont **masquées** (`***`). La protection vaut contre le partage/dépôt/journaux — pas contre un
   attaquant disposant d'une session déverrouillée ou du mot de passe maître (l'appli doit déchiffrer les valeurs à l'exécution).
+- Les espaces réservés provenant **de la page** ne sont jamais résolus : si un texte récupéré contient `{secret[…]}` et qu'il est inséré via `{payload.…}`, il reste littéral. Seules les références écrites dans la configuration du nœud lui-même sont résolues — sinon une page préparée pourrait faire saisir ses secrets au coffre.
 - Les paramètres du programme disposent de leur **propre** protection : la **clé API de l'IA** et le
   **mot de passe du proxy** dans `settings.json` sont stockés **chiffrés** (Windows : DPAPI par
   utilisateur ; Linux/macOS : AES lié à la machine et au compte), jamais en clair. Les valeurs issues

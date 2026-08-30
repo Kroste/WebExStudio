@@ -114,7 +114,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Tab-Leiste** | Offene Tabs (Main + geöffnete Subnodes). Jeder Tab außer Main hat ein ✕. |
 | **Canvas** | Der Flow-Graph: Nodes + Wires. Zoom/Pan, Rechtsklick-Menü. |
 | **Eigenschaften** (rechts) | Felder des ausgewählten Nodes + Bezeichnung + Beschreibung/Beispiel. Beim **Anklicken eines Palette-Nodes** erscheint hier eine **Nur-Lese-Vorschau** (Eigenschaften + Hinweise/Beispiel) — bearbeitbar wird es erst, wenn der Node im Flow liegt. |
-| **Ausführungsprotokoll** (unten) | Live-Trace pro Node (Running/Success/Error/Skipped) inkl. Debug-Ausgaben. |
+| **Ausführungsprotokoll** (unten) | Live-Trace pro Node (Running/Success/Error/Skipped) inkl. Debug-Ausgaben. Hält die **letzten 5000 Einträge** — ältere fallen hinten raus, damit lange Schleifen den Speicher nicht ungebremst wachsen lassen. |
 
 ---
 
@@ -183,6 +183,7 @@ dotnet build          # gesamte Solution (WebExStudio.slnx)
 | **Zoom** | **Strg**+Mausrad. |
 | **Ansicht zurücksetzen / einpassen** | Toolbar **🔍 Reset View** / **⊞ Fit**. |
 | **Fenster maximieren / Vollbild** | Titelleiste **☐** bzw. Doppelklick auf die Titelleiste; **Vollbild** mit **F11**. (Maximieren randloser Fenster kann je nach Linux-Fenstermanager/Wayland-Compositor klemmen. Das Fenster hat die feste Klasse **`WebExStudio`** — darüber lässt sich z. B. unter KDE eine Fensterregel „maximiert erzwingen" anlegen.) |
+| **Beenden mit ungespeicherten Änderungen** | Nachfrage mit **Speichern / Verwerfen / Abbrechen**. Escape und das **✕** der Titelleiste bedeuten *Abbrechen*, ein versehentliches Schließen kostet also nichts. |
 | **Fenster** | Jedes Fenster — Hauptfenster, Einstellungen, Hilfe, Info, Tresor und alle Dialoge — hat dieselbe eigene Titelleiste (Ziehen, **—**, **☐**, **✕**) und ist **frei größenveränderbar**. |
 | **Subnode anlegen/umbenennen/löschen** | Subnodes-Panel: **＋ / ✎ / 🗑**. |
 | **Subnode öffnen** | Doppelklick im Subnodes-Panel **oder** Doppelklick auf den `call`-Node im Flow → öffnet als Tab. |
@@ -466,6 +467,7 @@ und werden nur per Namen referenziert.
   (auch nicht über `set_payload`/`function`) — der **Debug-Node** zeigt also nie den Wert. In **Logs/Traces**
   werden sie **maskiert** (`***`). Schutz greift gegen Weitergabe/Repo/Logs — nicht gegen einen Angreifer mit
   entsperrter Sitzung bzw. dem Master-Passwort (die App muss die Werte zur Laufzeit entschlüsseln).
+- Platzhalter, die **von der Seite** kommen, werden nie aufgelöst: Enthält gescrapter Text zufällig `{secret[…]}` und wird über `{payload.…}` eingesetzt, bleibt er wörtlich stehen. Nur Verweise, die in der Node-Konfiguration selbst stehen, lösen auf — sonst könnte eine präparierte Seite den Tresor dazu bringen, seine Geheimnisse selbst ins Formular zu tippen.
 - Die Programm-Einstellungen haben einen **eigenen** Schutz: der **KI-API-Key** und das
   **Proxy-Passwort** in `settings.json` liegen **verschlüsselt** auf Platte (Windows: DPAPI je
   Benutzer; Linux/macOS: AES, an Rechner und Benutzerkonto gebunden), nie im Klartext. Werte aus
