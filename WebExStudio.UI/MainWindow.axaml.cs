@@ -121,12 +121,16 @@ public partial class MainWindow : ChromeWindow
             await Vm.OpenFlowAsync(files[0].Path.LocalPath);
     }
 
-    private async void OnSaveFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnSaveFlow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        await SaveFlowAsync();
+
+    /// <summary>Speichert den Flow. Liefert false, wenn der Nutzer den Dateidialog abgebrochen hat.</summary>
+    private async Task<bool> SaveFlowAsync()
     {
         if (Vm.FlowEditor.Document?.FilePath is { } existing)
         {
             await Vm.SaveFlowAsync(existing);
-            return;
+            return true;
         }
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
@@ -134,8 +138,9 @@ public partial class MainWindow : ChromeWindow
             DefaultExtension = "json",
             FileTypeChoices = [new FilePickerFileType(Loc.T("Mw_FlowJson")) { Patterns = ["*.json"] }],
         });
-        if (file is not null)
-            await Vm.SaveFlowAsync(file.Path.LocalPath);
+        if (file is null) return false;
+        await Vm.SaveFlowAsync(file.Path.LocalPath);
+        return true;
     }
 
     private bool _closing;
@@ -193,26 +198,54 @@ public partial class MainWindow : ChromeWindow
 
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
-        if (!_closing)
+        if (_closing)
         {
-            _closing = true;
-
-            // Cancel a running flow and give it a moment to release Playwright.
-            if (Vm.CanStop)
-            {
-                e.Cancel = true;
-                Vm.StopRun();
-                if (Vm.RunTask is { } task)
-                    await Task.WhenAny(task, Task.Delay(5000));
-            }
-
-            // Playwright spawns foreground driver/browser threads that keep the
-            // process alive even after the window closes. Force-terminate to avoid
-            // a lingering process that has to be killed manually.
-            Environment.Exit(0);
+            base.OnClosing(e);
             return;
         }
-        base.OnClosing(e);
+
+        // Immer erst abbrechen: alles Weitere ist asynchron, und ein Fenster, das währenddessen
+        // schon zu ist, kann keinen Dialog mehr anzeigen.
+        e.Cancel = true;
+
+        // Ungespeicherte Arbeit nicht kommentarlos wegwerfen — IsDirty wird geführt und im Titel
+        // als "*" angezeigt, also darf das Schließen sie nicht stillschweigend verschlucken.
+        if (Vm.FlowEditor.IsDirty && !await ConfirmDiscardOrSaveAsync())
+            return; // Nutzer hat abgebrochen (oder das Speichern abgebrochen): Fenster bleibt offen.
+
+        _closing = true;
+
+        // Laufenden Flow abbrechen und Playwright einen Moment zum Aufräumen geben.
+        if (Vm.CanStop)
+        {
+            Vm.StopRun();
+            if (Vm.RunTask is { } task)
+                await Task.WhenAny(task, Task.Delay(5000));
+        }
+
+        // Playwright spawns foreground driver/browser threads that keep the
+        // process alive even after the window closes. Force-terminate to avoid
+        // a lingering process that has to be killed manually.
+        Environment.Exit(0);
+    }
+
+    /// <summary>
+    /// Fragt nach, was mit den ungespeicherten Änderungen passieren soll.
+    /// Liefert true, wenn geschlossen werden darf (gespeichert oder bewusst verworfen).
+    /// </summary>
+    private async Task<bool> ConfirmDiscardOrSaveAsync()
+    {
+        var name = Vm.FlowEditor.Document?.FilePath is { } fp ? Path.GetFileNameWithoutExtension(fp) : null;
+        var answer = await new UnsavedChangesDialog(name).ShowDialog<UnsavedChangesAnswer>(this);
+
+        return answer switch
+        {
+            UnsavedChangesAnswer.Discard => true,
+            // Beim Speichern kann der Dateidialog abgebrochen werden — dann bleibt das Fenster offen,
+            // sonst wäre die Arbeit trotz "Speichern" weg.
+            UnsavedChangesAnswer.Save => await SaveFlowAsync(),
+            _ => false,
+        };
     }
 
     private void OnStop(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>

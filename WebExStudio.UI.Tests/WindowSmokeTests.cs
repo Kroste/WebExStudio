@@ -66,6 +66,7 @@ public class WindowSmokeTests
         { "HelpWindow", () => new HelpWindow() },
         { "SettingsWindow", () => new SettingsWindow() },
         { "PasswordDialog", () => new PasswordDialog() },
+        { "UnsavedChangesDialog", () => new UnsavedChangesDialog() },
         { "CredentialVaultWindow", () => new CredentialVaultWindow() },
         { "SubnodeDialog", () => new SubnodeDialog() },
         { "ChatWindow", () => new ChatWindow() },
